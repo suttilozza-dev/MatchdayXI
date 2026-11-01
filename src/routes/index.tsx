@@ -1,6 +1,8 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
 import { CREDIT_PACKS } from '#/lib/config'
 import { GAMEWEEK_DEFAULT } from '#/lib/data'
+import { HeaderLogo, Logo } from '#/components/Logo'
+import { LOGOS } from '#/lib/logos'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -14,12 +16,15 @@ function Home() {
   return (
     <div>
       <header className="mx-auto max-w-[1100px] px-4 py-5 flex items-center justify-between">
-        <div className="font-display text-xl font-bold">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></div>
+        <HeaderLogo />
         <Link to="/board" className="font-display text-sm tracking-widest text-[#CFFF4D]">Open the board →</Link>
       </header>
 
       <main>
         <section className="mx-auto max-w-[1100px] px-4 pt-10 pb-16 text-center">
+          <div className="mx-auto mb-6 rounded-2xl overflow-hidden" style={{ width: 'min(320px, 80vw)', background: LOGOS['02'].bg }}>
+            <Logo id="02" label="Matchday XI pitch monogram" />
+          </div>
           <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,10vw,7rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-[#AFCDBF]">
             Build your predicted or dream Premier League line-up on a tactical board, then download or copy it to share on socials.
