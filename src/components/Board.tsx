@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CLUBS, CLUB_COLOURS, FORMATIONS, colourDistance, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
+import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
 import { CHECKOUT_LINKS, CREDIT_PACKS } from '#/lib/config'
 import { spendDownloadCredit } from '#/lib/credits'
 import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type Orient, type PlacedMarker, type Shape } from '#/lib/pitch'
 
 type Side = 'home' | 'away'
 type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
-type TeamState = { club: string; formation: string; colour: string; colour2: string; slots: Slot[]; bench: number[] }
+type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[] }
 const BENCH_MAX = 9 // Premier League: nine named substitutes
 
 function autoFill(club: string, formation: string): Slot[] {
@@ -37,7 +37,8 @@ function defaultBench(squadLen: number, squad: Player[], slots: Slot[]): number[
 function makeTeam(club: string, formation: string): TeamState {
   const slots = autoFill(club, formation)
   const squad = squadFor(club)
-  return { club, formation, colour: CLUB_COLOURS[club] ?? '#CFFF4D', colour2: '#F7F7F2', slots, bench: defaultBench(squad.length, squad, slots) }
+  const [colour, colour2] = kitColours(club, 'home')!
+  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots) }
 }
 
 type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string }
@@ -99,9 +100,15 @@ export default function Board() {
   // two teams on one pitch must be told apart: if the shirts clash, give the away side the brand cyan (or lime)
   useEffect(() => {
     if (!versus || colourDistance(home.colour, away.colour) >= 70) return
-    const alt = colourDistance(home.colour, '#1FD1C1') > 90 ? '#1FD1C1' : '#CFFF4D'
-    setAway((a) => ({ ...a, colour: alt }))
-  }, [versus, home.colour, away.colour])
+    setAway((a) => {
+      for (const k of ['away', 'third'] as KitName[]) {
+        const c = kitColours(a.club, k)
+        if (c && colourDistance(home.colour, c[0]) >= 90) return { ...a, kit: k, colour: c[0], colour2: c[1] }
+      }
+      const alt = colourDistance(home.colour, '#1FD1C1') > 90 ? '#1FD1C1' : '#CFFF4D'
+      return { ...a, colour: alt }
+    })
+  }, [versus, home.colour, away.colour, away.club])
 
   const team = (side: Side) => (side === 'home' ? home : away)
   const setTeam = (side: Side, fn: (t: TeamState) => TeamState) => (side === 'home' ? setHome(fn) : setAway(fn))
@@ -373,6 +380,18 @@ export default function Board() {
             <select id={`club-${side}`} className="field" value={t.club} onChange={(e) => changeClub(side, e.target.value)}>
               {CLUBS.map((c) => <option key={c}>{c}</option>)}
             </select>
+            <div className="flex gap-2 flex-wrap" role="group" aria-label={`${side} kit`}>
+              {(['home', 'away', 'third'] as KitName[]).map((k) => {
+                const c = kitColours(t.club, k)
+                if (!c) return null
+                return (
+                  <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
+                    {k}
+                  </button>
+                )
+              })}
+            </div>
             <div className="grid grid-cols-[1fr_auto] gap-2">
               <label className="sr-only" htmlFor={`form-${side}`}>{side} formation</label>
               <select id={`form-${side}`} className="field" value={t.formation} onChange={(e) => changeFormation(side, e.target.value)}>

@@ -45,6 +45,33 @@ export const CLUB_COLOURS: Record<string, string> = {
   'Tottenham Hotspur': '#F2F2F2',
 }
 
+export type KitName = 'home' | 'away' | 'third'
+/** [main colour, trim colour] per kit, estimated by eye from the clubs' 2026/27 kit photos. Clubs not listed fall back to CLUB_COLOURS (home only). */
+export const KITS: Record<string, Partial<Record<KitName, [string, string]>>> = {
+  Arsenal: { home: ['#D8202F', '#F4F4F4'], away: ['#1C2B5A', '#E8B93A'], third: ['#F6E9A8', '#2B3A6B'] },
+  Bournemouth: { home: ['#D4202A', '#141414'], away: ['#8C7BD6', '#F4F4F4'], third: ['#F3EEE2', '#141414'] },
+  Brentford: { home: ['#D6202F', '#F4F4F4'], away: ['#1A1B3C', '#EDE6D8'], third: ['#F5E02A', '#141414'] },
+  'Brighton and Hove Albion': { home: ['#1F4FC0', '#F4F4F4'], away: ['#F4F6FA', '#1F7FD6'], third: ['#0F4A47', '#4FE0C8'] },
+  Fulham: { home: ['#F4F4FA', '#141414'], away: ['#1A1A1A', '#D4202A'], third: ['#8FC5EE', '#F04FA0'] },
+  'Aston Villa': { home: ['#6B1D45', '#9CC7E8'], away: ['#2A2A2A', '#D9A93A'], third: ['#BFDDF2', '#6B1D45'] },
+  Chelsea: { home: ['#0B4FD6', '#E0B23B'], away: ['#141414', '#E8C830'], third: ['#F4F4F4', '#1D4FBF'] },
+  'Coventry City': { home: ['#3C9FDB', '#FFFFFF'], away: ['#F2EFE8', '#FF7A5C'], third: ['#C77FD6', '#FF6A4D'] },
+  'Crystal Palace': { home: ['#F4F4F4', '#E4172B'], away: ['#1A1A1A', '#2B5BE0'], third: ['#1F3FB0', '#E4172B'] },
+  Everton: { home: ['#1D3FB3', '#F2C230'], away: ['#F4F4F2', '#1B2A6B'], third: ['#3F6B5C', '#E5B94A'] },
+  'Hull City': { home: ['#F5A01A', '#141414'], away: ['#F4F4F2', '#F5A01A'], third: ['#3F5FE0', '#F4F4F4'] },
+  'Leeds United': { home: ['#F6F6F2', '#2F55C9'], away: ['#F4E21B', '#141414'], third: ['#1E1E1E', '#9A9A9A'] },
+  Liverpool: { home: ['#B81F2D', '#F4F4F4'], away: ['#F2F2F0', '#C8202F'], third: ['#3B1C2A', '#E0E0E0'] },
+  'Manchester City': { home: ['#8EC5EE', '#FFFFFF'], away: ['#161616', '#F2D58A'], third: ['#F6F6F6', '#1F3C88'] },
+  'Nottingham Forest': { home: ['#D41E26', '#F4F4F4'], away: ['#1F4A44', '#D41E26'], third: ['#7EC0EA', '#F4F4F4'] },
+}
+
+export function kitColours(club: string, kit: KitName): [string, string] | null {
+  const k = KITS[club]?.[kit]
+  if (k) return k
+  if (kit === 'home') return [CLUB_COLOURS[club] ?? '#CFFF4D', '#F7F7F2']
+  return null
+}
+
 export const FORMATIONS: Record<string, { role: string; pos: Pos; u: number; v: number }[]> = (() => {
   // u: 0 = own goal line, 1 = opposition goal line. v: 0..1 across the pitch.
   const SPREAD = [0, 0, 0.36, 0.58, 0.72, 0.84]
