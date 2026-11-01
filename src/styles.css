@@ -1,5 +1,15 @@
-
 @import "tailwindcss";
+
+:root {
+  --pitch-ink: #0e2a20;
+  --pitch-green: #123c2c;
+  --turf: #1b5940;
+  --floodlight: #f7f7f2;
+  --boot-lime: #cfff4d;
+  --away-cyan: #1fd1c1;
+  --card-amber: #ffb020;
+  --mist: #afcdbf;
+}
 
 * {
   box-sizing: border-box;
@@ -13,5 +23,75 @@ body,
 
 body {
   margin: 0;
+  background: var(--pitch-ink);
+  color: var(--floodlight);
+  font-family: 'Inter', system-ui, sans-serif;
 }
 
+.font-display {
+  font-family: 'Oswald', 'Arial Narrow', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.btn {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  min-height: 44px;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-decoration: none;
+}
+.btn-lime { background: var(--boot-lime); color: var(--pitch-ink); }
+.btn-ghost { background: transparent; color: var(--floodlight); border-color: rgba(247, 247, 242, 0.35); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:focus-visible, select:focus-visible, input:focus-visible, button:focus-visible, a:focus-visible {
+  outline: 2px solid var(--boot-lime);
+  outline-offset: 2px;
+}
+
+.panel { background: var(--pitch-green); border-radius: 10px; border: 1px solid rgba(247, 247, 242, 0.1); }
+
+.field {
+  background: var(--pitch-ink);
+  color: var(--floodlight);
+  border: 1px solid rgba(247, 247, 242, 0.25);
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  min-height: 44px;
+  font-size: 0.9rem;
+  width: 100%;
+}
+
+.chip {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.5rem 0.85rem;
+  min-height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(247, 247, 242, 0.3);
+  background: transparent;
+  color: var(--floodlight);
+  cursor: pointer;
+}
+.chip[aria-pressed='true'] { background: var(--boot-lime); color: var(--pitch-ink); border-color: var(--boot-lime); }
+
+.player-row { display: flex; align-items: center; gap: 0.6rem; padding: 0.45rem 0.6rem; border-radius: 8px; cursor: grab; min-height: 40px; width: 100%; background: transparent; border: 0; color: inherit; text-align: left; font: inherit; }
+.player-row:hover { background: rgba(247, 247, 242, 0.08); }
+.player-row[data-used='true'] { opacity: 0.45; }
+.player-num { font-family: 'Oswald', sans-serif; font-weight: 700; width: 2rem; text-align: center; border-radius: 999px; border: 2px solid var(--boot-lime); font-size: 0.85rem; line-height: 1.6; flex: none; }
+
+.marker { cursor: grab; touch-action: none; }
+.marker:active { cursor: grabbing; }
