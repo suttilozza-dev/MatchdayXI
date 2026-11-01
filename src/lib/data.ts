@@ -48,6 +48,11 @@ export const CLUB_COLOURS: Record<string, string> = {
 export type KitName = 'home' | 'away' | 'third'
 /** [main colour, trim colour] per kit, estimated by eye from the clubs' 2026/27 kit photos. Clubs not listed fall back to CLUB_COLOURS (home only). */
 export const KITS: Record<string, Partial<Record<KitName, [string, string]>>> = {
+  'Manchester United': { home: ['#D81E2A', '#F4F4F4'], away: ['#1F4FD0', '#D8202F'], third: ['#F2EEE6', '#1A1A1A'] },
+  'Newcastle United': { home: ['#F4F4F4', '#141414'], away: ['#26384F', '#7FD3E0'], third: ['#D2B3E0', '#3B2A6B'] },
+  Sunderland: { home: ['#D8202F', '#F4F4F4'], away: ['#EE9DB8', '#141414'], third: ['#1B3FA0', '#D9A441'] },
+  'Tottenham Hotspur': { home: ['#F6F6F8', '#1F2A6B'], away: ['#1B2A55', '#F0875A'], third: ['#5B2FC9', '#141414'] },
+  'Ipswich Town': { home: ['#1D3FB0', '#F4F4F4'], away: ['#EFE0B8', '#D8202F'] },
   Arsenal: { home: ['#D8202F', '#F4F4F4'], away: ['#1C2B5A', '#E8B93A'], third: ['#F6E9A8', '#2B3A6B'] },
   Bournemouth: { home: ['#D4202A', '#141414'], away: ['#8C7BD6', '#F4F4F4'], third: ['#F3EEE2', '#141414'] },
   Brentford: { home: ['#D6202F', '#F4F4F4'], away: ['#1A1B3C', '#EDE6D8'], third: ['#F5E02A', '#141414'] },
