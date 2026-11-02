@@ -28,7 +28,7 @@ export const Route = createFileRoute('/api/auth/login')({
         }).toString()
         return new Response(null, {
           status: 302,
-          headers: { Location: url.toString(), 'Set-Cookie': cookie(OAUTH_COOKIE, await sign({ verifier, state, exp: Date.now() / 1000 + 600 }), 600) },
+          headers: { Location: url.toString(), 'Set-Cookie': cookie(OAUTH_COOKIE, await sign({ verifier, state, nonce, exp: Date.now() / 1000 + 600 }), 600) },
         })
       },
     },
