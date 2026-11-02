@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
-import { CHECKOUT_LINKS, CREDIT_PACKS, SUBSCRIPTION } from '#/lib/config'
-import { getAccess, spendExportCredit, type Access } from '#/lib/credits'
-import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type Orient, type PlacedMarker, type Shape } from '#/lib/pitch'
+import { CAPS, getAccess, spendExport, type Access } from '#/lib/credits'
+import { STADIUMS, shapesFor, type StadiumId } from '#/lib/stadium'
+import { Pricing } from '#/components/Pricing'
+import { Disclaimer } from '#/components/Disclaimer'
+import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type CardFormat, type Orient, type PlacedMarker, type Shape_ as Shape } from '#/lib/pitch'
 
 type Side = 'home' | 'away'
 type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
@@ -66,16 +68,20 @@ export default function Board() {
   const [gameweek, setGameweek] = useState(GAMEWEEK_DEFAULT)
   const [kind, setKind] = useState('Predicted XI')
   const [present, setPresent] = useState(false)
-  const [format, setFormat] = useState<'square' | 'portrait'>('square')
-  const [access, setAccess] = useState<Access>({ state: 'locked', reason: 'not_configured' })
-  useEffect(() => { void getAccess().then(setAccess) }, [])
-  const locked = access.state === 'locked'
-  const perExport = access.state === 'subscribed' ? '' : ' · 1 credit'
+  const [format, setFormat] = useState<CardFormat>('square')
+  const [access, setAccess] = useState<Access | null>(null)
+  const [handle, setHandle] = useState('')
+  const [transparent, setTransparent] = useState(false)
+  const [stadium, setStadium] = useState<StadiumId>('matchdayxi')
+  const refreshAccess = () => void getAccess().then(setAccess)
+  useEffect(refreshAccess, [])
+  const caps = access?.caps ?? CAPS.free
+  const stadiumShapes = useMemo(() => shapesFor(stadium), [stadium])
+  const left = access?.remaining
   const [msg, setMsg] = useState<string>('')
   const [busy, setBusy] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
   const dragRef = useRef<{ side: Side; idx: number } | null>(null)
-
   // restore from share link (phones default to the portrait pitch)
   useEffect(() => {
     if (!location.hash || location.hash.length < 8) {
@@ -263,28 +269,30 @@ export default function Board() {
     format,
     homeBench: benchText(home, squads.home),
     awayBench: versus ? benchText(away, squads.away) : '',
+    stadium: stadiumShapes,
+    watermark: caps.watermark,
+    transparent: caps.transparent && transparent,
+    handle: caps.creatorBranding ? handle.trim() : '',
   })
 
-  const lockedMessage = (reason: 'not_configured' | 'signin' | 'no_credits') =>
-    reason === 'not_configured'
-      ? 'Exports unlock once credits are switched on. You can still build and share a link.'
-      : reason === 'signin'
-        ? 'Sign in with Whop to export.'
-        : 'You are out of credits. Buy a pack below.'
+  const afterSpend = (a: Access) => {
+    setAccess(a)
+    return a.remaining === null ? '' : ` ${a.remaining} left.`
+  }
 
   const doCopy = async () => {
     setBusy(true)
     setMsg('')
-    const r = await spendExportCredit()
+    const r = await spendExport()
     if (!r.ok) {
-      setMsg(lockedMessage(r.reason))
+      setMsg('You have used all your images on this plan. Pick a plan below to keep exporting.')
       setBusy(false)
       return
     }
     try {
       const blob = await renderCard(cardInput())
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      setMsg(r.dev ? 'Copied (test mode: no credit used).' : r.subscribed ? 'Copied to your clipboard.' : 'Copied to your clipboard. 1 credit used.')
+      setMsg('Copied to your clipboard.' + afterSpend(r.access))
     } catch {
       setMsg('Your browser blocked copying. Use Download instead.')
     }
@@ -293,9 +301,9 @@ export default function Board() {
   const doDownload = async () => {
     setBusy(true)
     setMsg('')
-    const r = await spendExportCredit()
+    const r = await spendExport()
     if (!r.ok) {
-      setMsg(lockedMessage(r.reason))
+      setMsg('You have used all your images on this plan. Pick a plan below to keep exporting.')
       setBusy(false)
       return
     }
@@ -306,7 +314,7 @@ export default function Board() {
       a.download = `matchday-xi-gw${gameweek}-${home.club.replace(/\s+/g, '-').toLowerCase()}.png`
       a.click()
       setTimeout(() => URL.revokeObjectURL(a.href), 2000)
-      setMsg(r.dev ? 'Downloaded (test mode: no credit used).' : r.subscribed ? 'Downloaded.' : 'Downloaded. 1 credit used.')
+      setMsg('Downloaded.' + afterSpend(r.access))
     } catch {
       setMsg('Could not make the image. Try again.')
     }
@@ -379,7 +387,22 @@ export default function Board() {
           <span className="text-xs text-[#AFCDBF]">Image</span>
           <button className="chip" aria-pressed={format === 'square'} onClick={() => setFormat('square')}>Square</button>
           <button className="chip" aria-pressed={format === 'portrait'} onClick={() => setFormat('portrait')}>Portrait</button>
+          <button className="chip" aria-pressed={format === 'story'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Story size: Unlimited or Creator'} onClick={() => setFormat('story')}>Story</button>
+          <button className="chip" aria-pressed={format === 'banner'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Wide banner: Unlimited or Creator'} onClick={() => setFormat('banner')}>Banner</button>
         </div>
+        <label className="flex items-center gap-2 text-xs text-[#AFCDBF]">
+          <input type="checkbox" disabled={!caps.transparent} checked={caps.transparent && transparent} onChange={(e) => setTransparent(e.target.checked)} style={{ width: 20, height: 20 }} />
+          Transparent background {caps.transparent ? '' : '(Unlimited or Creator)'}
+        </label>
+        <label className="text-xs text-[#AFCDBF]">Your handle or name on the image {caps.creatorBranding ? '' : '(Creator)'}
+          <input className="field mt-1" value={handle} maxLength={28} disabled={!caps.creatorBranding} placeholder="@yourchannel" onChange={(e) => setHandle(e.target.value)} />
+        </label>
+        <label className="text-xs text-[#AFCDBF]">Stadium
+          <select className="field mt-1" value={stadium} onChange={(e) => setStadium(e.target.value as StadiumId)}>
+            {STADIUMS.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
+            <option disabled>Club stadiums: coming soon</option>
+          </select>
+        </label>
       </div>
 
       {(['home', 'away'] as Side[]).filter((s) => s === 'home' || versus).map((side) => {
@@ -484,12 +507,12 @@ export default function Board() {
       <div className={present ? '' : 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]'}>
         <div>
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
-            <div className="font-display text-sm tracking-widest text-[#AFCDBF]">Gameweek {gameweek} · {kind}</div>
+            <div className="font-display text-sm tracking-widest text-[#AFCDBF]">Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left` : ''}</div>
             <div className="flex gap-2 flex-wrap">
-              <button className="btn btn-ghost" onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : 'Present'}</button>
+              <button className="btn btn-ghost" disabled={!caps.present} title={caps.present ? '' : 'Hidden controls for streaming: Creator plan'} onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : caps.present ? 'Present' : 'Present · Creator'}</button>
               <button className="btn btn-ghost" onClick={doShare}>Share link</button>
-              <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image{perExport}</button>
-              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download{perExport}</button>
+              <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image</button>
+              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download</button>
             </div>
           </div>
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
@@ -500,7 +523,7 @@ export default function Board() {
               ref={svgRef}
               viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
               className="w-full h-auto block rounded-lg"
-              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#123C2C' }}
+              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#0B2119' }}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
@@ -508,6 +531,7 @@ export default function Board() {
               aria-label="Tactical board"
             >
               <g transform={linesTransform(orient)}>
+                {stadiumShapes.map((sh, i) => <path key={i} d={sh.d} fill={sh.fill ?? 'none'} stroke={sh.stroke} strokeWidth={sh.sw} opacity={sh.opacity} />)}
                 <rect x={0} y={0} width={1050} height={680} fill="#1B5940" />
                 {Array.from({ length: 10 }, (_, i) => (i % 2 === 0 ? <rect key={i} x={i * 105} y={0} width={105} height={680} fill="rgba(0,0,0,0.06)" /> : null))}
                 {LINE_PATHS.map((d, i) => <path key={i} d={d} fill="none" stroke="rgba(247,247,242,0.45)" strokeWidth={2.5} />)}
@@ -539,16 +563,6 @@ export default function Board() {
                   </g>
                 )
               })}
-              {locked && (
-                <g pointerEvents="none" aria-hidden="true">
-                  <defs>
-                    <pattern id="mdxi-wm" width="420" height="230" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
-                      <text x="0" y="120" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={34} letterSpacing={4} fill="rgba(247,247,242,0.16)">MATCHDAY XI · UNLOCK TO EXPORT</text>
-                    </pattern>
-                  </defs>
-                  <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="url(#mdxi-wm)" />
-                </g>
-              )}
             </svg>
             {(['home', 'away'] as Side[]).filter((sd) => sd === 'home' || versus).map((sd) => {
               const t = team(sd)
@@ -578,36 +592,11 @@ export default function Board() {
             })}
           </div>
 
-          <div className="panel mt-5 p-4">
-            <div className="font-display tracking-widest text-sm mb-1">Credits</div>
-            <p className="text-sm text-[#AFCDBF] mb-3">
-              Building and sharing a link are free. Each export (copy image or PNG download) uses 1 credit (£1). Buy a pack and use it whenever.
-            </p>
-            <div className="flex gap-2 flex-wrap">
-              {CREDIT_PACKS.map((p) => {
-                const href = CHECKOUT_LINKS[p.id]
-                return href ? (
-                  <a key={p.id} className="btn btn-ghost" href={href}>{p.label} · {p.credits} credits</a>
-                ) : (
-                  <button key={p.id} className="btn btn-ghost" disabled title="Checkout links coming soon">{p.label} · {p.credits} credits · soon</button>
-                )
-              })}
-            </div>
-            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(247,247,242,.1)' }}>
-              <div className="font-display tracking-widest text-sm mb-1">Subscription</div>
-              {CHECKOUT_LINKS[SUBSCRIPTION.id] ? (
-                <a className="btn btn-lime" href={CHECKOUT_LINKS[SUBSCRIPTION.id]}>{SUBSCRIPTION.label}</a>
-              ) : (
-                <button className="btn btn-ghost" disabled title="Subscription launches after credits">{SUBSCRIPTION.label} · soon</button>
-              )}
-            </div>
-          </div>
+          <Pricing current={access?.tier} />
         </div>
         {!present && <aside aria-label="Controls">{Controls}</aside>}
       </div>
-      <p className="text-xs text-[#AFCDBF] mt-6 max-w-3xl">
-        Independent fan tool. Not affiliated with the Premier League or any club. Squads are 2026/27 names and shirt numbers, so check before you share. Kit colours are approximate: change them with the Kit picker.
-      </p>
+      <Disclaimer className="text-xs text-[#AFCDBF] mt-6 max-w-3xl" />
     </div>
   )
 }

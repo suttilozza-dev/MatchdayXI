@@ -1,5 +1,6 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { CREDIT_PACKS, SUBSCRIPTION } from '#/lib/config'
+import { Pricing } from '#/components/Pricing'
+import { Disclaimer } from '#/components/Disclaimer'
 import { GAMEWEEK_DEFAULT } from '#/lib/data'
 import { HeaderLogo, Logo } from '#/components/Logo'
 import { LOGOS } from '#/lib/logos'
@@ -49,21 +50,16 @@ function Home() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1100px] px-4 pb-20">
-          <div className="panel p-6 flex flex-col md:flex-row md:items-center gap-5 justify-between">
-            <div>
-              <h2 className="font-display font-bold text-2xl">Free to build. £1 to export.</h2>
-              <p className="mt-2 text-sm text-[#AFCDBF] max-w-xl">
-                Build and share a link for free. Each export, copy or download, uses one credit (£1). Credit packs: {CREDIT_PACKS.map((p) => p.label).join(', ')}. A {SUBSCRIPTION.label.replace(' / ', ' a ')} subscription follows.
-              </p>
-            </div>
-            <Link to="/board" className="btn btn-lime">Pick your XI</Link>
-          </div>
+        <section className="mx-auto max-w-[1100px] px-4 pb-16">
+          <h2 className="font-display font-bold text-3xl mb-1">Free to build. Pay to <span style={{ color: 'var(--boot-lime)' }}>export</span>.</h2>
+          <p className="text-sm text-[#AFCDBF]">Build and share a link as much as you like. Pick a plan when you want the image.</p>
+          <Pricing />
         </section>
       </main>
 
-      <footer className="mx-auto max-w-[1100px] px-4 pb-10 text-xs text-[#AFCDBF]">
-        MATCHDAY XI is an independent fan tool, not affiliated with the Premier League or any club. matchday-xi.club
+      <footer className="mx-auto max-w-[1100px] px-4 pb-10 flex flex-col gap-2">
+        <Disclaimer />
+        <p className="text-xs text-[#AFCDBF]">matchday-xi.club</p>
       </footer>
     </div>
   )

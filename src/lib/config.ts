@@ -1,20 +1,30 @@
-// Prices are in GBP. 1 credit = £1 = one export (copy image or PNG download).
+// All prices in GBP.
+
+export const FREE_IMAGES = 5
+
+export const TRIAL = { id: 'trial', label: '£0.99', images: 5 } as const
+export const LIFETIME = { id: 'lifetime', label: '£30', note: 'one-off payment' } as const
+export const CREATOR = {
+  monthly: { id: 'creator-monthly', label: '£18.99 / month' },
+  yearly: { id: 'creator-yearly', label: '£199.99 / year' },
+} as const
+
 export const CREDIT_PACKS = [
-  { id: 'pack-5', label: '£5', credits: 5 },
-  { id: 'pack-10', label: '£10', credits: 10 },
-  { id: 'pack-25', label: '£25', credits: 25 },
+  { id: 'pack-8', label: '£2.50', images: 8, per: 'about 31p an image' },
+  { id: 'pack-25', label: '£5', images: 25, per: '20p an image' },
+  { id: 'pack-50', label: '£8.99', images: 50, per: 'about 18p an image' },
 ] as const
 
-/** First subscription tier, recurring monthly. Launches after credits. Exports cost no credits while subscribed (assumption: confirm with the owner). */
-export const SUBSCRIPTION = { id: 'sub-monthly', label: '£18.99 / month', price: 18.99, interval: 'month' } as const
-
 /**
- * Whop checkout links. Left empty until they are created in Whop (needs GBP support confirmed on the
+ * Whop checkout links. Empty until the links are created in Whop (needs GBP support confirmed on the
  * account). Empty = the button shows "soon" and cannot be clicked.
  */
 export const CHECKOUT_LINKS: Record<string, string> = {
-  'pack-5': '',
-  'pack-10': '',
+  trial: '',
+  lifetime: '',
+  'creator-monthly': '',
+  'creator-yearly': '',
+  'pack-8': '',
   'pack-25': '',
-  'sub-monthly': '',
+  'pack-50': '',
 }
