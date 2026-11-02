@@ -1,5 +1,6 @@
 import { neon } from '@neondatabase/serverless'
 import { env } from './env'
+import { OWNER_USER_IDS } from './plans'
 
 const sql = () => neon(env('DATABASE_URL'))
 
@@ -33,6 +34,8 @@ export type Entitlement = { tier: Tier; remaining: number | null }
 type Row = { plan_key: string; images_total: number | null; images_used: number; expires_at: string | null }
 
 export async function getEntitlement(userId: string): Promise<Entitlement> {
+  // Owners need no payment record, so this check comes first and works even if the database is down.
+  if (OWNER_USER_IDS.includes(userId)) return { tier: 'creator', remaining: null }
   await ensureSchema()
   const rows = (await sql()`SELECT plan_key, images_total, images_used, expires_at FROM grants WHERE user_id = ${userId} AND NOT refunded`) as Row[]
   const now = Date.now()
