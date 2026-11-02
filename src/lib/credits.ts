@@ -1,9 +1,10 @@
 /**
  * Tiers, what each one allows, and how exports are counted.
  *
- * Wired today: the FREE tier (5 watermarked exports, counted in this browser). Everything paid needs Whop
- * sign-in plus payment records and a Neon usage table, which are not connected yet, so in a real build
- * every visitor is on the free tier. `vite dev` can simulate any tier with ?access=free|trial|credits|lifetime|creator.
+ * Signed-out visitors are on the FREE tier (5 watermarked exports, counted in this browser). Signed-in buyers
+ * ("Sign in with Whop") are looked up on the server: /api/access reads what they have paid for, /api/spend
+ * counts an export against it. Purchases reach the server through the Whop webhook (src/routes/api/webhooks).
+ * `vite dev` can still simulate any tier with ?access=free|trial|credits|lifetime|creator.
  */
 import { FREE_IMAGES, TRIAL } from './config'
 
@@ -29,7 +30,7 @@ export const CAPS: Record<Tier, Caps> = {
 
 export const TIER_LABEL: Record<Tier, string> = { free: 'Free', trial: 'Trial', credits: 'Credit pack', lifetime: 'Unlimited (lifetime)', creator: 'Creator' }
 
-export type Access = { tier: Tier; remaining: number | null; caps: Caps }
+export type Access = { tier: Tier; remaining: number | null; caps: Caps; signedIn: boolean; name: string | null }
 
 const KEY = 'mdxi_free_used'
 let devUsed = 0
@@ -42,30 +43,68 @@ function freeUsed(): number {
   }
 }
 
+type ServerAccess = { signedIn: boolean; name: string | null; tier: Tier; remaining: number | null }
+
+function toAccess(a: ServerAccess): Access {
+  return { tier: a.tier, remaining: a.remaining, caps: CAPS[a.tier], signedIn: a.signedIn, name: a.name }
+}
+
+const freeAccess = (signedIn = false, name: string | null = null): Access => ({
+  tier: 'free',
+  remaining: Math.max(0, FREE_IMAGES - freeUsed()),
+  caps: CAPS.free,
+  signedIn,
+  name,
+})
+
 export async function getAccess(): Promise<Access> {
   if (import.meta.env.DEV && typeof location !== 'undefined') {
     const t = new URLSearchParams(location.search).get('access') as Tier | null
     if (t && t in CAPS && t !== 'free') {
       const total = t === 'trial' ? TRIAL.images : t === 'credits' ? 8 : null
-      return { tier: t, remaining: total == null ? null : Math.max(0, total - devUsed), caps: CAPS[t] }
+      return { tier: t, remaining: total == null ? null : Math.max(0, total - devUsed), caps: CAPS[t], signedIn: true, name: 'Dev' }
     }
   }
-  return { tier: 'free', remaining: Math.max(0, FREE_IMAGES - freeUsed()), caps: CAPS.free }
+  try {
+    const r = await fetch('/api/access', { credentials: 'same-origin' })
+    if (r.ok) {
+      const a = (await r.json()) as ServerAccess
+      // Signed in but nothing bought yet: still the free tier, counted in this browser.
+      return a.tier === 'free' ? freeAccess(a.signedIn, a.name) : toAccess(a)
+    }
+  } catch {
+    /* offline or API down: fall back to the free tier */
+  }
+  return freeAccess()
 }
 
-export type SpendResult = { ok: true; access: Access } | { ok: false; reason: 'used_up' }
+export type SpendResult = { ok: true; access: Access } | { ok: false; reason: 'used_up' | 'unavailable' }
 
 /** Call before every export (copy or download). Counts one image against the current tier. */
 export async function spendExport(): Promise<SpendResult> {
   const a = await getAccess()
-  if (a.remaining !== null && a.remaining <= 0) return { ok: false, reason: 'used_up' }
+  if (import.meta.env.DEV && a.signedIn && a.name === 'Dev') {
+    if (a.remaining !== null && a.remaining <= 0) return { ok: false, reason: 'used_up' }
+    if (a.remaining !== null) devUsed += 1
+    return { ok: true, access: await getAccess() }
+  }
   if (a.tier === 'free') {
+    if ((a.remaining ?? 0) <= 0) return { ok: false, reason: 'used_up' }
     try {
       localStorage.setItem(KEY, String(freeUsed() + 1))
     } catch {
       /* private mode: let it through, the free tier is low value */
     }
-  } else if (a.remaining !== null) devUsed += 1
+    return { ok: true, access: await getAccess() }
+  }
+  if (a.remaining !== null && a.remaining <= 0) return { ok: false, reason: 'used_up' }
+  try {
+    const r = await fetch('/api/spend', { method: 'POST', credentials: 'same-origin' })
+    if (r.status === 402) return { ok: false, reason: 'used_up' }
+    if (!r.ok) return { ok: false, reason: 'unavailable' }
+  } catch {
+    return { ok: false, reason: 'unavailable' }
+  }
   return { ok: true, access: await getAccess() }
 }
 

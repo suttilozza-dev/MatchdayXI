@@ -12,6 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BoardRouteImport } from './routes/board'
 import { Route as BrandRouteImport } from './routes/brand'
+import { Route as ApiAccessRouteImport } from './routes/api/access'
+import { Route as ApiSpendRouteImport } from './routes/api/spend'
+import { Route as ApiAuthCallbackRouteImport } from './routes/api/auth/callback'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiWebhooksWhopRouteImport } from './routes/api/webhooks/whop'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +34,117 @@ const BrandRoute = BrandRouteImport.update({
   path: '/brand',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAccessRoute = ApiAccessRouteImport.update({
+  id: '/api/access',
+  path: '/api/access',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSpendRoute = ApiSpendRouteImport.update({
+  id: '/api/spend',
+  path: '/api/spend',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthCallbackRoute = ApiAuthCallbackRouteImport.update({
+  id: '/api/auth/callback',
+  path: '/api/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiWebhooksWhopRoute = ApiWebhooksWhopRouteImport.update({
+  id: '/api/webhooks/whop',
+  path: '/api/webhooks/whop',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/brand': typeof BrandRoute
+  '/api/access': typeof ApiAccessRoute
+  '/api/spend': typeof ApiSpendRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/webhooks/whop': typeof ApiWebhooksWhopRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/brand': typeof BrandRoute
+  '/api/access': typeof ApiAccessRoute
+  '/api/spend': typeof ApiSpendRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/webhooks/whop': typeof ApiWebhooksWhopRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/board': typeof BoardRoute
   '/brand': typeof BrandRoute
+  '/api/access': typeof ApiAccessRoute
+  '/api/spend': typeof ApiSpendRoute
+  '/api/auth/callback': typeof ApiAuthCallbackRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/webhooks/whop': typeof ApiWebhooksWhopRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/board' | '/brand'
+  fullPaths:
+    | '/'
+    | '/board'
+    | '/brand'
+    | '/api/access'
+    | '/api/spend'
+    | '/api/auth/callback'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/webhooks/whop'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/board' | '/brand'
-  id: '__root__' | '/' | '/board' | '/brand'
+  to:
+    | '/'
+    | '/board'
+    | '/brand'
+    | '/api/access'
+    | '/api/spend'
+    | '/api/auth/callback'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/webhooks/whop'
+  id:
+    | '__root__'
+    | '/'
+    | '/board'
+    | '/brand'
+    | '/api/access'
+    | '/api/spend'
+    | '/api/auth/callback'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/webhooks/whop'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BoardRoute: typeof BoardRoute
   BrandRoute: typeof BrandRoute
+  ApiAccessRoute: typeof ApiAccessRoute
+  ApiSpendRoute: typeof ApiSpendRoute
+  ApiAuthCallbackRoute: typeof ApiAuthCallbackRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiWebhooksWhopRoute: typeof ApiWebhooksWhopRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +170,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BrandRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/access': {
+      id: '/api/access'
+      path: '/api/access'
+      fullPath: '/api/access'
+      preLoaderRoute: typeof ApiAccessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/spend': {
+      id: '/api/spend'
+      path: '/api/spend'
+      fullPath: '/api/spend'
+      preLoaderRoute: typeof ApiSpendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/callback': {
+      id: '/api/auth/callback'
+      path: '/api/auth/callback'
+      fullPath: '/api/auth/callback'
+      preLoaderRoute: typeof ApiAuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/webhooks/whop': {
+      id: '/api/webhooks/whop'
+      path: '/api/webhooks/whop'
+      fullPath: '/api/webhooks/whop'
+      preLoaderRoute: typeof ApiWebhooksWhopRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +219,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BoardRoute: BoardRoute,
   BrandRoute: BrandRoute,
+  ApiAccessRoute: ApiAccessRoute,
+  ApiSpendRoute: ApiSpendRoute,
+  ApiAuthCallbackRoute: ApiAuthCallbackRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiWebhooksWhopRoute: ApiWebhooksWhopRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
