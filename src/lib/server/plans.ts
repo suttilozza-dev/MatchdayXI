@@ -16,3 +16,10 @@ export const VARIANT_PLANS: Record<string, PlanGrant> = {
   plan_KbIfWYkio8gcP: { key: 'pack-25', images: 25, days: null },
   plan_kbEk5vVO5t7Iy: { key: 'pack-50', images: 50, days: null },
 }
+
+/**
+ * Owner accounts. A signed-in Whop user whose id is listed here gets everything (the Creator tier: unlimited, no
+ * watermark, all formats and stadiums, own handle, present mode) without paying. Ids are public Whop user ids; the
+ * server only trusts the id from its own signed session cookie, which is set after a real "Sign in with Whop".
+ */
+export const OWNER_USER_IDS: readonly string[] = ['user_TYrp3d73ORU7f']
