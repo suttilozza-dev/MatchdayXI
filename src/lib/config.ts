@@ -16,15 +16,14 @@ export const CREDIT_PACKS = [
 ] as const
 
 /**
- * Whop checkout links. Empty until the links are created in Whop (needs GBP support confirmed on the
- * account). Empty = the button shows "soon" and cannot be clicked.
+ * Whop checkout links (GBP variants on matchday-xi account). Empty = the button shows "soon" and cannot be clicked.
  */
 export const CHECKOUT_LINKS: Record<string, string> = {
-  trial: '',
-  lifetime: '',
-  'creator-monthly': '',
-  'creator-yearly': '',
-  'pack-8': '',
-  'pack-25': '',
-  'pack-50': '',
+  trial: 'https://whop.com/checkout/plan_lgUBoR82h7I1h',
+  lifetime: 'https://whop.com/checkout/plan_ldHvVl8XWpBlb',
+  'creator-monthly': 'https://whop.com/checkout/plan_xOPpvfhLmnyrY',
+  'creator-yearly': 'https://whop.com/checkout/plan_KZcXkdlCgWFLF',
+  'pack-8': 'https://whop.com/checkout/plan_gPg0vtNan4aiV',
+  'pack-25': 'https://whop.com/checkout/plan_KbIfWYkio8gcP',
+  'pack-50': 'https://whop.com/checkout/plan_kbEk5vVO5t7Iy',
 }
