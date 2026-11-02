@@ -14,16 +14,18 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@neon/config": "^1.10.0",
+    "@neon/env": "^1.6.8",
+    "@neondatabase/serverless": "^1.2.0",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "0.10.14",
     "@tanstack/react-router": "1.170.46",
     "@tanstack/react-router-devtools": "1.167.2",
     "@tanstack/react-start": "1.169.4",
+    "@whop/sdk": "^2.7.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.18",
-    "@neon/config": "^1.10.0",
-    "@neon/env": "^1.6.8"
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "^1.26.0",

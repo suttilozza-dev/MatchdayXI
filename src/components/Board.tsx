@@ -279,6 +279,18 @@ export default function Board() {
     handle: caps.creatorBranding ? handle.trim() : '',
   })
 
+  const failMsg = (reason: 'used_up' | 'unavailable') =>
+    reason === 'unavailable'
+      ? 'We could not check your plan just now. Try again in a moment.'
+      : access?.signedIn
+        ? 'You have used all your images on this plan. Pick a plan below to keep exporting.'
+        : 'You have used your free images. Sign in if you have already paid, or pick a plan below.'
+
+  const signOut = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
+    refreshAccess()
+  }
+
   const afterSpend = (a: Access) => {
     setAccess(a)
     return a.remaining === null ? '' : ` ${a.remaining} left.`
@@ -289,7 +301,7 @@ export default function Board() {
     setMsg('')
     const r = await spendExport()
     if (!r.ok) {
-      setMsg('You have used all your images on this plan. Pick a plan below to keep exporting.')
+      setMsg(failMsg(r.reason))
       setBusy(false)
       return
     }
@@ -307,7 +319,7 @@ export default function Board() {
     setMsg('')
     const r = await spendExport()
     if (!r.ok) {
-      setMsg('You have used all your images on this plan. Pick a plan below to keep exporting.')
+      setMsg(failMsg(r.reason))
       setBusy(false)
       return
     }
@@ -529,7 +541,18 @@ export default function Board() {
       <div className={present ? '' : 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]'}>
         <div>
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
-            <div className="font-display text-sm tracking-widest text-[#AFCDBF]">Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left` : ''}</div>
+            <div className="font-display text-sm tracking-widest text-[#AFCDBF]">
+              Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left` : ''}
+              {' · '}
+              {access?.signedIn ? (
+                <>
+                  {access.name ? `${access.name} · ` : ''}
+                  <button type="button" className="underline" onClick={signOut}>Sign out</button>
+                </>
+              ) : (
+                <a className="underline text-[#CFFF4D]" href="/api/auth/login">Sign in with Whop</a>
+              )}
+            </div>
             <div className="flex gap-2 flex-wrap">
               <button className="btn btn-ghost" disabled={!caps.present} title={caps.present ? '' : 'Hidden controls for streaming: Creator plan'} onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : caps.present ? 'Present' : 'Present · Creator'}</button>
               <button className="btn btn-ghost" onClick={doShare}>Share link</button>
