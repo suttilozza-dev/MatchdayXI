@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
-import { CHECKOUT_LINKS, CREDIT_PACKS } from '#/lib/config'
-import { spendDownloadCredit } from '#/lib/credits'
+import { CHECKOUT_LINKS, CREDIT_PACKS, SUBSCRIPTION } from '#/lib/config'
+import { getAccess, spendExportCredit, type Access } from '#/lib/credits'
 import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type Orient, type PlacedMarker, type Shape } from '#/lib/pitch'
 
 type Side = 'home' | 'away'
@@ -67,6 +67,10 @@ export default function Board() {
   const [kind, setKind] = useState('Predicted XI')
   const [present, setPresent] = useState(false)
   const [format, setFormat] = useState<'square' | 'portrait'>('square')
+  const [access, setAccess] = useState<Access>({ state: 'locked', reason: 'not_configured' })
+  useEffect(() => { void getAccess().then(setAccess) }, [])
+  const locked = access.state === 'locked'
+  const perExport = access.state === 'subscribed' ? '' : ' · 1 credit'
   const [msg, setMsg] = useState<string>('')
   const [busy, setBusy] = useState(false)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -261,30 +265,37 @@ export default function Board() {
     awayBench: versus ? benchText(away, squads.away) : '',
   })
 
+  const lockedMessage = (reason: 'not_configured' | 'signin' | 'no_credits') =>
+    reason === 'not_configured'
+      ? 'Exports unlock once credits are switched on. You can still build and share a link.'
+      : reason === 'signin'
+        ? 'Sign in with Whop to export.'
+        : 'You are out of credits. Buy a pack below.'
+
   const doCopy = async () => {
     setBusy(true)
     setMsg('')
+    const r = await spendExportCredit()
+    if (!r.ok) {
+      setMsg(lockedMessage(r.reason))
+      setBusy(false)
+      return
+    }
     try {
       const blob = await renderCard(cardInput())
       await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      setMsg('Copied to your clipboard. Paste it straight into a post.')
+      setMsg(r.dev ? 'Copied (test mode: no credit used).' : r.subscribed ? 'Copied to your clipboard.' : 'Copied to your clipboard. 1 credit used.')
     } catch {
-      setMsg("Your browser blocked copying. Use Download instead.")
+      setMsg('Your browser blocked copying. Use Download instead.')
     }
     setBusy(false)
   }
   const doDownload = async () => {
     setBusy(true)
     setMsg('')
-    const r = await spendDownloadCredit()
+    const r = await spendExportCredit()
     if (!r.ok) {
-      setMsg(
-        r.reason === 'not_configured'
-          ? 'Downloads open once credits are switched on. Copy is free in the meantime.'
-          : r.reason === 'signin'
-            ? 'Sign in with Whop to download.'
-            : 'You are out of credits. Buy a pack below.',
-      )
+      setMsg(lockedMessage(r.reason))
       setBusy(false)
       return
     }
@@ -295,7 +306,7 @@ export default function Board() {
       a.download = `matchday-xi-gw${gameweek}-${home.club.replace(/\s+/g, '-').toLowerCase()}.png`
       a.click()
       setTimeout(() => URL.revokeObjectURL(a.href), 2000)
-      setMsg(r.dev ? 'Downloaded (test mode: no credit used).' : 'Downloaded. 1 credit used.')
+      setMsg(r.dev ? 'Downloaded (test mode: no credit used).' : r.subscribed ? 'Downloaded.' : 'Downloaded. 1 credit used.')
     } catch {
       setMsg('Could not make the image. Try again.')
     }
@@ -477,8 +488,8 @@ export default function Board() {
             <div className="flex gap-2 flex-wrap">
               <button className="btn btn-ghost" onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : 'Present'}</button>
               <button className="btn btn-ghost" onClick={doShare}>Share link</button>
-              <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image</button>
-              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download · 1 credit</button>
+              <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image{perExport}</button>
+              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download{perExport}</button>
             </div>
           </div>
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
@@ -528,6 +539,16 @@ export default function Board() {
                   </g>
                 )
               })}
+              {locked && (
+                <g pointerEvents="none" aria-hidden="true">
+                  <defs>
+                    <pattern id="mdxi-wm" width="420" height="230" patternUnits="userSpaceOnUse" patternTransform="rotate(-24)">
+                      <text x="0" y="120" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={34} letterSpacing={4} fill="rgba(247,247,242,0.16)">MATCHDAY XI · UNLOCK TO EXPORT</text>
+                    </pattern>
+                  </defs>
+                  <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill="url(#mdxi-wm)" />
+                </g>
+              )}
             </svg>
             {(['home', 'away'] as Side[]).filter((sd) => sd === 'home' || versus).map((sd) => {
               const t = team(sd)
@@ -559,7 +580,9 @@ export default function Board() {
 
           <div className="panel mt-5 p-4">
             <div className="font-display tracking-widest text-sm mb-1">Credits</div>
-            <p className="text-sm text-[#AFCDBF] mb-3">Copy is free. Each PNG download uses 1 credit (£1). Buy a pack, use it whenever.</p>
+            <p className="text-sm text-[#AFCDBF] mb-3">
+              Building and sharing a link are free. Each export (copy image or PNG download) uses 1 credit (£1). Buy a pack and use it whenever.
+            </p>
             <div className="flex gap-2 flex-wrap">
               {CREDIT_PACKS.map((p) => {
                 const href = CHECKOUT_LINKS[p.id]
@@ -569,6 +592,14 @@ export default function Board() {
                   <button key={p.id} className="btn btn-ghost" disabled title="Checkout links coming soon">{p.label} · {p.credits} credits · soon</button>
                 )
               })}
+            </div>
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(247,247,242,.1)' }}>
+              <div className="font-display tracking-widest text-sm mb-1">Subscription</div>
+              {CHECKOUT_LINKS[SUBSCRIPTION.id] ? (
+                <a className="btn btn-lime" href={CHECKOUT_LINKS[SUBSCRIPTION.id]}>{SUBSCRIPTION.label}</a>
+              ) : (
+                <button className="btn btn-ghost" disabled title="Subscription launches after credits">{SUBSCRIPTION.label} · soon</button>
+              )}
             </div>
           </div>
         </div>

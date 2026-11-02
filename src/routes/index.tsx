@@ -1,5 +1,5 @@
 import { Link, createFileRoute } from '@tanstack/react-router'
-import { CREDIT_PACKS } from '#/lib/config'
+import { CREDIT_PACKS, SUBSCRIPTION } from '#/lib/config'
 import { GAMEWEEK_DEFAULT } from '#/lib/data'
 import { HeaderLogo, Logo } from '#/components/Logo'
 import { LOGOS } from '#/lib/logos'
@@ -52,9 +52,9 @@ function Home() {
         <section className="mx-auto max-w-[1100px] px-4 pb-20">
           <div className="panel p-6 flex flex-col md:flex-row md:items-center gap-5 justify-between">
             <div>
-              <h2 className="font-display font-bold text-2xl">Free to build. £1 to download.</h2>
+              <h2 className="font-display font-bold text-2xl">Free to build. £1 to export.</h2>
               <p className="mt-2 text-sm text-[#AFCDBF] max-w-xl">
-                Build and copy for free. A PNG download uses one credit (£1). Credit packs: {CREDIT_PACKS.map((p) => p.label).join(', ')}.
+                Build and share a link for free. Each export, copy or download, uses one credit (£1). Credit packs: {CREDIT_PACKS.map((p) => p.label).join(', ')}. A {SUBSCRIPTION.label.replace(' / ', ' a ')} subscription follows.
               </p>
             </div>
             <Link to="/board" className="btn btn-lime">Pick your XI</Link>
