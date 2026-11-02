@@ -374,6 +374,45 @@ export default function Board() {
   const activeSquad = tab === 'home' ? squads.home : squads.away
   const inXI = new Set(active.slots.map((s) => s.pi))
 
+  const teamBlock = (side: Side) => {
+    const t = team(side)
+    return (
+      <>
+            <div className="font-display text-xs tracking-widest" style={{ color: side === 'home' ? '#CFFF4D' : '#1FD1C1' }}>{side}</div>
+            <label className="sr-only" htmlFor={`club-${side}`}>{side} club</label>
+            <select id={`club-${side}`} className="field" value={t.club} onChange={(e) => changeClub(side, e.target.value)}>
+              {CLUBS.map((c) => <option key={c}>{c}</option>)}
+            </select>
+            <div className="flex gap-2 flex-wrap" role="group" aria-label={`${side} kit`}>
+              {(['home', 'away', 'third'] as KitName[]).map((k) => {
+                const c = kitColours(t.club, k)
+                if (!c) return null
+                return (
+                  <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
+                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
+                    {k}
+                  </button>
+                )
+              })}
+            </div>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <label className="sr-only" htmlFor={`form-${side}`}>{side} formation</label>
+              <select id={`form-${side}`} className="field" value={t.formation} onChange={(e) => changeFormation(side, e.target.value)}>
+                {Object.keys(FORMATIONS).map((f) => <option key={f}>{f}</option>)}
+              </select>
+              <div className="flex items-center gap-1 text-xs text-[#AFCDBF]">
+                <label className="flex items-center gap-1">Kit
+                  <input type="color" aria-label={`${side} kit colour`} value={t.colour} onChange={(e) => setTeam(side, (x) => ({ ...x, colour: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
+                </label>
+                <label className="flex items-center gap-1">Trim
+                  <input type="color" aria-label={`${side} trim colour`} value={t.colour2} onChange={(e) => setTeam(side, (x) => ({ ...x, colour2: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
+                </label>
+              </div>
+            </div>
+      </>
+    )
+  }
+
   const Controls = (
     <div className="flex flex-col gap-4">
       <div className="panel p-4 flex flex-col gap-3">
@@ -437,46 +476,16 @@ export default function Board() {
         {caps.clubStadium !== 'none' && (
           <button className="chip" onClick={() => setStadium(`club:${home.club}`)}>Use {home.club}'s ground</button>
         )}
+        <div className="flex flex-col gap-2 border-t pt-3 mt-1" style={{ borderColor: 'rgba(207,255,77,0.45)' }}>
+          {teamBlock('home')}
+        </div>
       </div>
 
-      {(['home', 'away'] as Side[]).filter((s) => s === 'home' || versus).map((side) => {
-        const t = team(side)
-        return (
-          <div key={side} className="panel p-4 flex flex-col gap-2" style={{ borderColor: side === 'home' ? '#CFFF4D' : '#1FD1C1', borderWidth: 1.5 }}>
-            <div className="font-display text-xs tracking-widest" style={{ color: side === 'home' ? '#CFFF4D' : '#1FD1C1' }}>{side}</div>
-            <label className="sr-only" htmlFor={`club-${side}`}>{side} club</label>
-            <select id={`club-${side}`} className="field" value={t.club} onChange={(e) => changeClub(side, e.target.value)}>
-              {CLUBS.map((c) => <option key={c}>{c}</option>)}
-            </select>
-            <div className="flex gap-2 flex-wrap" role="group" aria-label={`${side} kit`}>
-              {(['home', 'away', 'third'] as KitName[]).map((k) => {
-                const c = kitColours(t.club, k)
-                if (!c) return null
-                return (
-                  <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
-                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
-                    {k}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="grid grid-cols-[1fr_auto] gap-2">
-              <label className="sr-only" htmlFor={`form-${side}`}>{side} formation</label>
-              <select id={`form-${side}`} className="field" value={t.formation} onChange={(e) => changeFormation(side, e.target.value)}>
-                {Object.keys(FORMATIONS).map((f) => <option key={f}>{f}</option>)}
-              </select>
-              <div className="flex items-center gap-1 text-xs text-[#AFCDBF]">
-                <label className="flex items-center gap-1">Kit
-                  <input type="color" aria-label={`${side} kit colour`} value={t.colour} onChange={(e) => setTeam(side, (x) => ({ ...x, colour: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
-                </label>
-                <label className="flex items-center gap-1">Trim
-                  <input type="color" aria-label={`${side} trim colour`} value={t.colour2} onChange={(e) => setTeam(side, (x) => ({ ...x, colour2: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
-                </label>
-              </div>
-            </div>
-          </div>
-        )
-      })}
+      {versus && (
+        <div className="panel p-4 flex flex-col gap-2" style={{ borderColor: '#1FD1C1', borderWidth: 1.5 }}>
+          {teamBlock('away')}
+        </div>
+      )}
 
       <div className="panel p-3">
         {versus && (
@@ -488,7 +497,7 @@ export default function Board() {
         <p className="text-xs text-[#AFCDBF] mb-2">
           {sel && sel.side === tab ? `Pick a player for ${active.slots[sel.idx].role}.` : 'Click a marker, then a player. Or drag a player onto a marker. Click two markers to swap them.'}
         </p>
-        <div className="max-h-[420px] overflow-auto pr-1">
+        <div>
           {(() => {
             const bench = active.bench
             const unused = activeSquad.map((_, i) => i).filter((i) => !inXI.has(i) && !bench.includes(i))
