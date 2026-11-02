@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
 import { CAPS, getAccess, spendExport, type Access } from '#/lib/credits'
-import { STADIUMS, shapesFor, type StadiumId } from '#/lib/stadium'
+import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
+import { CLUB_GROUNDS } from '#/lib/clubStadiums'
 import { Pricing } from '#/components/Pricing'
 import { Disclaimer } from '#/components/Disclaimer'
 import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type CardFormat, type Orient, type PlacedMarker, type Shape_ as Shape } from '#/lib/pitch'
@@ -76,7 +77,9 @@ export default function Board() {
   const refreshAccess = () => void getAccess().then(setAccess)
   useEffect(refreshAccess, [])
   const caps = access?.caps ?? CAPS.free
-  const stadiumShapes = useMemo(() => shapesFor(stadium), [stadium])
+  const [stadiumKit, setStadiumKit] = useState<KitName>('home')
+  const art = useMemo(() => stadiumFor(stadium, stadiumKit), [stadium, stadiumKit])
+  const stadiumShapes = art.shapes
   const left = access?.remaining
   const [msg, setMsg] = useState<string>('')
   const [busy, setBusy] = useState(false)
@@ -160,7 +163,7 @@ export default function Board() {
     return out
   }, [home, away, squads, versus, orient, place])
 
-  const vb = viewBoxFor(orient, effShape)
+  const vb = viewBoxFor(orient, effShape, art.ext)
 
   // dragging markers
   const toSvg = (e: { clientX: number; clientY: number }): [number, number] => {
@@ -270,6 +273,7 @@ export default function Board() {
     homeBench: benchText(home, squads.home),
     awayBench: versus ? benchText(away, squads.away) : '',
     stadium: stadiumShapes,
+    ext: art.ext,
     watermark: caps.watermark,
     transparent: caps.transparent && transparent,
     handle: caps.creatorBranding ? handle.trim() : '',
@@ -400,9 +404,27 @@ export default function Board() {
         <label className="text-xs text-[#AFCDBF]">Stadium
           <select className="field mt-1" value={stadium} onChange={(e) => setStadium(e.target.value as StadiumId)}>
             {STADIUMS.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
-            <option disabled>Club stadiums: coming soon</option>
+            <optgroup label={caps.clubStadium === 'none' ? 'Club grounds (Trial, Unlimited or Creator)' : 'Club grounds'}>
+              {Object.entries(CLUB_GROUNDS).map(([club, g]) => (
+                <option key={club} value={`club:${club}`} disabled={caps.clubStadium === 'none'}>{club}: {g.ground}</option>
+              ))}
+            </optgroup>
           </select>
         </label>
+        {stadium.startsWith('club:') && (
+          <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Stadium colours">
+            <span className="text-xs text-[#AFCDBF]">Colours</span>
+            {(['home', 'away', 'third'] as KitName[]).map((k) => (
+              <button key={k} className="chip" aria-pressed={stadiumKit === k} disabled={k !== 'home' && caps.clubStadium !== 'all'} title={k !== 'home' && caps.clubStadium !== 'all' ? 'Colourways: Creator' : ''} onClick={() => setStadiumKit(k)}>{k}</button>
+            ))}
+          </div>
+        )}
+        {stadium.startsWith('club:') && CLUB_GROUNDS[stadium.slice(5)] && (
+          <p className="text-[11px] text-[#AFCDBF]">{CLUB_GROUNDS[stadium.slice(5)].capacity.toLocaleString('en-GB')} capacity. {CLUB_GROUNDS[stadium.slice(5)].notes} Stylised, not to scale.</p>
+        )}
+        {caps.clubStadium !== 'none' && (
+          <button className="chip" onClick={() => setStadium(`club:${home.club}`)}>Use {home.club}'s ground</button>
+        )}
       </div>
 
       {(['home', 'away'] as Side[]).filter((s) => s === 'home' || versus).map((side) => {

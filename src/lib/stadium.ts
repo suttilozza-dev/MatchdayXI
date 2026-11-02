@@ -1,16 +1,20 @@
+import { clubSurround } from './clubStadiums'
+import type { KitName } from './data'
+
 const PL = 1050
 const PW = 680
 
 /** One drawable piece of a stadium surround, in landscape pitch coordinates (pitch is 0..PL by 0..PW). */
 export type Shape = { d: string; fill?: string; stroke?: string; sw?: number; opacity?: number }
 
-export type StadiumId = 'matchdayxi'
+export type StadiumId = string // 'matchdayxi' or 'club:<Club name>'
 export const STADIUMS: { id: StadiumId; name: string; note: string }[] = [
   { id: 'matchdayxi', name: 'MatchdayXI Stadium', note: 'A small lower-league ground: one stand, a covered shelter and a terrace behind each goal.' },
 ]
 
 /** Surround extent beyond the pitch, in landscape units. Used to size the board's view. */
-export const SURROUND = { left: 70, right: 70, top: 86, bottom: 52 }
+export type Extents = { left: number; right: number; top: number; bottom: number }
+export const SURROUND: Extents = { left: 70, right: 70, top: 86, bottom: 52 }
 
 const rect = (x: number, y: number, w: number, h: number) => `M${x},${y}h${w}v${h}h${-w}Z`
 const dot = (cx: number, cy: number, r: number) => `M${cx - r},${cy}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`
@@ -71,6 +75,12 @@ export function matchdayXIStadium(): Shape[] {
   return s
 }
 
-export function shapesFor(id: StadiumId): Shape[] {
-  return id === 'matchdayxi' ? matchdayXIStadium() : []
+export type StadiumArt = { shapes: Shape[]; ext: Extents }
+
+export function stadiumFor(id: StadiumId, kit: KitName = 'home'): StadiumArt {
+  if (id.startsWith('club:')) {
+    const c = clubSurround(id.slice(5), kit)
+    if (c) return c
+  }
+  return { shapes: matchdayXIStadium(), ext: SURROUND }
 }

@@ -1,5 +1,5 @@
 import { SITE_URL, readableOn, surname } from './data'
-import { SURROUND, type Shape as DrawShape } from './stadium'
+import { SURROUND, type Extents, type Shape as DrawShape } from './stadium'
 
 export type Orient = 'landscape' | 'portrait'
 export type Shape_ = 'full' | 'half'
@@ -35,12 +35,12 @@ export function fromXY(x: number, y: number, orient: Orient): [number, number] {
   return orient === 'landscape' ? [x / PL, y / PW] : [1 - y / PL, x / PW]
 }
 
-export function viewBoxFor(orient: Orient, shape: Shape_): { x: number; y: number; w: number; h: number } {
+export function viewBoxFor(orient: Orient, shape: Shape_, ext: Extents = SURROUND): { x: number; y: number; w: number; h: number } {
   // landscape box including the stadium surround (shape 'half' keeps the home half only)
-  const lx0 = -SURROUND.left
-  const lx1 = shape === 'full' ? PL + SURROUND.right : PL / 2 + 24
-  const ly0 = -SURROUND.top
-  const ly1 = PW + SURROUND.bottom
+  const lx0 = -ext.left
+  const lx1 = shape === 'full' ? PL + ext.right : PL / 2 + 24
+  const ly0 = -ext.top
+  const ly1 = PW + ext.bottom
   if (orient === 'landscape') return { x: lx0, y: ly0, w: lx1 - lx0, h: ly1 - ly0 }
   // portrait: x' = y, y' = PL - x
   return { x: ly0, y: PL - lx1, w: ly1 - ly0, h: lx1 - lx0 }
@@ -73,6 +73,7 @@ export type CardInput = {
   homeBench: string
   awayBench: string
   stadium: DrawShape[]
+  ext: Extents
   watermark: boolean // free tier: diagonal watermark + site link
   transparent: boolean
   handle: string // creator handle; when set it replaces the MatchdayXI branding
@@ -150,7 +151,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   }
 
   // pitch + stadium surround
-  const vb = viewBoxFor(input.orient, input.shape)
+  const vb = viewBoxFor(input.orient, input.shape, input.ext)
   const benchLines = input.versus ? 2 : 1
   const benchH = 34 * benchLines + 16
   const region = { x: 48, y: 190, w: W - 96, h: H - 190 - 100 - benchH }
