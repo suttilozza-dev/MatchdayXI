@@ -87,11 +87,21 @@ export default function Board() {
   const dragRef = useRef<{ side: Side; idx: number } | null>(null)
   // restore from share link (phones default to the portrait pitch)
   useEffect(() => {
-    if (!location.hash || location.hash.length < 8) {
+    let raw = location.hash.length >= 8 ? location.hash.slice(1) : ''
+    if (!raw) {
+      // coming back from "Sign in with Whop": put the line-up back as it was
+      try {
+        raw = sessionStorage.getItem('mdxi_resume') ?? ''
+        sessionStorage.removeItem('mdxi_resume')
+      } catch {
+        /* storage blocked: start fresh */
+      }
+    }
+    if (!raw) {
       if (window.innerWidth < 700) setOrient('portrait')
       return
     }
-    const s = decode(location.hash.slice(1))
+    const s = decode(raw)
     if (!s || !CLUBS.includes(s.hc) || !FORMATIONS[s.hf]) return
     const build = (club: string, f: string, colour: string, colour2: string | undefined, bench: number[] | undefined, pis: (number | null)[], ps: [number, number][]): TeamState => {
       const t = makeTeam(club, f)
@@ -281,12 +291,14 @@ export default function Board() {
     handle: caps.creatorBranding ? handle.trim() : '',
   })
 
-  const failMsg = (reason: 'used_up' | 'unavailable') =>
-    reason === 'unavailable'
-      ? 'We could not check your plan just now. Try again in a moment.'
-      : access?.signedIn
-        ? 'You have used all your images on this plan. Pick a plan below to keep exporting.'
-        : 'You have used your free images. Sign in if you have already paid, or pick a plan below.'
+  const failMsg = (reason: 'signin' | 'used_up' | 'unavailable') =>
+    reason === 'signin'
+      ? 'Sign in with Whop (free) to download, copy or share. The free plan includes 5 images.'
+      : reason === 'unavailable'
+        ? 'We could not check your plan just now. Try again in a moment.'
+        : access?.tier === 'free'
+          ? 'You have used your 5 free images. Pick a plan below to keep exporting.'
+          : 'You have used all your images on this plan. Pick a plan below to keep exporting.'
 
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
@@ -305,6 +317,7 @@ export default function Board() {
     if (!r.ok) {
       setMsg(failMsg(r.reason))
       setBusy(false)
+      if (r.reason === 'signin') goSignIn()
       return
     }
     try {
@@ -323,6 +336,7 @@ export default function Board() {
     if (!r.ok) {
       setMsg(failMsg(r.reason))
       setBusy(false)
+      if (r.reason === 'signin') goSignIn()
       return
     }
     try {
@@ -338,7 +352,7 @@ export default function Board() {
     }
     setBusy(false)
   }
-  const doShare = async () => {
+  const buildSaved = (): Saved => {
     const s: Saved = {
       hc: home.club,
       hf: home.formation,
@@ -362,7 +376,24 @@ export default function Board() {
       s.al = away.slots.map((x) => x.pi)
       s.ap = away.slots.map((x) => [Math.round(x.u * 1000) / 1000, Math.round(x.v * 1000) / 1000])
     }
-    const url = `${location.origin}${location.pathname}#${encode(s)}`
+    return s
+  }
+  /** Go to Whop sign-in, remembering the line-up so it is still here when they come back. */
+  const goSignIn = () => {
+    try {
+      sessionStorage.setItem('mdxi_resume', encode(buildSaved()))
+    } catch {
+      /* storage blocked: the line-up will not be restored */
+    }
+    location.href = '/api/auth/login'
+  }
+  const doShare = async () => {
+    if (!access?.signedIn) {
+      setMsg(failMsg('signin'))
+      goSignIn()
+      return
+    }
+    const url = `${location.origin}${location.pathname}#${encode(buildSaved())}`
     history.replaceState(null, '', url)
     try {
       await navigator.clipboard.writeText(url)
@@ -577,17 +608,22 @@ export default function Board() {
             </div>
           </div>
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
+          {!msg && access && !access.signedIn && (
+            <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up, then <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) to download, copy or share it. The free plan includes 5 images.</p>
+          )}
+          <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit matchday-xi.club for plans.</p>
       </div>
       {!present && <div className="order-3 lg:order-2 lg:col-span-2">{SettingsBar}</div>}
         <div className="order-2 lg:order-3 min-w-0">
 
           {/* stadium surround: kept narrow so the pitch stays the star */}
-          <div className="rounded-xl p-2 sm:p-3" style={{ background: 'radial-gradient(circle at 5px 5px, rgba(207,255,77,.22) 1.6px, transparent 2.2px) 0 0/11px 11px, radial-gradient(circle at 10px 10px, rgba(31,209,193,.16) 1.4px, transparent 2px) 0 0/11px 11px, #0b2119', border: '1px solid rgba(247,247,242,.08)' }}>
+          <div className={`rounded-xl p-2 sm:p-3${caps.watermark ? ' pitch-locked' : ''}`} style={{ background: 'radial-gradient(circle at 5px 5px, rgba(207,255,77,.22) 1.6px, transparent 2.2px) 0 0/11px 11px, radial-gradient(circle at 10px 10px, rgba(31,209,193,.16) 1.4px, transparent 2px) 0 0/11px 11px, #0b2119', border: '1px solid rgba(247,247,242,.08)' }}>
             <svg
               ref={svgRef}
+              onContextMenu={(e) => { if (caps.watermark) e.preventDefault() }}
               viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
               className="w-full h-auto block rounded-lg"
-              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#0B2119' }}
+              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#0B2119', userSelect: caps.watermark ? 'none' : undefined, WebkitUserSelect: caps.watermark ? 'none' : undefined }}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
@@ -627,6 +663,27 @@ export default function Board() {
                   </g>
                 )
               })}
+              {caps.watermark && (
+                // On-screen watermark: shows in screenshots and screen recordings too. Paid plans do not get it.
+                <g pointerEvents="none" aria-hidden="true" transform={`rotate(-24 ${vb.x + vb.w / 2} ${vb.y + vb.h / 2})`}>
+                  {Array.from({ length: 9 }, (_, r) => Array.from({ length: 4 }, (_, c) => (
+                    <text
+                      key={`${r}-${c}`}
+                      x={vb.x - vb.w * 0.25 + c * vb.w * 0.5 + (r % 2 ? vb.w * 0.25 : 0)}
+                      y={vb.y - vb.h * 0.3 + r * vb.h * 0.2}
+                      fontFamily="Oswald, sans-serif"
+                      fontWeight={700}
+                      fontSize={Math.max(vb.w, vb.h) * 0.034}
+                      fill="rgba(255,255,255,0.2)"
+                      stroke="rgba(0,0,0,0.22)"
+                      strokeWidth={1}
+                      paintOrder="stroke"
+                    >
+                      MATCHDAY XI · MATCHDAY-XI.CLUB
+                    </text>
+                  )))}
+                </g>
+              )}
             </svg>
             {(['home', 'away'] as Side[]).filter((sd) => sd === 'home' || versus).map((sd) => {
               const t = team(sd)

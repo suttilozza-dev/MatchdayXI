@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { getEntitlement, spendOne } from '#/lib/server/db'
+import { getEntitlement, spendFree, spendOne } from '#/lib/server/db'
 import { getSession } from '#/lib/server/session'
 
 const json = (b: unknown, status = 200) => new Response(JSON.stringify(b), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
@@ -15,7 +15,8 @@ export const Route = createFileRoute('/api/spend')({
         try {
           const e = await getEntitlement(s.uid)
           if (e.tier === 'creator' || e.tier === 'lifetime') return json({ ok: true, ...e })
-          if (e.tier === 'free' || !(await spendOne(s.uid))) return json({ ok: false, reason: 'used_up' }, 402)
+          const ok = e.tier === 'free' ? await spendFree(s.uid) : await spendOne(s.uid)
+          if (!ok) return json({ ok: false, reason: 'used_up' }, 402)
           return json({ ok: true, ...(await getEntitlement(s.uid)) })
         } catch {
           return json({ ok: false, reason: 'unavailable' }, 503)

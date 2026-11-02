@@ -1,6 +1,7 @@
 import { neon } from '@neondatabase/serverless'
 import { env } from './env'
 import { OWNER_USER_IDS } from './plans'
+import { FREE_IMAGES } from '../config'
 
 const sql = () => neon(env('DATABASE_URL'))
 
@@ -21,6 +22,11 @@ export function ensureSchema() {
       created_at timestamptz NOT NULL DEFAULT now()
     )`
     await q`CREATE INDEX IF NOT EXISTS grants_user_idx ON grants (user_id)`
+    // The free plan: FREE_IMAGES watermarked exports per signed-in account, counted here, not in the browser.
+    await q`CREATE TABLE IF NOT EXISTS free_usage (
+      user_id text PRIMARY KEY,
+      used integer NOT NULL DEFAULT 0
+    )`
   })().catch((e) => {
     ready = null
     throw e
@@ -50,7 +56,17 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
   // Bought something, used it all: report the last tier with zero left so the UI says "used up" rather than "free".
   if (rows.some((r) => r.plan_key === 'trial')) return { tier: 'trial', remaining: 0 }
   if (rows.some((r) => r.plan_key.startsWith('pack-'))) return { tier: 'credits', remaining: 0 }
-  return { tier: 'free', remaining: null }
+  const used = (await sql()`SELECT used FROM free_usage WHERE user_id = ${userId}`) as { used: number }[]
+  return { tier: 'free', remaining: Math.max(0, FREE_IMAGES - (used[0]?.used ?? 0)) }
+}
+
+/** Atomically use one of the signed-in account's free images. Returns false once the free allowance is gone. */
+export async function spendFree(userId: string): Promise<boolean> {
+  await ensureSchema()
+  const r = await sql()`INSERT INTO free_usage (user_id, used) VALUES (${userId}, 1)
+    ON CONFLICT (user_id) DO UPDATE SET used = free_usage.used + 1 WHERE free_usage.used < ${FREE_IMAGES}
+    RETURNING used`
+  return r.length > 0
 }
 
 /** Atomically take one image from the buyer's oldest usable grant (trial first). Returns false if none left. */
