@@ -95,3 +95,10 @@ body {
 
 .marker { cursor: grab; touch-action: none; }
 .marker:active { cursor: grabbing; }
+
+/* The on-screen pitch is watermarked on the free plan; do not let printing get around that. */
+.print-note { display: none; }
+@media print {
+  .pitch-locked { display: none !important; }
+  .print-note { display: block !important; }
+}
