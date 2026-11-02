@@ -249,11 +249,13 @@ export default function Board() {
   const changeClub = (side: Side, club: string) => setTeam(side, (t) => ({ ...makeTeam(club, t.formation) }))
   const changeFormation = (side: Side, formation: string) => setTeam(side, (t) => ({ ...t, formation, slots: autoFill(t.club, formation) }))
 
+  // "12 Darlow · 6 Martínez · ..." sorted by shirt number (players without a number come last)
   const benchText = (t: TeamState, sq: Player[]) =>
     t.bench
-      .map((i) => sq[i]?.num)
-      .filter((n): n is number => n != null)
-      .sort((a, b) => a - b)
+      .map((i) => sq[i])
+      .filter((p): p is Player => !!p)
+      .sort((a, b) => (a.num ?? 999) - (b.num ?? 999))
+      .map((p) => (p.num != null ? `${p.num} ${surname(p.name)}` : surname(p.name)))
       .join(' · ')
 
   const cardInput = () => ({
