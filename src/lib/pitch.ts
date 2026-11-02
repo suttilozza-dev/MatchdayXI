@@ -79,6 +79,27 @@ export type CardInput = {
   handle: string // creator handle; when set it replaces the MatchdayXI branding
 }
 
+
+const SUBS_INDENT = '          ' // lines up wrapped subs under the first name (approximately the width of "SUBS  ")
+
+/** Split "12 Darlow · 6 Martinez · ..." into lines no wider than maxW (the font must already be set on ctx). */
+function wrapSubs(ctx: CanvasRenderingContext2D, text: string, maxW: number): string[] {
+  const names = text.split(' · ').filter(Boolean)
+  if (names.length === 0) return ['']
+  const lines: string[] = []
+  let line = ''
+  for (const n of names) {
+    const next = line ? `${line} · ${n}` : n
+    const prefix = lines.length === 0 ? 'SUBS  ' : SUBS_INDENT
+    if (line && ctx.measureText(prefix + next).width > maxW) {
+      lines.push(line)
+      line = n
+    } else line = next
+  }
+  lines.push(line)
+  return lines
+}
+
 export async function renderCard(input: CardInput): Promise<Blob> {
   const [W, H] = CARD_SIZES[input.format]
   const canvas = document.createElement('canvas')
@@ -152,7 +173,11 @@ export async function renderCard(input: CardInput): Promise<Blob> {
 
   // pitch + stadium surround
   const vb = viewBoxFor(input.orient, input.shape, input.ext)
-  const benchLines = input.versus ? 2 : 1
+  // Subs are listed as "12 Darlow · 6 Martínez ..." and wrap onto more lines when they do not fit the card width.
+  ctx.font = '600 22px Oswald, sans-serif'
+  const subsHome = wrapSubs(ctx, input.homeBench, W - 96)
+  const subsAway = input.versus ? wrapSubs(ctx, input.awayBench, W - 96) : []
+  const benchLines = subsHome.length + subsAway.length
   const benchH = 34 * benchLines + 16
   const region = { x: 48, y: 190, w: W - 96, h: H - 190 - 100 - benchH }
   const sc = Math.min(region.w / vb.w, region.h / vb.h)
@@ -224,10 +249,10 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.font = '600 22px Oswald, sans-serif'
   const by = H - 100 - benchH + 34
   ctx.fillStyle = '#CFFF4D'
-  ctx.fillText(`SUBS  ${input.homeBench}`, 48, by)
+  subsHome.forEach((line, i) => ctx.fillText(i === 0 ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * i))
   if (input.versus) {
     ctx.fillStyle = '#1FD1C1'
-    ctx.fillText(`SUBS  ${input.awayBench}`, 48, by + 34)
+    subsAway.forEach((line, i) => ctx.fillText(i === 0 ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * (subsHome.length + i)))
   }
 
   // free-tier watermark: diagonal text across the card
