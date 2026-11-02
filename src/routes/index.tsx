@@ -1,0 +1,66 @@
+import { Link, createFileRoute } from '@tanstack/react-router'
+import { Pricing } from '#/components/Pricing'
+import { Disclaimer } from '#/components/Disclaimer'
+import { GAMEWEEK_DEFAULT } from '#/lib/data'
+import { HeaderLogo, Logo } from '#/components/Logo'
+import { LOGOS } from '#/lib/logos'
+
+export const Route = createFileRoute('/')({ component: Home })
+
+const STEPS = [
+  { n: '01', t: 'Pick your clubs', d: 'Set one team for a solo XI, or two for a Home v Away match-up. Any of the 20 Premier League clubs, 2026/27 squads.' },
+  { n: '02', t: 'Drag it into shape', d: 'Choose a formation, then tap a marker and pick a player. Drag markers anywhere. Your subs sit in the dugout.' },
+  { n: '03', t: 'Share it', d: 'Copy the image straight into a post, or download a 1080×1080 card. Send a link and anyone can open your line-up.' },
+]
+
+function Home() {
+  return (
+    <div>
+      <header className="mx-auto max-w-[1100px] px-4 py-5 flex items-center justify-between">
+        <HeaderLogo />
+        <Link to="/board" className="font-display text-sm tracking-widest text-[#CFFF4D]">Open the board →</Link>
+      </header>
+
+      <main>
+        <section className="mx-auto max-w-[1100px] px-4 pt-10 pb-16 text-center">
+          <div className="mx-auto mb-6 rounded-2xl overflow-hidden" style={{ width: 'min(320px, 80vw)', background: LOGOS['02'].bg }}>
+            <Logo id="02" label="Matchday XI pitch monogram" />
+          </div>
+          <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,10vw,7rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
+          <p className="mx-auto mt-5 max-w-xl text-lg text-[#AFCDBF]">
+            Build your predicted or dream Premier League line-up on a tactical board, then download or copy it to share on socials.
+          </p>
+          <div className="mt-7 flex gap-3 justify-center flex-wrap">
+            <Link to="/board" className="btn btn-lime">Pick your XI</Link>
+            <Link to="/board" className="btn btn-ghost">Share the line-up</Link>
+          </div>
+          <p className="mt-4 font-display text-xs tracking-widest text-[#AFCDBF]">Gameweek {GAMEWEEK_DEFAULT} board is live</p>
+        </section>
+
+        <section className="mx-auto max-w-[1100px] px-4 pb-16">
+          <h2 className="font-display font-bold text-3xl mb-5">From formation to <span style={{ color: 'var(--boot-lime)' }}>feed</span></h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {STEPS.map((s) => (
+              <div key={s.n} className="panel p-5">
+                <div className="font-display text-2xl text-[#CFFF4D]">{s.n}</div>
+                <div className="font-display text-lg mt-1">{s.t}</div>
+                <p className="mt-2 text-sm text-[#AFCDBF]">{s.d}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-[1100px] px-4 pb-16">
+          <h2 className="font-display font-bold text-3xl mb-1">Free to build. Pay to <span style={{ color: 'var(--boot-lime)' }}>export</span>.</h2>
+          <p className="text-sm text-[#AFCDBF]">Build and share a link as much as you like. Pick a plan when you want the image.</p>
+          <Pricing />
+        </section>
+      </main>
+
+      <footer className="mx-auto max-w-[1100px] px-4 pb-10 flex flex-col gap-2">
+        <Disclaimer />
+        <p className="text-xs text-[#AFCDBF]">matchday-xi.club</p>
+      </footer>
+    </div>
+  )
+}

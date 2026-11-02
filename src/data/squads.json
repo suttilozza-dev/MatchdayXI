@@ -1,0 +1,2610 @@
+{
+ "season": "2026/27",
+ "source": "premierleague.com club squad pages (transcribed by hand from screenshots; verify before launch)",
+ "clubs": {
+  "Arsenal": {
+   "GK": [
+    [
+     1,
+     "David Raya"
+    ],
+    [
+     13,
+     "Kepa Arrizabalaga"
+    ],
+    [
+     30,
+     "Illan Meslier"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "William Saliba"
+    ],
+    [
+     3,
+     "Cristhian Mosquera"
+    ],
+    [
+     4,
+     "Ben White"
+    ],
+    [
+     5,
+     "Piero Hincapié"
+    ],
+    [
+     6,
+     "Gabriel Magalhães"
+    ],
+    [
+     12,
+     "Jurriën Timber"
+    ],
+    [
+     15,
+     "Ezri Konsa"
+    ],
+    [
+     33,
+     "Riccardo Calafiori"
+    ],
+    [
+     49,
+     "Myles Lewis-Skelly"
+    ],
+    [
+     60,
+     "Marcell Washington"
+    ],
+    [
+     89,
+     "Marli Salmon"
+    ]
+   ],
+   "MID": [
+    [
+     8,
+     "Martin Ødegaard"
+    ],
+    [
+     10,
+     "Eberechi Eze"
+    ],
+    [
+     23,
+     "Mikel Merino"
+    ],
+    [
+     36,
+     "Martín Zubimendi"
+    ],
+    [
+     39,
+     "Bruno Guimarães"
+    ],
+    [
+     41,
+     "Declan Rice"
+    ],
+    [
+     44,
+     "Ife Ibrahim"
+    ],
+    [
+     45,
+     "Theo Julienne"
+    ],
+    [
+     74,
+     "Maalik Hashi"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Bukayo Saka"
+    ],
+    [
+     14,
+     "Viktor Gyökeres"
+    ],
+    [
+     17,
+     "Christos Tzolis"
+    ],
+    [
+     20,
+     "Noni Madueke"
+    ],
+    [
+     29,
+     "Kai Havertz"
+    ],
+    [
+     43,
+     "Andre Harriman-Annous"
+    ],
+    [
+     53,
+     "Ceadach O'Neill"
+    ],
+    [
+     56,
+     "Max Dowman"
+    ]
+   ]
+  },
+  "Aston Villa": {
+   "GK": [
+    [
+     1,
+     "Zion Suzuki"
+    ],
+    [
+     40,
+     "Marco Bizot"
+    ],
+    [
+     42,
+     "James Wright"
+    ],
+    [
+     60,
+     "Owen Asemota"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Matty Cash"
+    ],
+    [
+     3,
+     "Victor Lindelöf"
+    ],
+    [
+     4,
+     "Taylor Harwood-Bellis"
+    ],
+    [
+     5,
+     "Tyrone Mings"
+    ],
+    [
+     13,
+     "Matteo Ruggeri"
+    ],
+    [
+     14,
+     "Pau Torres"
+    ],
+    [
+     22,
+     "Ian Maatsen"
+    ],
+    [
+     29,
+     "Aaron Wan-Bissaka"
+    ],
+    [
+     48,
+     "Modou Kéba Cissé"
+    ]
+   ],
+   "MID": [
+    [
+     6,
+     "Ross Barkley"
+    ],
+    [
+     7,
+     "John McGinn"
+    ],
+    [
+     8,
+     "Boubacar Kamara"
+    ],
+    [
+     10,
+     "Emiliano Buendía"
+    ],
+    [
+     24,
+     "Amadou Onana"
+    ],
+    [
+     26,
+     "Lamare Bogarde"
+    ],
+    [
+     27,
+     "Leon Goretzka"
+    ],
+    [
+     35,
+     "João Gomes"
+    ],
+    [
+     44,
+     "Johan Manzambi"
+    ],
+    [
+     53,
+     "George Hemmings"
+    ]
+   ],
+   "FWD": [
+    [
+     11,
+     "Nicolas Jackson"
+    ],
+    [
+     17,
+     "Alejandro Garnacho"
+    ],
+    [
+     18,
+     "Tammy Abraham"
+    ],
+    [
+     19,
+     "Ibrahim Mbaye"
+    ],
+    [
+     39,
+     "Brian Madjo"
+    ],
+    [
+     47,
+     "Alysson"
+    ]
+   ]
+  },
+  "Bournemouth": {
+   "GK": [
+    [
+     1,
+     "Djordje Petrovic"
+    ],
+    [
+     17,
+     "Fraser Forster"
+    ],
+    [
+     20,
+     "Michele Di Gregorio"
+    ],
+    [
+     55,
+     "Mack Allan"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Julián Araujo"
+    ],
+    [
+     3,
+     "Adrien Truffert"
+    ],
+    [
+     5,
+     "James Hill"
+    ],
+    [
+     6,
+     "Julio Soler"
+    ],
+    [
+     14,
+     "António Silva"
+    ],
+    [
+     15,
+     "Adam Smith"
+    ],
+    [
+     18,
+     "Bafodé Diakité"
+    ],
+    [
+     28,
+     "Max Aarons"
+    ],
+    [
+     44,
+     "Veljko Milosavljevic"
+    ]
+   ],
+   "MID": [
+    [
+     4,
+     "Lewis Cook"
+    ],
+    [
+     7,
+     "David Brooks"
+    ],
+    [
+     8,
+     "Alex Scott"
+    ],
+    [
+     10,
+     "Ryan Christie"
+    ],
+    [
+     12,
+     "Tyler Adams"
+    ],
+    [
+     16,
+     "Marcus Tavernier"
+    ],
+    [
+     24,
+     "Juanlu Sánchez"
+    ],
+    [
+     27,
+     "Alex Tóth"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Evanilson"
+    ],
+    [
+     11,
+     "Ben Gannon-Doak"
+    ],
+    [
+     19,
+     "Justin Kluivert"
+    ],
+    [
+     21,
+     "Amine Adli"
+    ],
+    [
+     22,
+     "Junior Kroupi"
+    ],
+    [
+     29,
+     "Daniel Jebbison"
+    ],
+    [
+     30,
+     "Álvaro Rodríguez"
+    ],
+    [
+     37,
+     "Rayan"
+    ]
+   ]
+  },
+  "Brentford": {
+   "GK": [
+    [
+     1,
+     "Caoimhín Kelleher"
+    ],
+    [
+     12,
+     "Hákon Valdimarsson"
+    ],
+    [
+     31,
+     "Ellery Balcombe"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Aaron Hickey"
+    ],
+    [
+     3,
+     "Rico Henry"
+    ],
+    [
+     4,
+     "Sepp van den Berg"
+    ],
+    [
+     20,
+     "Kristoffer Ajer"
+    ],
+    [
+     22,
+     "Nathan Collins"
+    ],
+    [
+     25,
+     "El Hadji Malick Diouf"
+    ],
+    [
+     33,
+     "Michael Kayode"
+    ],
+    [
+     36,
+     "Kim Ji-Soo"
+    ],
+    [
+     44,
+     "Jannik Schuster"
+    ],
+    [
+     48,
+     "Benjamin Fredrick"
+    ]
+   ],
+   "MID": [
+    [
+     6,
+     "Yehor Yarmoliuk"
+    ],
+    [
+     7,
+     "Kevin Schade"
+    ],
+    [
+     8,
+     "Mathias Jensen"
+    ],
+    [
+     10,
+     "Josh Dasilva"
+    ],
+    [
+     14,
+     "Fábio Carvalho"
+    ],
+    [
+     17,
+     "Antoni Milambo"
+    ],
+    [
+     18,
+     "Mamadou Sangaré"
+    ],
+    [
+     24,
+     "Mikkel Damsgaard"
+    ],
+    [
+     27,
+     "Vitaly Janelt"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Igor Thiago"
+    ],
+    [
+     11,
+     "Dango Ouattara"
+    ],
+    [
+     13,
+     "Callum Wilson"
+    ],
+    [
+     19,
+     "Jaidon Anthony"
+    ],
+    [
+     23,
+     "Keane Lewis-Potter"
+    ],
+    [
+     39,
+     "Gustavo Nunes"
+    ],
+    [
+     47,
+     "Kaye Furo"
+    ]
+   ]
+  },
+  "Brighton and Hove Albion": {
+   "GK": [
+    [
+     1,
+     "Bart Verbruggen"
+    ],
+    [
+     23,
+     "Jason Steele"
+    ],
+    [
+     38,
+     "Tom McGill"
+    ],
+    [
+     61,
+     "Steven Hall"
+    ]
+   ],
+   "DEF": [
+    [
+     3,
+     "Jaouen Hadjam"
+    ],
+    [
+     4,
+     "Pascal Struijk"
+    ],
+    [
+     5,
+     "Lewis Dunk"
+    ],
+    [
+     20,
+     "Costinha"
+    ],
+    [
+     21,
+     "Olivier Boscagli"
+    ],
+    [
+     24,
+     "Ferdi Kadioglu"
+    ],
+    [
+     29,
+     "Maxim De Cuyper"
+    ],
+    [
+     30,
+     "Michael Svoboda"
+    ],
+    [
+     44,
+     "Luka Vuskovic"
+    ]
+   ],
+   "MID": [
+    [
+     7,
+     "Kaoru Mitoma"
+    ],
+    [
+     8,
+     "Jack Hinshelwood"
+    ],
+    [
+     13,
+     "Pascal Groß"
+    ],
+    [
+     14,
+     "Chema Andrés"
+    ],
+    [
+     25,
+     "Diego Gómez"
+    ],
+    [
+     26,
+     "Yasin Ayari"
+    ],
+    [
+     27,
+     "Mats Wieffer"
+    ],
+    [
+     33,
+     "Matt O'Riley"
+    ],
+    [
+     35,
+     "Malick Yalcouyé"
+    ],
+    [
+     49,
+     "Nehemiah Oriola"
+    ],
+    [
+     51,
+     "Shane Nti"
+    ],
+    [
+     59,
+     "Younes Ibrahim"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Stefanos Tzimas"
+    ],
+    [
+     10,
+     "Georginio Rutter"
+    ],
+    [
+     11,
+     "Yankuba Minteh"
+    ],
+    [
+     12,
+     "Promise David"
+    ],
+    [
+     15,
+     "Ibrahim Osman"
+    ],
+    [
+     19,
+     "Charalampos Kostoulas"
+    ],
+    [
+     28,
+     "Evan Ferguson"
+    ],
+    [
+     36,
+     "Zadok Yohanna"
+    ],
+    [
+     39,
+     "Femi Azeez"
+    ]
+   ]
+  },
+  "Chelsea": {
+   "GK": [
+    [
+     1,
+     "Emiliano Martínez"
+    ],
+    [
+     28,
+     "Teddy Sharman-Lowe"
+    ],
+    [
+     39,
+     "Mike Penders"
+    ],
+    [
+     44,
+     "Gabriel Slonina"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Marco Palestra"
+    ],
+    [
+     3,
+     "Wesley Fofana"
+    ],
+    [
+     5,
+     "Maxence Lacroix"
+    ],
+    [
+     6,
+     "Levi Colwill"
+    ],
+    [
+     21,
+     "Jorrel Hato"
+    ],
+    [
+     24,
+     "Reece James"
+    ],
+    [
+     27,
+     "Malo Gusto"
+    ],
+    [
+     29,
+     "Pep Chavarría"
+    ],
+    [
+     30,
+     "Aaron Anselmino"
+    ],
+    [
+     34,
+     "Josh Acheampong"
+    ],
+    [
+     37,
+     "Olutayo Subuloye"
+    ]
+   ],
+   "MID": [
+    [
+     4,
+     "Valentín Barco"
+    ],
+    [
+     10,
+     "Cole Palmer"
+    ],
+    [
+     14,
+     "Jordan Henderson"
+    ],
+    [
+     17,
+     "Morgan Rogers"
+    ],
+    [
+     23,
+     "Geovany Quenda"
+    ],
+    [
+     25,
+     "Moisés Caicedo"
+    ],
+    [
+     31,
+     "Reggie Watson"
+    ],
+    [
+     32,
+     "Mahdi Nicoll-Jazuli"
+    ],
+    [
+     45,
+     "Roméo Lavia"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Pedro Neto"
+    ],
+    [
+     9,
+     "João Pedro"
+    ],
+    [
+     11,
+     "Jamie Gittens"
+    ],
+    [
+     18,
+     "Danny Welbeck"
+    ],
+    [
+     22,
+     "Emmanuel Emegha"
+    ],
+    [
+     41,
+     "Estêvão"
+    ]
+   ]
+  },
+  "Coventry City": {
+   "GK": [
+    [
+     13,
+     "Ben Wilson"
+    ],
+    [
+     19,
+     "Carl Rushworth"
+    ],
+    [
+     25,
+     "Dan Bentley"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Ethan Pinnock"
+    ],
+    [
+     3,
+     "Jay Dasilva"
+    ],
+    [
+     4,
+     "Bobby Thomas"
+    ],
+    [
+     12,
+     "Stephen Mfuni"
+    ],
+    [
+     20,
+     "Kaine Kesler-Hayden"
+    ],
+    [
+     21,
+     "Jake Bidwell"
+    ],
+    [
+     22,
+     "Joel Latibeaudiere"
+    ],
+    [
+     24,
+     "Aurèle Amenda"
+    ],
+    [
+     26,
+     "Luke Woolfenden"
+    ],
+    [
+     27,
+     "Milan van Ewijk"
+    ]
+   ],
+   "MID": [
+    [
+     5,
+     "Jack Rudoni"
+    ],
+    [
+     6,
+     "Matt Grimes"
+    ],
+    [
+     7,
+     "Tatsuhiro Sakamoto"
+    ],
+    [
+     8,
+     "Caleb Yirenkyi"
+    ],
+    [
+     10,
+     "Ephron Mason-Clark"
+    ],
+    [
+     16,
+     "Frank Onyeka"
+    ],
+    [
+     28,
+     "Josh Eccles"
+    ],
+    [
+     29,
+     "Victor Torp"
+    ],
+    [
+     38,
+     "Gustavo Hamer"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Ellis Simms"
+    ],
+    [
+     11,
+     "Haji Wright"
+    ],
+    [
+     14,
+     "Taiwo Awoniyi"
+    ],
+    [
+     17,
+     "Loum Tchaouna"
+    ],
+    [
+     23,
+     "Brandon Thomas-Asante"
+    ],
+    [
+     34,
+     "Yann Gboho"
+    ],
+    [
+     49,
+     "Sidiki Cherif"
+    ]
+   ]
+  },
+  "Crystal Palace": {
+   "GK": [
+    [
+     1,
+     "Dean Henderson"
+    ],
+    [
+     31,
+     "Remi Matthews"
+    ],
+    [
+     44,
+     "Walter Benítez"
+    ],
+    [
+     81,
+     "Lucca Benetton"
+    ]
+   ],
+   "DEF": [
+    [
+     3,
+     "Tyrick Mitchell"
+    ],
+    [
+     4,
+     "Chadi Riad"
+    ],
+    [
+     5,
+     "Axel Disasi"
+    ],
+    [
+     6,
+     "Jaydee Canvot"
+    ],
+    [
+     17,
+     "Takehiro Tomiyasu"
+    ],
+    [
+     21,
+     "Honest Ahanor"
+    ],
+    [
+     25,
+     "Anan Khalaili"
+    ],
+    [
+     26,
+     "Chris Richards"
+    ],
+    [
+     30,
+     "Óscar Mingueza"
+    ],
+    [
+     33,
+     "Ben Chilwell"
+    ],
+    [
+     38,
+     "Caleb Kporha"
+    ],
+    [
+     54,
+     "Dean Benamar"
+    ],
+    [
+     60,
+     "George King"
+    ]
+   ],
+   "MID": [
+    [
+     8,
+     "Jefferson Lerma"
+    ],
+    [
+     10,
+     "Yéremy Pino"
+    ],
+    [
+     18,
+     "Daichi Kamada"
+    ],
+    [
+     19,
+     "Will Hughes"
+    ],
+    [
+     20,
+     "Adam Wharton"
+    ],
+    [
+     23,
+     "Quinten Timber"
+    ],
+    [
+     24,
+     "Darío Osorio"
+    ],
+    [
+     28,
+     "Cheick Doucouré"
+    ],
+    [
+     43,
+     "Sebastian Williams"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Ismaïla Sarr"
+    ],
+    [
+     9,
+     "Eddie Nketiah"
+    ],
+    [
+     11,
+     "Dwight McNeil"
+    ],
+    [
+     12,
+     "Zavier Gozo"
+    ],
+    [
+     14,
+     "Jean-Philippe Mateta"
+    ],
+    [
+     22,
+     "Jørgen Strand Larsen"
+    ],
+    [
+     29,
+     "Evann Guessand"
+    ]
+   ]
+  },
+  "Everton": {
+   "GK": [
+    [
+     1,
+     "Jordan Pickford"
+    ],
+    [
+     12,
+     "Mark Travers"
+    ],
+    [
+     31,
+     "Tom King"
+    ]
+   ],
+   "DEF": [
+    [
+     4,
+     "Jarrad Branthwaite"
+    ],
+    [
+     5,
+     "Michael Keane"
+    ],
+    [
+     6,
+     "James Tarkowski"
+    ],
+    [
+     15,
+     "Jake O'Brien"
+    ],
+    [
+     16,
+     "Vitalii Mykolenko"
+    ]
+   ],
+   "MID": [
+    [
+     2,
+     "Ainsley Maitland-Niles"
+    ],
+    [
+     8,
+     "Kiernan Dewsbury-Hall"
+    ],
+    [
+     10,
+     "Jack Grealish"
+    ],
+    [
+     23,
+     "Christian Nørgaard"
+    ],
+    [
+     24,
+     "Charly Alcaraz"
+    ],
+    [
+     30,
+     "Hayden Hackney"
+    ],
+    [
+     34,
+     "Merlin Röhl"
+    ],
+    [
+     37,
+     "James Garner"
+    ],
+    [
+     45,
+     "Harrison Armstrong"
+    ],
+    [
+     76,
+     "Malik Olayiwola"
+    ],
+    [
+     81,
+     "Harvey Foster"
+    ]
+   ],
+   "FWD": [
+    [
+     11,
+     "Thierno Barry"
+    ],
+    [
+     19,
+     "Tyrique George"
+    ],
+    [
+     20,
+     "Tyler Dibling"
+    ],
+    [
+     22,
+     "Brennan Johnson"
+    ],
+    [
+     58,
+     "Braiden Graham"
+    ]
+   ]
+  },
+  "Fulham": {
+   "GK": [
+    [
+     1,
+     "Bernd Leno"
+    ],
+    [
+     23,
+     "Benjamin Lecomte"
+    ],
+    [
+     36,
+     "Alex Borto"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Kenny Tete"
+    ],
+    [
+     3,
+     "Calvin Bassey"
+    ],
+    [
+     4,
+     "Jorge Cuenca"
+    ],
+    [
+     5,
+     "Joachim Andersen"
+    ],
+    [
+     21,
+     "Timothy Castagne"
+    ],
+    [
+     22,
+     "David Affengruber"
+    ],
+    [
+     33,
+     "Antonee Robinson"
+    ],
+    [
+     40,
+     "Bradley Slade"
+    ]
+   ],
+   "MID": [
+    [
+     6,
+     "Harrison Reed"
+    ],
+    [
+     8,
+     "César Palacios"
+    ],
+    [
+     10,
+     "Tom Cairney"
+    ],
+    [
+     14,
+     "Oscar Bobb"
+    ],
+    [
+     15,
+     "Hugo Larsson"
+    ],
+    [
+     16,
+     "Sander Berge"
+    ],
+    [
+     19,
+     "Shea Charles"
+    ],
+    [
+     20,
+     "Manuel Ángel"
+    ],
+    [
+     24,
+     "Josh King"
+    ],
+    [
+     30,
+     "Ryan Sessegnon"
+    ],
+    [
+     32,
+     "Emile Smith Rowe"
+    ],
+    [
+     34,
+     "Chibby Nwoko"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Gonzalo García"
+    ],
+    [
+     9,
+     "Rodrigo Muniz"
+    ],
+    [
+     11,
+     "Kevin"
+    ],
+    [
+     17,
+     "Alex Iwobi"
+    ],
+    [
+     18,
+     "Jonah Kusi-Asare"
+    ],
+    [
+     35,
+     "Macaulay Zepa"
+    ]
+   ]
+  },
+  "Hull City": {
+   "GK": [
+    [
+     1,
+     "Jack Butland"
+    ],
+    [
+     12,
+     "Dillon Phillips"
+    ],
+    [
+     19,
+     "Konstantinos Tzolakis"
+    ],
+    [
+     55,
+     "Archie Howard"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Lewie Coyle"
+    ],
+    [
+     3,
+     "Ryan Giles"
+    ],
+    [
+     4,
+     "Charlie Hughes"
+    ],
+    [
+     6,
+     "Semi Ajayi"
+    ],
+    [
+     15,
+     "John Egan"
+    ],
+    [
+     17,
+     "Paddy McNair"
+    ],
+    [
+     18,
+     "Brooke Norton-Cuffy"
+    ],
+    [
+     22,
+     "Lucas Herrington"
+    ],
+    [
+     23,
+     "Matt Targett"
+    ],
+    [
+     32,
+     "Nobel Mendy"
+    ]
+   ],
+   "MID": [
+    [
+     5,
+     "Hidemasa Morita"
+    ],
+    [
+     8,
+     "Eliot Matazo"
+    ],
+    [
+     14,
+     "Jens Hjertø-Dahl"
+    ],
+    [
+     20,
+     "Óscar Zambrano"
+    ],
+    [
+     21,
+     "Elliot Stroud"
+    ],
+    [
+     24,
+     "Darko Gyabi"
+    ],
+    [
+     25,
+     "Matt Crooks"
+    ],
+    [
+     26,
+     "Kieran Dowell"
+    ],
+    [
+     27,
+     "Regan Slater"
+    ],
+    [
+     29,
+     "Lucas Gourna-Douath"
+    ],
+    [
+     33,
+     "Abdülkadir Ömür"
+    ],
+    [
+     36,
+     "Christos Mouzakitis"
+    ],
+    [
+     42,
+     "Tim Iroegbunam"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Sorba Thomas"
+    ],
+    [
+     9,
+     "Oliver McBurnie"
+    ],
+    [
+     10,
+     "Mohamed Belloumi"
+    ],
+    [
+     11,
+     "Joe Gelhardt"
+    ],
+    [
+     28,
+     "Ilyas Ansah"
+    ],
+    [
+     47,
+     "Robinio Vaz"
+    ],
+    [
+     50,
+     "Mohamed-Ali Cho"
+    ]
+   ]
+  },
+  "Ipswich Town": {
+   "GK": [
+    [
+     1,
+     "Alex Palmer"
+    ],
+    [
+     27,
+     "David Button"
+    ],
+    [
+     28,
+     "Christian Walton"
+    ],
+    [
+     37,
+     "Kjell Scherpen"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Darnell Furlong"
+    ],
+    [
+     3,
+     "Leif Davis"
+    ],
+    [
+     4,
+     "Cédric Kipré"
+    ],
+    [
+     6,
+     "Issa Diop"
+    ],
+    [
+     24,
+     "Jacob Greaves"
+    ],
+    [
+     26,
+     "Dara O'Shea"
+    ],
+    [
+     42,
+     "Abdoul Ouattara"
+    ]
+   ],
+   "MID": [
+    [
+     5,
+     "Azor Matusiwa"
+    ],
+    [
+     10,
+     "Julio Enciso"
+    ],
+    [
+     12,
+     "Florentino"
+    ],
+    [
+     14,
+     "Jack Taylor"
+    ],
+    [
+     20,
+     "Kasey McAteer"
+    ],
+    [
+     23,
+     "Sasa Lukic"
+    ],
+    [
+     25,
+     "Exequiel Palacios"
+    ],
+    [
+     32,
+     "Marcelino Núñez"
+    ],
+    [
+     33,
+     "Anis Mehmeti"
+    ],
+    [
+     40,
+     "Charlie Compton"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Abdul Fatawu"
+    ],
+    [
+     8,
+     "Sindre Egeli"
+    ],
+    [
+     9,
+     "Zian Flemming"
+    ],
+    [
+     11,
+     "Jaden Philogene"
+    ],
+    [
+     19,
+     "Emersonn"
+    ],
+    [
+     29,
+     "Chuba Akpom"
+    ],
+    [
+     38,
+     "Daizen Maeda"
+    ],
+    [
+     47,
+     "Jack Clarke"
+    ]
+   ]
+  },
+  "Leeds United": {
+   "GK": [
+    [
+     1,
+     "James Trafford"
+    ],
+    [
+     16,
+     "Michael Zetterer"
+    ],
+    [
+     21,
+     "Alex Cairns"
+    ],
+    [
+     48,
+     "Rory Mahady"
+    ],
+    [
+     49,
+     "Darryl Ombang"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Jayden Bogle"
+    ],
+    [
+     3,
+     "Gabriel Gudmundsson"
+    ],
+    [
+     5,
+     "Tarik Muharemovic"
+    ],
+    [
+     6,
+     "Joe Rodon"
+    ],
+    [
+     15,
+     "Jaka Bijol"
+    ],
+    [
+     24,
+     "James Justin"
+    ],
+    [
+     26,
+     "Melvin Bard"
+    ],
+    [
+     30,
+     "Nico Elvedi"
+    ],
+    [
+     65,
+     "Jayden Lienou"
+    ]
+   ],
+   "MID": [
+    [
+     4,
+     "Ethan Ampadu"
+    ],
+    [
+     8,
+     "Sean Longstaff"
+    ],
+    [
+     11,
+     "Brenden Aaronson"
+    ],
+    [
+     18,
+     "Anton Stach"
+    ],
+    [
+     22,
+     "Ao Tanaka"
+    ],
+    [
+     44,
+     "Ilia Gruev"
+    ],
+    [
+     47,
+     "Rhys Chadwick"
+    ],
+    [
+     50,
+     "Alfie Cresswell"
+    ],
+    [
+     72,
+     "Callum Mills"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Daniel James"
+    ],
+    [
+     9,
+     "Dominic Calvert-Lewin"
+    ],
+    [
+     10,
+     "Harry Wilson"
+    ],
+    [
+     14,
+     "Lukas Nmecha"
+    ],
+    [
+     19,
+     "Noah Okafor"
+    ],
+    [
+     23,
+     "Jean-Mattéo Bahoya"
+    ]
+   ]
+  },
+  "Liverpool": {
+   "GK": [
+    [
+     1,
+     "Alisson Becker"
+    ],
+    [
+     25,
+     "Giorgi Mamardashvili"
+    ],
+    [
+     28,
+     "Freddie Woodman"
+    ],
+    [
+     56,
+     "Vítezslav Jaros"
+    ],
+    [
+     95,
+     "Harvey Davies"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Joe Gomez"
+    ],
+    [
+     4,
+     "Virgil van Dijk"
+    ],
+    [
+     5,
+     "Jérémy Jacquet"
+    ],
+    [
+     6,
+     "Milos Kerkez"
+    ],
+    [
+     12,
+     "Conor Bradley"
+    ],
+    [
+     15,
+     "Giovanni Leoni"
+    ],
+    [
+     21,
+     "Kostas Tsimikas"
+    ],
+    [
+     30,
+     "Jeremie Frimpong"
+    ],
+    [
+     33,
+     "Ronald Araujo"
+    ],
+    [
+     44,
+     "Luke Chambers"
+    ],
+    [
+     92,
+     "Wellity Lucky"
+    ]
+   ],
+   "MID": [
+    [
+     3,
+     "Wataru Endo"
+    ],
+    [
+     7,
+     "Florian Wirtz"
+    ],
+    [
+     8,
+     "Dominik Szoboszlai"
+    ],
+    [
+     10,
+     "Alexis Mac Allister"
+    ],
+    [
+     38,
+     "Ryan Gravenberch"
+    ],
+    [
+     42,
+     "Trey Nyoni"
+    ],
+    [
+     53,
+     "James McConnell"
+    ],
+    [
+     94,
+     "Michael Laffey"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Alexander Isak"
+    ],
+    [
+     14,
+     "Federico Chiesa"
+    ],
+    [
+     18,
+     "Cody Gakpo"
+    ],
+    [
+     22,
+     "Hugo Ekitiké"
+    ],
+    [
+     23,
+     "Víctor Muñoz"
+    ],
+    [
+     29,
+     "Bradley Barcola"
+    ],
+    [
+     67,
+     "Lewis Koumas"
+    ],
+    [
+     73,
+     "Rio Ngumoha"
+    ],
+    [
+     76,
+     "Jayden Danns"
+    ],
+    [
+     82,
+     "Joshua Sonni-Lambie"
+    ]
+   ]
+  },
+  "Manchester City": {
+   "GK": [
+    [
+     1,
+     "Gianluigi Donnarumma"
+    ],
+    [
+     13,
+     "Marcus Bettinelli"
+    ],
+    [
+     28,
+     "Gerónimo Rulli"
+    ],
+    [
+     94,
+     "Max-Edgar Chabot"
+    ]
+   ],
+   "DEF": [
+    [
+     3,
+     "Rúben Dias"
+    ],
+    [
+     6,
+     "Marc Guéhi"
+    ],
+    [
+     21,
+     "Rayan Aït-Nouri"
+    ],
+    [
+     22,
+     "Vitor Reis"
+    ],
+    [
+     24,
+     "Josko Gvardiol"
+    ],
+    [
+     33,
+     "Nico O'Reilly"
+    ],
+    [
+     45,
+     "Abdukodir Khusanov"
+    ],
+    [
+     61,
+     "Kaden Braithwaite"
+    ],
+    [
+     82,
+     "Rico Lewis"
+    ]
+   ],
+   "MID": [
+    [
+     5,
+     "Elliot Anderson"
+    ],
+    [
+     8,
+     "Mateo Kovacic"
+    ],
+    [
+     10,
+     "Rayan Cherki"
+    ],
+    [
+     17,
+     "Enzo Fernández"
+    ],
+    [
+     27,
+     "Matheus Nunes"
+    ],
+    [
+     32,
+     "Ayyoub Bouaddi"
+    ],
+    [
+     47,
+     "Phil Foden"
+    ],
+    [
+     75,
+     "Floyd Samba"
+    ],
+    [
+     76,
+     "Dexter Oliver"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Iliman Ndiaye"
+    ],
+    [
+     9,
+     "Erling Haaland"
+    ],
+    [
+     11,
+     "Jérémy Doku"
+    ],
+    [
+     37,
+     "Allan"
+    ],
+    [
+     42,
+     "Antoine Semenyo"
+    ],
+    [
+     56,
+     "Ryan McAidoo"
+    ]
+   ]
+  },
+  "Manchester United": {
+   "GK": [
+    [
+     1,
+     "Senne Lammens"
+    ],
+    [
+     12,
+     "Karl Darlow"
+    ],
+    [
+     22,
+     "Tom Heaton"
+    ],
+    [
+     45,
+     "Dermot Mee"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Diogo Dalot"
+    ],
+    [
+     3,
+     "Noussair Mazraoui"
+    ],
+    [
+     4,
+     "Matthijs de Ligt"
+    ],
+    [
+     5,
+     "Harry Maguire"
+    ],
+    [
+     6,
+     "Lisandro Martínez"
+    ],
+    [
+     13,
+     "Patrick Dorgu"
+    ],
+    [
+     15,
+     "Leny Yoro"
+    ],
+    [
+     23,
+     "Luke Shaw"
+    ],
+    [
+     26,
+     "Ayden Heaven"
+    ],
+    [
+     41,
+     "Harry Amass"
+    ],
+    [
+     56,
+     "Jaydan Kamason"
+    ],
+    [
+     57,
+     "Daniel Armer"
+    ]
+   ],
+   "MID": [
+    [
+     7,
+     "Mason Mount"
+    ],
+    [
+     8,
+     "Bruno Fernandes"
+    ],
+    [
+     17,
+     "Andrey Santos"
+    ],
+    [
+     18,
+     "Youri Tielemans"
+    ],
+    [
+     20,
+     "Carlos Baleba"
+    ],
+    [
+     25,
+     "Manuel Ugarte"
+    ],
+    [
+     37,
+     "Kobbie Mainoo"
+    ],
+    [
+     38,
+     "Jack Fletcher"
+    ],
+    [
+     39,
+     "Tyler Fletcher"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Marcus Rashford"
+    ],
+    [
+     10,
+     "Matheus Cunha"
+    ],
+    [
+     11,
+     "Joshua Zirkzee"
+    ],
+    [
+     16,
+     "Amad Diallo"
+    ],
+    [
+     19,
+     "Bryan Mbeumo"
+    ],
+    [
+     27,
+     "Tynan Thompson"
+    ],
+    [
+     30,
+     "Benjamin Sesko"
+    ],
+    [
+     31,
+     "Shea Lacey"
+    ]
+   ]
+  },
+  "Newcastle United": {
+   "GK": [
+    [
+     1,
+     "Nick Pope"
+    ],
+    [
+     21,
+     "Lukás Hornícek"
+    ],
+    [
+     24,
+     "Ewen Jaouen"
+    ],
+    [
+     29,
+     "Mark Gillespie"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Tino Livramento"
+    ],
+    [
+     3,
+     "Lewis Hall"
+    ],
+    [
+     4,
+     "Sven Botman"
+    ],
+    [
+     5,
+     "Fabian Schär"
+    ],
+    [
+     12,
+     "Malick Thiaw"
+    ],
+    [
+     33,
+     "Dan Burn"
+    ],
+    [
+     37,
+     "Amar Dedic"
+    ],
+    [
+     48,
+     "Miodrag Pivas"
+    ]
+   ],
+   "MID": [
+    [
+     6,
+     "Nico González"
+    ],
+    [
+     7,
+     "Joelinton"
+    ],
+    [
+     8,
+     "Aladji Bamba"
+    ],
+    [
+     11,
+     "Harvey Barnes"
+    ],
+    [
+     14,
+     "Sean Steur"
+    ],
+    [
+     23,
+     "Jacob Murphy"
+    ],
+    [
+     28,
+     "Joe Willock"
+    ],
+    [
+     41,
+     "Jacob Ramsey"
+    ],
+    [
+     67,
+     "Lewis Miley"
+    ],
+    [
+     76,
+     "Mason Miley"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Yoane Wissa"
+    ],
+    [
+     10,
+     "William Osula"
+    ],
+    [
+     17,
+     "Bazoumana Touré"
+    ],
+    [
+     19,
+     "Anthony Elanga"
+    ],
+    [
+     20,
+     "Matias Fernandez-Pardo"
+    ],
+    [
+     44,
+     "Kyran Thompson"
+    ],
+    [
+     49,
+     "Vakhtang Salia"
+    ],
+    [
+     77,
+     "Michael Mills"
+    ]
+   ]
+  },
+  "Nottingham Forest": {
+   "GK": [
+    [
+     12,
+     "John Victor"
+    ],
+    [
+     26,
+     "Matz Sels"
+    ],
+    [
+     33,
+     "Steven Benda"
+    ]
+   ],
+   "DEF": [
+    [
+     2,
+     "Ousmane Diomande"
+    ],
+    [
+     3,
+     "Neco Williams"
+    ],
+    [
+     5,
+     "Murillo"
+    ],
+    [
+     23,
+     "Jair Cunha"
+    ],
+    [
+     25,
+     "Luca Netz"
+    ],
+    [
+     27,
+     "Daniel Muñoz"
+    ],
+    [
+     31,
+     "Nikola Milenkovic"
+    ],
+    [
+     34,
+     "Ola Aina"
+    ],
+    [
+     37,
+     "Nicolò Savona"
+    ]
+   ],
+   "MID": [
+    [
+     6,
+     "Ibrahim Sangaré"
+    ],
+    [
+     8,
+     "Nicolás Domínguez"
+    ],
+    [
+     10,
+     "Morgan Gibbs-White"
+    ],
+    [
+     21,
+     "Xaver Schlager"
+    ],
+    [
+     22,
+     "Ryan Yates"
+    ],
+    [
+     24,
+     "James McAtee"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Callum Hudson-Odoi"
+    ],
+    [
+     9,
+     "Chris Wood"
+    ],
+    [
+     11,
+     "Igor Jesus"
+    ],
+    [
+     14,
+     "Dan Ndoye"
+    ],
+    [
+     15,
+     "Arnaud Kalimuendo"
+    ],
+    [
+     19,
+     "Liam Delap"
+    ]
+   ]
+  },
+  "Sunderland": {
+   "GK": [
+    [
+     21,
+     "Simon Moore"
+    ],
+    [
+     22,
+     "Robin Roefs"
+    ],
+    [
+     31,
+     "Melker Ellborg"
+    ]
+   ],
+   "DEF": [
+    [
+     4,
+     "Kevin Danso"
+    ],
+    [
+     5,
+     "Dan Ballard"
+    ],
+    [
+     6,
+     "Dayann Méthalie"
+    ],
+    [
+     12,
+     "Thomas Meunier"
+    ],
+    [
+     15,
+     "Omar Alderete"
+    ],
+    [
+     17,
+     "Reinildo Mandava"
+    ],
+    [
+     20,
+     "Nordi Mukiele"
+    ],
+    [
+     32,
+     "Trai Hume"
+    ],
+    [
+     48,
+     "Jenson Jones"
+    ]
+   ],
+   "MID": [
+    [
+     8,
+     "Alan Browne"
+    ],
+    [
+     11,
+     "Chris Rigg"
+    ],
+    [
+     13,
+     "Luke O'Nien"
+    ],
+    [
+     19,
+     "Habib Diarra"
+    ],
+    [
+     27,
+     "Noah Sadiki"
+    ],
+    [
+     28,
+     "Enzo Le Fée"
+    ],
+    [
+     29,
+     "Jules Ahoka"
+    ],
+    [
+     34,
+     "Granit Xhaka"
+    ],
+    [
+     40,
+     "Jack Whittaker"
+    ],
+    [
+     77,
+     "Tom Proctor"
+    ]
+   ],
+   "FWD": [
+    [
+     7,
+     "Chemsdine Talbi"
+    ],
+    [
+     9,
+     "Brian Brobbey"
+    ],
+    [
+     10,
+     "Nilson Angulo"
+    ],
+    [
+     14,
+     "Romaine Mundle"
+    ],
+    [
+     18,
+     "Wilson Isidor"
+    ],
+    [
+     37,
+     "Jocelin Ta Bi"
+    ],
+    [
+     39,
+     "Malick Fofana"
+    ],
+    [
+     47,
+     "Trey Samuel-Ogunsuyi"
+    ],
+    [
+     49,
+     "Felix Scott"
+    ],
+    [
+     50,
+     "Juan Angulo"
+    ],
+    [
+     57,
+     "Tymur Tutierov"
+    ]
+   ]
+  },
+  "Tottenham Hotspur": {
+   "GK": [
+    [
+     31,
+     "Antonín Kinsky"
+    ],
+    [
+     39,
+     "Martin Dúbravka"
+    ],
+    [
+     40,
+     "Brandon Austin"
+    ]
+   ],
+   "DEF": [
+    [
+     3,
+     "Andy Robertson"
+    ],
+    [
+     4,
+     "Tosin Adarabioyo"
+    ],
+    [
+     5,
+     "Marcos Senesi"
+    ],
+    [
+     6,
+     "Jan Paul van Hecke"
+    ],
+    [
+     13,
+     "Destiny Udogie"
+    ],
+    [
+     23,
+     "Pedro Porro"
+    ],
+    [
+     33,
+     "Ben Davies"
+    ],
+    [
+     37,
+     "Micky van de Ven"
+    ]
+   ],
+   "MID": [
+    [
+     7,
+     "Xavi Simons"
+    ],
+    [
+     8,
+     "Conor Gallagher"
+    ],
+    [
+     10,
+     "James Maddison"
+    ],
+    [
+     14,
+     "Archie Gray"
+    ],
+    [
+     15,
+     "Lucas Bergvall"
+    ],
+    [
+     16,
+     "Sandro Tonali"
+    ],
+    [
+     18,
+     "Mateus Fernandes"
+    ],
+    [
+     20,
+     "Mohammed Kudus"
+    ],
+    [
+     21,
+     "Dejan Kulusevski"
+    ],
+    [
+     27,
+     "Mykhailo Mudryk"
+    ],
+    [
+     30,
+     "Rodrigo Bentancur"
+    ],
+    [
+     52,
+     "Callum Olusesi"
+    ],
+    [
+     68,
+     "Luca Williams-Barnett"
+    ]
+   ],
+   "FWD": [
+    [
+     9,
+     "Richarlison"
+    ],
+    [
+     11,
+     "Mathys Tel"
+    ],
+    [
+     17,
+     "Sávio"
+    ],
+    [
+     19,
+     "Dominic Solanke"
+    ],
+    [
+     22,
+     "Omar Marmoush"
+    ],
+    [
+     28,
+     "Wilson Odobert"
+    ]
+   ]
+  }
+ }
+}
