@@ -415,9 +415,9 @@ export default function Board() {
     )
   }
 
-  const Controls = (
-    <div className="flex flex-col gap-4">
-      <div className="panel p-4 flex flex-col gap-3">
+  const SettingsBar = (
+    <div className="panel p-4 grid gap-x-6 gap-y-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="flex flex-col gap-3">
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Teams">
           <button className="chip" aria-pressed={!versus} onClick={() => { setVersus(false); setTab('home') }}>One team</button>
           <button className="chip" aria-pressed={versus} onClick={() => { setVersus(true); setShape('full') }}>Home v Away</button>
@@ -440,6 +440,8 @@ export default function Board() {
             </select>
           </label>
         </div>
+      </div>
+      <div className="flex flex-col gap-3">
         <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Image size">
           <span className="text-xs text-[#AFCDBF]">Image</span>
           <button className="chip" aria-pressed={format === 'square'} onClick={() => setFormat('square')}>Square</button>
@@ -478,18 +480,22 @@ export default function Board() {
         {caps.clubStadium !== 'none' && (
           <button className="chip" onClick={() => setStadium(`club:${home.club}`)}>Use {home.club}'s ground</button>
         )}
-        <div className="flex flex-col gap-2 border-t pt-3 mt-1" style={{ borderColor: 'rgba(207,255,77,0.45)' }}>
+      </div>
+      <div className="flex flex-col gap-3 md:col-span-2 xl:col-span-1">
+        <div className="flex flex-col gap-2">
           {teamBlock('home')}
         </div>
+        {versus && (
+          <div className="flex flex-col gap-2 border-t pt-3" style={{ borderColor: 'rgba(31,209,193,0.5)' }}>
+            {teamBlock('away')}
+          </div>
+        )}
       </div>
+    </div>
+  )
 
-      {versus && (
-        <div className="panel p-4 flex flex-col gap-2" style={{ borderColor: '#1FD1C1', borderWidth: 1.5 }}>
-          {teamBlock('away')}
-        </div>
-      )}
-
-      <div className="panel p-3">
+  const SquadList = (
+      <div className="panel p-3 lg:sticky lg:top-3">
         {versus && (
           <div className="flex gap-2 mb-2" role="tablist" aria-label="Squad list">
             <button className="chip" role="tab" aria-pressed={tab === 'home'} onClick={() => setTab('home')}>Home squad</button>
@@ -544,13 +550,12 @@ export default function Board() {
           })()}
         </div>
       </div>
-    </div>
   )
 
   return (
     <div className="mx-auto max-w-[1400px] px-4 pb-16">
       <div className={present ? '' : 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]'}>
-        <div>
+      <div className="order-1 lg:col-span-2">
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
             <div className="font-display text-sm tracking-widest text-[#AFCDBF]">
               Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left` : ''}
@@ -572,6 +577,9 @@ export default function Board() {
             </div>
           </div>
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
+      </div>
+      {!present && <div className="order-3 lg:order-2 lg:col-span-2">{SettingsBar}</div>}
+        <div className="order-2 lg:order-3 min-w-0">
 
           {/* stadium surround: kept narrow so the pitch stays the star */}
           <div className="rounded-xl p-2 sm:p-3" style={{ background: 'radial-gradient(circle at 5px 5px, rgba(207,255,77,.22) 1.6px, transparent 2.2px) 0 0/11px 11px, radial-gradient(circle at 10px 10px, rgba(31,209,193,.16) 1.4px, transparent 2px) 0 0/11px 11px, #0b2119', border: '1px solid rgba(247,247,242,.08)' }}>
@@ -650,7 +658,7 @@ export default function Board() {
 
           <Pricing current={access?.tier} />
         </div>
-        {!present && <aside aria-label="Controls">{Controls}</aside>}
+        {!present && <aside className="order-4" aria-label="Squad list">{SquadList}</aside>}
       </div>
       <Disclaimer className="text-xs text-[#AFCDBF] mt-6 max-w-3xl" />
     </div>
