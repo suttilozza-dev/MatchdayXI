@@ -440,135 +440,159 @@ export default function Board() {
 
   const teamBlock = (side: Side) => {
     const t = team(side)
+    const accent = side === 'home' ? '#CFFF4D' : '#1FD1C1'
     return (
-      <>
-            <div className="font-display text-xs tracking-widest" style={{ color: side === 'home' ? '#CFFF4D' : '#1FD1C1' }}>{side}</div>
-            <label className="sr-only" htmlFor={`club-${side}`}>{side} club</label>
-            <select id={`club-${side}`} className="field" value={t.club} onChange={(e) => changeClub(side, e.target.value)}>
-              {CLUBS.map((c) => <option key={c}>{c}</option>)}
-            </select>
-            <div className="flex gap-2 flex-wrap" role="group" aria-label={`${side} kit`}>
-              {(['home', 'away', 'third'] as KitName[]).map((k) => {
-                const c = kitColours(t.club, k)
-                if (!c) return null
-                return (
-                  <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
-                    <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
-                    {k}
-                  </button>
-                )
-              })}
-            </div>
-            <div className="grid grid-cols-[1fr_auto] gap-2">
-              <label className="sr-only" htmlFor={`form-${side}`}>{side} formation</label>
-              <select id={`form-${side}`} className="field" value={t.formation} onChange={(e) => changeFormation(side, e.target.value)}>
-                {Object.keys(FORMATIONS).map((f) => <option key={f}>{f}</option>)}
-              </select>
-              <div className="flex items-center gap-1 text-xs text-[#AFCDBF]">
-                <label className="flex items-center gap-1">Kit
-                  <input type="color" aria-label={`${side} kit colour`} value={t.colour} onChange={(e) => setTeam(side, (x) => ({ ...x, colour: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
-                </label>
-                <label className="flex items-center gap-1">Trim
-                  <input type="color" aria-label={`${side} trim colour`} value={t.colour2} onChange={(e) => setTeam(side, (x) => ({ ...x, colour2: e.target.value }))} style={{ width: 40, height: 44, background: 'none', border: 0 }} />
-                </label>
-              </div>
-            </div>
-            <label className="text-xs text-[#AFCDBF]">Manager (shown on the image)
-              <input className="field mt-1" value={t.manager} maxLength={40} placeholder="Type the manager's name" onChange={(e) => setTeam(side, (x) => ({ ...x, manager: e.target.value }))} />
+      <div className="flex flex-col gap-2" style={versus ? { borderLeft: `3px solid ${accent}`, paddingLeft: 10 } : undefined}>
+        {versus && <div className="set-title" style={{ color: accent }}>{side} team</div>}
+        <div className="grid grid-cols-[1fr_7.5rem] gap-2">
+          <label className="sr-only" htmlFor={`club-${side}`}>{side} club</label>
+          <select id={`club-${side}`} className="field" value={t.club} onChange={(e) => changeClub(side, e.target.value)}>
+            {CLUBS.map((c) => <option key={c}>{c}</option>)}
+          </select>
+          <label className="sr-only" htmlFor={`form-${side}`}>{side} formation</label>
+          <select id={`form-${side}`} className="field" value={t.formation} onChange={(e) => changeFormation(side, e.target.value)}>
+            {Object.keys(FORMATIONS).map((f) => <option key={f}>{f}</option>)}
+          </select>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap" role="group" aria-label={`${side} kit`}>
+            {(['home', 'away', 'third'] as KitName[]).map((k) => {
+              const c = kitColours(t.club, k)
+              if (!c) return null
+              return (
+                <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
+                  <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
+                  {k}
+                </button>
+              )
+            })}
+          </div>
+          <div className="flex items-center gap-1 text-xs text-[#AFCDBF] ml-auto">
+            <label className="flex items-center gap-1">Shirt
+              <input type="color" aria-label={`${side} kit colour`} value={t.colour} onChange={(e) => setTeam(side, (x) => ({ ...x, colour: e.target.value }))} style={{ width: 36, height: 40, background: 'none', border: 0 }} />
             </label>
-      </>
+            <label className="flex items-center gap-1">Trim
+              <input type="color" aria-label={`${side} trim colour`} value={t.colour2} onChange={(e) => setTeam(side, (x) => ({ ...x, colour2: e.target.value }))} style={{ width: 36, height: 40, background: 'none', border: 0 }} />
+            </label>
+          </div>
+        </div>
+        <input className="field" aria-label={`${side} manager`} value={t.manager} maxLength={40} placeholder="Manager's name (optional)" onChange={(e) => setTeam(side, (x) => ({ ...x, manager: e.target.value }))} />
+      </div>
     )
   }
 
+  const stadiumName = stadium.startsWith('club:') ? (CLUB_GROUNDS[stadium.slice(5)]?.ground ?? 'Club ground') : (STADIUMS.find((x) => x.id === stadium)?.name ?? 'Stadium')
+  const styleSummary = `${markerStyle === 'circle' ? 'Circles' : markerStyle === 'shirt' ? 'Shirts' : 'Shirt backs'} · names ${labelPos} · ${stadiumName}`
+  const imageSummary = `${format} · ${transparent && caps.transparent ? 'transparent' : 'with background'}${caps.creatorBranding && handle.trim() ? ` · ${handle.trim()}` : ''}`
+
   const SettingsBar = (
-    <div className="panel p-4 grid gap-x-6 gap-y-4 md:grid-cols-2 xl:grid-cols-3">
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2 flex-wrap" role="group" aria-label="Teams">
-          <button className="chip" aria-pressed={!versus} onClick={() => { setVersus(false); setTab('home') }}>One team</button>
-          <button className="chip" aria-pressed={versus} onClick={() => { setVersus(true); setShape('full') }}>Home v Away</button>
-        </div>
-        <div className="flex gap-2 flex-wrap" role="group" aria-label="Pitch">
-          <button className="chip" aria-pressed={orient === 'landscape'} onClick={() => setOrient('landscape')}>Landscape</button>
-          <button className="chip" aria-pressed={orient === 'portrait'} onClick={() => setOrient('portrait')}>Portrait</button>
-          <button className="chip" aria-pressed={effShape === 'full'} disabled={versus} onClick={() => setShape('full')}>Full pitch</button>
-          <button className="chip" aria-pressed={effShape === 'half'} disabled={versus} onClick={() => setShape('half')}>Half pitch</button>
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <label className="text-xs text-[#AFCDBF]">Gameweek
-            <input className="field mt-1" value={gameweek} maxLength={6} onChange={(e) => setGameweek(e.target.value)} />
-          </label>
-          <label className="text-xs text-[#AFCDBF]">Label
-            <select className="field mt-1" value={kind} onChange={(e) => setKind(e.target.value)}>
-              <option>Predicted XI</option>
-              <option>Dream XI</option>
-              <option>Starting XI</option>
-            </select>
-          </label>
-        </div>
-        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player markers">
-          <span className="text-xs text-[#AFCDBF]">Markers</span>
-          <button className="chip" aria-pressed={markerStyle === 'circle'} onClick={() => setMarkerStyle('circle')}>Circle</button>
-          <button className="chip" aria-pressed={markerStyle === 'shirt'} onClick={() => setMarkerStyle('shirt')}>Shirt front</button>
-          <button className="chip" aria-pressed={markerStyle === 'shirt-back'} onClick={() => setMarkerStyle('shirt-back')} title="Surname above the number, like the back of a shirt">Shirt back</button>
-        </div>
-        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player names">
-          <span className="text-xs text-[#AFCDBF]">Names</span>
-          <button className="chip" aria-pressed={labelPos === 'below'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('below')}>Below</button>
-          <button className="chip" aria-pressed={labelPos === 'above'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('above')}>Above</button>
-          <button className="chip" aria-pressed={labelPos === 'off'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('off')}>Off</button>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Image size">
-          <span className="text-xs text-[#AFCDBF]">Image</span>
-          <button className="chip" aria-pressed={format === 'square'} onClick={() => setFormat('square')}>Square</button>
-          <button className="chip" aria-pressed={format === 'portrait'} onClick={() => setFormat('portrait')}>Portrait 4:5</button>
-          <button className="chip" aria-pressed={format === 'story'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Story size: Unlimited or Creator'} onClick={() => setFormat('story')}>Story 9:16</button>
-          <button className="chip" aria-pressed={format === 'header'} disabled={!caps.extraFormats} title={caps.extraFormats ? '4:1 cover image, numbers only' : '4:1 cover: Unlimited or Creator'} onClick={() => { setFormat('header'); setOrient('landscape') }}>Header 4:1</button>
-          <button className="chip" aria-pressed={format === 'banner'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Wide banner: Unlimited or Creator'} onClick={() => setFormat('banner')}>Banner</button>
-        </div>
-        <label className="flex items-center gap-2 text-xs text-[#AFCDBF]">
-          <input type="checkbox" disabled={!caps.transparent} checked={caps.transparent && transparent} onChange={(e) => setTransparent(e.target.checked)} style={{ width: 20, height: 20 }} />
-          Transparent background {caps.transparent ? '' : '(Unlimited or Creator)'}
-        </label>
-        <label className="text-xs text-[#AFCDBF]">Your handle or name on the image {caps.creatorBranding ? '' : '(Creator)'}
-          <input className="field mt-1" value={handle} maxLength={28} disabled={!caps.creatorBranding} placeholder="@yourchannel" onChange={(e) => setHandle(e.target.value)} />
-        </label>
-        <label className="text-xs text-[#AFCDBF]">Stadium
-          <select className="field mt-1" value={stadium} onChange={(e) => setStadium(e.target.value as StadiumId)}>
-            {STADIUMS.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
-            <optgroup label={caps.clubStadium === 'none' ? 'Club grounds (Trial, Unlimited or Creator)' : 'Club grounds'}>
-              {Object.entries(CLUB_GROUNDS).map(([club, g]) => (
-                <option key={club} value={`club:${club}`} disabled={caps.clubStadium === 'none'}>{club}: {g.ground}</option>
-              ))}
-            </optgroup>
-          </select>
-        </label>
-        {stadium.startsWith('club:') && (
-          <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Stadium colours">
-            <span className="text-xs text-[#AFCDBF]">Colours</span>
-            {(['home', 'away', 'third'] as KitName[]).map((k) => (
-              <button key={k} className="chip" aria-pressed={stadiumKit === k} disabled={k !== 'home' && caps.clubStadium !== 'all'} title={k !== 'home' && caps.clubStadium !== 'all' ? 'Colourways: Creator' : ''} onClick={() => setStadiumKit(k)}>{k}</button>
-            ))}
+    <div className="panel p-4 flex flex-col gap-4">
+      <div className="grid gap-x-8 gap-y-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+        <section className="flex flex-col gap-3" aria-label="Teams">
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="set-title">Teams</span>
+            <div className="flex gap-2" role="group" aria-label="Number of teams">
+              <button className="chip" aria-pressed={!versus} onClick={() => { setVersus(false); setTab('home') }}>One team</button>
+              <button className="chip" aria-pressed={versus} onClick={() => { setVersus(true); setShape('full') }}>Home v Away</button>
+            </div>
           </div>
-        )}
-        {stadium.startsWith('club:') && CLUB_GROUNDS[stadium.slice(5)] && (
-          <p className="text-[11px] text-[#AFCDBF]">{CLUB_GROUNDS[stadium.slice(5)].capacity.toLocaleString('en-GB')} capacity. {CLUB_GROUNDS[stadium.slice(5)].notes} Stylised, not to scale.</p>
-        )}
-        {caps.clubStadium !== 'none' && (
-          <button className="chip" onClick={() => setStadium(`club:${home.club}`)}>Use {home.club}'s ground</button>
-        )}
-      </div>
-      <div className="flex flex-col gap-3 md:col-span-2 xl:col-span-1">
-        <div className="flex flex-col gap-2">
           {teamBlock('home')}
-        </div>
-        {versus && (
-          <div className="flex flex-col gap-2 border-t pt-3" style={{ borderColor: 'rgba(31,209,193,0.5)' }}>
-            {teamBlock('away')}
+          {versus && teamBlock('away')}
+        </section>
+        <section className="flex flex-col gap-3" aria-label="Match and pitch">
+          <span className="set-title">Match</span>
+          <div className="grid grid-cols-2 gap-2">
+            <label className="text-xs text-[#AFCDBF]">Gameweek
+              <input className="field mt-1" value={gameweek} maxLength={6} onChange={(e) => setGameweek(e.target.value)} />
+            </label>
+            <label className="text-xs text-[#AFCDBF]">Label
+              <select className="field mt-1" value={kind} onChange={(e) => setKind(e.target.value)}>
+                <option>Predicted XI</option>
+                <option>Dream XI</option>
+                <option>Starting XI</option>
+              </select>
+            </label>
           </div>
-        )}
+          <span className="set-title">Pitch</span>
+          <div className="flex gap-2 flex-wrap" role="group" aria-label="Pitch">
+            <button className="chip" aria-pressed={orient === 'landscape'} onClick={() => setOrient('landscape')}>Landscape</button>
+            <button className="chip" aria-pressed={orient === 'portrait'} onClick={() => setOrient('portrait')}>Portrait</button>
+            <button className="chip" aria-pressed={effShape === 'full'} disabled={versus} onClick={() => setShape('full')}>Full</button>
+            <button className="chip" aria-pressed={effShape === 'half'} disabled={versus} onClick={() => setShape('half')}>Half</button>
+          </div>
+        </section>
       </div>
+
+      <details className="opt">
+        <summary><span className="set-title">Style</span><span className="opt-sum">{styleSummary}</span></summary>
+        <div className="grid gap-x-8 gap-y-3 md:grid-cols-2 pt-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player markers">
+              <span className="text-xs text-[#AFCDBF] w-14">Markers</span>
+              <button className="chip" aria-pressed={markerStyle === 'circle'} onClick={() => setMarkerStyle('circle')}>Circle</button>
+              <button className="chip" aria-pressed={markerStyle === 'shirt'} onClick={() => setMarkerStyle('shirt')}>Shirt front</button>
+              <button className="chip" aria-pressed={markerStyle === 'shirt-back'} onClick={() => setMarkerStyle('shirt-back')} title="Surname above the number, like the back of a shirt">Shirt back</button>
+            </div>
+            <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player names">
+              <span className="text-xs text-[#AFCDBF] w-14">Names</span>
+              <button className="chip" aria-pressed={labelPos === 'below'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('below')}>Below</button>
+              <button className="chip" aria-pressed={labelPos === 'above'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('above')}>Above</button>
+              <button className="chip" aria-pressed={labelPos === 'off'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('off')}>Off</button>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <label className="text-xs text-[#AFCDBF]">Stadium
+              <select className="field mt-1" value={stadium} onChange={(e) => setStadium(e.target.value as StadiumId)}>
+                {STADIUMS.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
+                <optgroup label={caps.clubStadium === 'none' ? 'Club grounds (Trial, Unlimited or Creator)' : 'Club grounds'}>
+                  {Object.entries(CLUB_GROUNDS).map(([club, g]) => (
+                    <option key={club} value={`club:${club}`} disabled={caps.clubStadium === 'none'}>{club}: {g.ground}</option>
+                  ))}
+                </optgroup>
+              </select>
+            </label>
+            {caps.clubStadium !== 'none' && (
+              <button className="chip" onClick={() => setStadium(`club:${home.club}`)}>Use {home.club}'s ground</button>
+            )}
+            {stadium.startsWith('club:') && (
+              <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Stadium colours">
+                <span className="text-xs text-[#AFCDBF]">Colours</span>
+                {(['home', 'away', 'third'] as KitName[]).map((k) => (
+                  <button key={k} className="chip" aria-pressed={stadiumKit === k} disabled={k !== 'home' && caps.clubStadium !== 'all'} title={k !== 'home' && caps.clubStadium !== 'all' ? 'Colourways: Creator' : ''} onClick={() => setStadiumKit(k)}>{k}</button>
+                ))}
+              </div>
+            )}
+            {stadium.startsWith('club:') && CLUB_GROUNDS[stadium.slice(5)] && (
+              <p className="text-[11px] text-[#AFCDBF]">{CLUB_GROUNDS[stadium.slice(5)].capacity.toLocaleString('en-GB')} capacity. Stylised, not to scale.</p>
+            )}
+          </div>
+        </div>
+      </details>
+
+      <details className="opt">
+        <summary><span className="set-title">Image</span><span className="opt-sum">{imageSummary}</span></summary>
+        <div className="grid gap-x-8 gap-y-3 md:grid-cols-2 pt-3">
+          <div className="flex flex-col gap-3">
+            <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Image size">
+              <button className="chip" aria-pressed={format === 'square'} onClick={() => setFormat('square')}>Square</button>
+              <button className="chip" aria-pressed={format === 'portrait'} onClick={() => setFormat('portrait')}>Portrait 4:5</button>
+              <button className="chip" aria-pressed={format === 'story'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Story size: Unlimited or Creator'} onClick={() => setFormat('story')}>Story 9:16</button>
+              <button className="chip" aria-pressed={format === 'header'} disabled={!caps.extraFormats} title={caps.extraFormats ? '4:1 cover image, numbers only' : '4:1 cover: Unlimited or Creator'} onClick={() => { setFormat('header'); setOrient('landscape') }}>Header 4:1</button>
+              <button className="chip" aria-pressed={format === 'banner'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Wide banner: Unlimited or Creator'} onClick={() => setFormat('banner')}>Banner 16:9</button>
+            </div>
+            {!caps.extraFormats && <p className="text-[11px] text-[#AFCDBF]">Story, Header and Banner sizes come with Unlimited or Creator.</p>}
+          </div>
+          <div className="flex flex-col gap-3">
+            <label className="flex items-center gap-2 text-xs text-[#AFCDBF]">
+              <input type="checkbox" disabled={!caps.transparent} checked={caps.transparent && transparent} onChange={(e) => setTransparent(e.target.checked)} style={{ width: 20, height: 20 }} />
+              Transparent background {caps.transparent ? '' : '(Unlimited or Creator)'}
+            </label>
+            <label className="text-xs text-[#AFCDBF]">Your handle or name on the image {caps.creatorBranding ? '' : '(Creator)'}
+              <input className="field mt-1" value={handle} maxLength={28} disabled={!caps.creatorBranding} placeholder="@yourchannel" onChange={(e) => setHandle(e.target.value)} />
+            </label>
+          </div>
+        </div>
+      </details>
     </div>
   )
 
