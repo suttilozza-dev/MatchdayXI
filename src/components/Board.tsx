@@ -37,6 +37,19 @@ function defaultBench(squadLen: number, squad: Player[], slots: Slot[]): number[
   return out
 }
 
+/** A player can be in the XI once and on the bench once, never both. Applied to every change to a team. */
+function normalise(t: TeamState): TeamState {
+  const seen = new Set<number>()
+  const slots = t.slots.map((sl) => {
+    if (sl.pi == null) return sl
+    if (seen.has(sl.pi)) return { ...sl, pi: null }
+    seen.add(sl.pi)
+    return sl
+  })
+  const bench = [...new Set(t.bench)].filter((i) => !seen.has(i)).slice(0, BENCH_MAX)
+  return { ...t, slots, bench, captain: t.captain != null && seen.has(t.captain) ? t.captain : null }
+}
+
 function makeTeam(club: string, formation: string): TeamState {
   const slots = autoFill(club, formation)
   const squad = squadFor(club)
@@ -120,7 +133,7 @@ export default function Board() {
       if (colour2) t.colour2 = colour2
       if (bench) t.bench = bench.slice(0, BENCH_MAX)
       t.slots = t.slots.map((sl, i) => ({ ...sl, pi: pis[i] ?? null, u: ps[i]?.[0] ?? sl.u, v: ps[i]?.[1] ?? sl.v }))
-      return t
+      return normalise(t)
     }
     const withExtras = (t: TeamState, manager: string | undefined, captain: number | null | undefined): TeamState => ({ ...t, manager: (manager ?? '').slice(0, 40), captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
     setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hm, s.hcap))
@@ -148,7 +161,7 @@ export default function Board() {
   }, [versus, home.colour, away.colour, away.club])
 
   const team = (side: Side) => (side === 'home' ? home : away)
-  const setTeam = (side: Side, fn: (t: TeamState) => TeamState) => (side === 'home' ? setHome(fn) : setAway(fn))
+  const setTeam = (side: Side, fn: (t: TeamState) => TeamState) => (side === 'home' ? setHome : setAway)((t) => normalise(fn(t)))
   const squads = useMemo(() => ({ home: squadFor(home.club), away: squadFor(away.club) }), [home.club, away.club])
   const effShape: Shape = versus ? 'full' : shape
 
@@ -268,7 +281,13 @@ export default function Board() {
   }
 
   const changeClub = (side: Side, club: string) => setTeam(side, (t) => ({ ...makeTeam(club, t.formation) }))
-  const changeFormation = (side: Side, formation: string) => setTeam(side, (t) => { const slots = autoFill(t.club, formation); return { ...t, formation, slots, captain: t.captain != null && slots.some((s) => s.pi === t.captain) ? t.captain : null } })
+  // a new formation re-picks the XI, so the bench is re-picked too (otherwise a player can end up in both)
+  const changeFormation = (side: Side, formation: string) =>
+    setTeam(side, (t) => {
+      const slots = autoFill(t.club, formation)
+      const squad = squadFor(t.club)
+      return { ...t, formation, slots, bench: defaultBench(squad.length, squad, slots) }
+    })
 
   // "12 Darlow · 6 Martínez · ..." sorted by shirt number (players without a number come last)
   const benchText = (t: TeamState, sq: Player[]) =>
