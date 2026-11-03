@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
-import { CAPS, getAccess, spendExport, type Access } from '#/lib/credits'
+import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
 import { Pricing } from '#/components/Pricing'
 import { Disclaimer } from '#/components/Disclaimer'
-import { LINE_PATHS, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type CardFormat, type Orient, type PlacedMarker, type Shape_ as Shape } from '#/lib/pitch'
+import { LINE_PATHS, SHIRT_PATH, backFont, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type CardFormat, type LabelPos, type MarkerStyle, type Orient, type PlacedMarker, type Shape_ as Shape } from '#/lib/pitch'
 
 type Side = 'home' | 'away'
 type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
-type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[] }
+type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[]; manager: string; captain: number | null }
 const BENCH_MAX = 9 // Premier League: nine named substitutes
 
 function autoFill(club: string, formation: string): Slot[] {
@@ -41,10 +41,10 @@ function makeTeam(club: string, formation: string): TeamState {
   const slots = autoFill(club, formation)
   const squad = squadFor(club)
   const [colour, colour2] = kitColours(club, 'home')!
-  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots) }
+  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots), manager: '', captain: null }
 }
 
-type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string }
+type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string; hm?: string; am?: string; hcap?: number | null; acap?: number | null; ms?: MarkerStyle; lp?: LabelPos }
 
 function encode(s: Saved): string {
   return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -74,6 +74,17 @@ export default function Board() {
   const [handle, setHandle] = useState('')
   const [transparent, setTransparent] = useState(false)
   const [stadium, setStadium] = useState<StadiumId>('matchdayxi')
+  const [markerStyle, setMarkerStyle] = useState<MarkerStyle>('circle')
+  const [labelPos, setLabelPos] = useState<LabelPos>('below')
+  const [canShareFiles, setCanShareFiles] = useState(false)
+  useEffect(() => {
+    try {
+      const f = new File([''], 'x.png', { type: 'image/png' })
+      setCanShareFiles(typeof navigator.share === 'function' && !!navigator.canShare?.({ files: [f] }))
+    } catch {
+      setCanShareFiles(false)
+    }
+  }, [])
   const refreshAccess = () => void getAccess().then(setAccess)
   useEffect(refreshAccess, [])
   const caps = access?.caps ?? CAPS.free
@@ -111,8 +122,11 @@ export default function Board() {
       t.slots = t.slots.map((sl, i) => ({ ...sl, pi: pis[i] ?? null, u: ps[i]?.[0] ?? sl.u, v: ps[i]?.[1] ?? sl.v }))
       return t
     }
-    setHome(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp))
-    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(build(s.ac, s.af, s.ak ?? '#1FD1C1', s.a2, s.ab, s.al ?? [], s.ap ?? []))
+    const withExtras = (t: TeamState, manager: string | undefined, captain: number | null | undefined): TeamState => ({ ...t, manager: (manager ?? '').slice(0, 40), captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
+    setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hm, s.hcap))
+    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(withExtras(build(s.ac, s.af, s.ak ?? '#1FD1C1', s.a2, s.ab, s.al ?? [], s.ap ?? []), s.am, s.acap))
+    if (s.ms === 'circle' || s.ms === 'shirt' || s.ms === 'shirt-back') setMarkerStyle(s.ms)
+    if (s.lp === 'below' || s.lp === 'above' || s.lp === 'off') setLabelPos(s.lp)
     setVersus(!!s.v)
     setOrient(s.o)
     setShape(s.v ? 'full' : s.s)
@@ -167,7 +181,7 @@ export default function Board() {
         const [U, V] = place(side, sl)
         const [x, y] = toXY(U, V, orient)
         const p: Player | undefined = sl.pi != null ? sq[sl.pi] : undefined
-        out.push({ key: `${side}${idx}`, side, idx, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2 })
+        out.push({ key: `${side}${idx}`, side, idx, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, captain: sl.pi != null && t.captain === sl.pi })
       })
     })
     return out
@@ -233,11 +247,8 @@ export default function Board() {
         if (bench.includes(pi)) bench = bench.map((b) => (b === pi ? (prev as number) : b)).filter((b) => b != null)
         else bench = bench.filter((b) => b !== pi)
       }
-      return {
-        ...t,
-        bench,
-        slots: t.slots.map((s, i) => (i === slotIdx ? { ...s, pi } : i === existing ? { ...s, pi: prev } : s)),
-      }
+      const slots = t.slots.map((s, i) => (i === slotIdx ? { ...s, pi } : i === existing ? { ...s, pi: prev } : s))
+      return { ...t, bench, slots, captain: t.captain != null && slots.some((s) => s.pi === t.captain) ? t.captain : null }
     })
   }
   const toggleBench = (side: Side, pi: number) =>
@@ -257,7 +268,7 @@ export default function Board() {
   }
 
   const changeClub = (side: Side, club: string) => setTeam(side, (t) => ({ ...makeTeam(club, t.formation) }))
-  const changeFormation = (side: Side, formation: string) => setTeam(side, (t) => ({ ...t, formation, slots: autoFill(t.club, formation) }))
+  const changeFormation = (side: Side, formation: string) => setTeam(side, (t) => { const slots = autoFill(t.club, formation); return { ...t, formation, slots, captain: t.captain != null && slots.some((s) => s.pi === t.captain) ? t.captain : null } })
 
   // "12 Darlow · 6 Martínez · ..." sorted by shirt number (players without a number come last)
   const benchText = (t: TeamState, sq: Player[]) =>
@@ -280,7 +291,7 @@ export default function Board() {
     awayColour: away.colour,
     gameweek,
     kind,
-    markers: markers.map(({ key, x, y, num, name, colour, ring }) => ({ key, x, y, num, name, colour, ring })),
+    markers: markers.map(({ key, x, y, num, name, colour, ring, captain }) => ({ key, x, y, num, name, colour, ring, captain })),
     format,
     homeBench: benchText(home, squads.home),
     awayBench: versus ? benchText(away, squads.away) : '',
@@ -289,11 +300,15 @@ export default function Board() {
     watermark: caps.watermark,
     transparent: caps.transparent && transparent,
     handle: caps.creatorBranding ? handle.trim() : '',
+    homeManager: home.manager,
+    awayManager: versus ? away.manager : '',
+    markerStyle,
+    labelPos,
   })
 
   const failMsg = (reason: 'signin' | 'used_up' | 'unavailable') =>
     reason === 'signin'
-      ? 'Sign in with Whop (free) to download, copy or share. The free plan includes 5 images.'
+      ? 'That was your free first image. Sign in with Whop (free, no payment) for 5 more.'
       : reason === 'unavailable'
         ? 'We could not check your plan just now. Try again in a moment.'
         : access?.tier === 'free'
@@ -305,12 +320,22 @@ export default function Board() {
     refreshAccess()
   }
 
-  const afterSpend = (a: Access) => {
+  const afterSpend = (a: Access, anon?: boolean) => {
+    if (anon) return ' That was your free first image. Sign in (free) for 5 more.'
     setAccess(a)
     return a.remaining === null ? '' : ` ${a.remaining} left.`
   }
 
-  const doCopy = async () => {
+  const downloadBlob = (blob: Blob) => {
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `matchday-xi-gw${gameweek}-${home.club.replace(/\s+/g, '-').toLowerCase()}.png`
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000)
+  }
+
+  /** One image export: check the plan, draw the card, then copy / download / open the phone share sheet. */
+  const doExport = async (how: 'copy' | 'download' | 'share') => {
     setBusy(true)
     setMsg('')
     const r = await spendExport()
@@ -320,38 +345,38 @@ export default function Board() {
       if (r.reason === 'signin') goSignIn()
       return
     }
+    let done = ''
     try {
       const blob = await renderCard(cardInput())
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
-      setMsg('Copied to your clipboard.' + afterSpend(r.access))
+      if (how === 'copy') {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        done = 'Copied to your clipboard.'
+      } else if (how === 'download') {
+        downloadBlob(blob)
+        done = 'Downloaded.'
+      } else {
+        const file = new File([blob], 'matchday-xi.png', { type: 'image/png' })
+        try {
+          await navigator.share({ files: [file], title: `${home.club} ${kind}`, text: `${home.club} ${kind}, gameweek ${gameweek}` })
+          done = 'Shared.'
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') done = 'Share cancelled.'
+          else {
+            downloadBlob(blob)
+            done = 'Your phone would not open the share sheet, so the image was downloaded instead.'
+          }
+        }
+      }
+      if (r.anon) markAnonUsed()
+      setMsg(done + afterSpend(r.access, r.anon))
     } catch {
-      setMsg('Your browser blocked copying. Use Download instead.')
+      setMsg(how === 'copy' ? 'Your browser blocked copying. Use Download instead.' : 'Could not make the image. Try again.')
     }
     setBusy(false)
   }
-  const doDownload = async () => {
-    setBusy(true)
-    setMsg('')
-    const r = await spendExport()
-    if (!r.ok) {
-      setMsg(failMsg(r.reason))
-      setBusy(false)
-      if (r.reason === 'signin') goSignIn()
-      return
-    }
-    try {
-      const blob = await renderCard(cardInput())
-      const a = document.createElement('a')
-      a.href = URL.createObjectURL(blob)
-      a.download = `matchday-xi-gw${gameweek}-${home.club.replace(/\s+/g, '-').toLowerCase()}.png`
-      a.click()
-      setTimeout(() => URL.revokeObjectURL(a.href), 2000)
-      setMsg('Downloaded.' + afterSpend(r.access))
-    } catch {
-      setMsg('Could not make the image. Try again.')
-    }
-    setBusy(false)
-  }
+  const doCopy = () => doExport('copy')
+  const doDownload = () => doExport('download')
+  const doShareImage = () => doExport('share')
   const buildSaved = (): Saved => {
     const s: Saved = {
       hc: home.club,
@@ -366,8 +391,14 @@ export default function Board() {
       v: versus,
       gw: gameweek,
       k: kind,
+      hm: home.manager || undefined,
+      hcap: home.captain,
+      ms: markerStyle,
+      lp: labelPos,
     }
     if (versus) {
+      s.am = away.manager || undefined
+      s.acap = away.captain
       s.ac = away.club
       s.af = away.formation
       s.ak = away.colour
@@ -442,6 +473,9 @@ export default function Board() {
                 </label>
               </div>
             </div>
+            <label className="text-xs text-[#AFCDBF]">Manager (shown on the image)
+              <input className="field mt-1" value={t.manager} maxLength={40} placeholder="Type the manager's name" onChange={(e) => setTeam(side, (x) => ({ ...x, manager: e.target.value }))} />
+            </label>
       </>
     )
   }
@@ -471,13 +505,26 @@ export default function Board() {
             </select>
           </label>
         </div>
+        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player markers">
+          <span className="text-xs text-[#AFCDBF]">Markers</span>
+          <button className="chip" aria-pressed={markerStyle === 'circle'} onClick={() => setMarkerStyle('circle')}>Circle</button>
+          <button className="chip" aria-pressed={markerStyle === 'shirt'} onClick={() => setMarkerStyle('shirt')}>Shirt front</button>
+          <button className="chip" aria-pressed={markerStyle === 'shirt-back'} onClick={() => setMarkerStyle('shirt-back')} title="Surname above the number, like the back of a shirt">Shirt back</button>
+        </div>
+        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player names">
+          <span className="text-xs text-[#AFCDBF]">Names</span>
+          <button className="chip" aria-pressed={labelPos === 'below'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('below')}>Below</button>
+          <button className="chip" aria-pressed={labelPos === 'above'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('above')}>Above</button>
+          <button className="chip" aria-pressed={labelPos === 'off'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('off')}>Off</button>
+        </div>
       </div>
       <div className="flex flex-col gap-3">
         <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Image size">
           <span className="text-xs text-[#AFCDBF]">Image</span>
           <button className="chip" aria-pressed={format === 'square'} onClick={() => setFormat('square')}>Square</button>
-          <button className="chip" aria-pressed={format === 'portrait'} onClick={() => setFormat('portrait')}>Portrait</button>
-          <button className="chip" aria-pressed={format === 'story'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Story size: Unlimited or Creator'} onClick={() => setFormat('story')}>Story</button>
+          <button className="chip" aria-pressed={format === 'portrait'} onClick={() => setFormat('portrait')}>Portrait 4:5</button>
+          <button className="chip" aria-pressed={format === 'story'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Story size: Unlimited or Creator'} onClick={() => setFormat('story')}>Story 9:16</button>
+          <button className="chip" aria-pressed={format === 'header'} disabled={!caps.extraFormats} title={caps.extraFormats ? '4:1 cover image, numbers only' : '4:1 cover: Unlimited or Creator'} onClick={() => { setFormat('header'); setOrient('landscape') }}>Header 4:1</button>
           <button className="chip" aria-pressed={format === 'banner'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Wide banner: Unlimited or Creator'} onClick={() => setFormat('banner')}>Banner</button>
         </div>
         <label className="flex items-center gap-2 text-xs text-[#AFCDBF]">
@@ -555,6 +602,18 @@ export default function Board() {
                     <span className="text-sm">{p.name}</span>
                     <span className="ml-auto text-[10px] text-[#AFCDBF]">{p.pos}</span>
                   </button>
+                  {kind === 'xi' && (
+                    <button
+                      className="chip"
+                      style={{ minWidth: 44 }}
+                      aria-pressed={active.captain === i}
+                      aria-label={active.captain === i ? `${p.name} is captain. Remove the armband` : `Make ${p.name} captain`}
+                      title="Captain's armband"
+                      onClick={() => setTeam(tab, (t) => ({ ...t, captain: t.captain === i ? null : i }))}
+                    >
+                      C
+                    </button>
+                  )}
                   {kind !== 'xi' && (
                     <button
                       className="chip"
@@ -602,14 +661,15 @@ export default function Board() {
             </div>
             <div className="flex gap-2 flex-wrap">
               <button className="btn btn-ghost" disabled={!caps.present} title={caps.present ? '' : 'Hidden controls for streaming: Creator plan'} onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : caps.present ? 'Present' : 'Present · Creator'}</button>
+              {canShareFiles && <button className="btn btn-lime" onClick={doShareImage} disabled={busy}>Share image</button>}
               <button className="btn btn-ghost" onClick={doShare}>Share link</button>
               <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image</button>
-              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download</button>
+              <button className={canShareFiles ? 'btn btn-ghost' : 'btn btn-lime'} onClick={doDownload} disabled={busy}>Download</button>
             </div>
           </div>
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
           {!msg && access && !access.signedIn && (
-            <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up, then <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) to download, copy or share it. The free plan includes 5 images.</p>
+            <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) for 5 more.</p>
           )}
           <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit matchday-xi.club for plans.</p>
       </div>
@@ -657,9 +717,28 @@ export default function Board() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSel(selected ? null : { side: m.side, idx: m.idx }); setTab(m.side) } }}
                   >
                     {selected && <circle r={34} fill="none" stroke="#CFFF4D" strokeWidth={3} strokeDasharray="6 5" />}
-                    <circle r={26} fill={m.colour} stroke={m.ring} strokeWidth={4} />
-                    <text textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={24} fill={readableOn(m.colour)} pointerEvents="none">{m.num ?? ''}</text>
-                    <text y={46} textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight={600} fontSize={19} fill="#F7F7F2" stroke="rgba(14,42,32,0.9)" strokeWidth={5} paintOrder="stroke" pointerEvents="none">{surname(m.name)}</text>
+                    {markerStyle === 'circle' ? (
+                      <circle r={26} fill={m.colour} stroke={m.ring} strokeWidth={4} />
+                    ) : (
+                      <path d={SHIRT_PATH} fill={m.colour} stroke={m.ring} strokeWidth={3.5} strokeLinejoin="round" />
+                    )}
+                    {markerStyle === 'shirt-back' ? (
+                      <>
+                        <text textAnchor="middle" y={-7} fontFamily="Inter, sans-serif" fontWeight={600} fontSize={backFont(surname(m.name).toUpperCase().slice(0, 12))} fill={readableOn(m.colour)} pointerEvents="none">{surname(m.name).toUpperCase().slice(0, 12)}</text>
+                        <text textAnchor="middle" y={16} fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={25} fill={readableOn(m.colour)} pointerEvents="none">{m.num ?? ''}</text>
+                      </>
+                    ) : (
+                      <text textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={24} fill={readableOn(m.colour)} pointerEvents="none">{m.num ?? ''}</text>
+                    )}
+                    {m.captain && (
+                      <g pointerEvents="none">
+                        <circle cx={24} cy={-22} r={11} fill="#CFFF4D" stroke="#0E2A20" strokeWidth={2} />
+                        <text x={24} y={-21} textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={15} fill="#0E2A20">C</text>
+                      </g>
+                    )}
+                    {labelPos !== 'off' && markerStyle !== 'shirt-back' && (
+                      <text y={labelPos === 'above' ? -37 : markerStyle === 'circle' ? 46 : 49} textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight={600} fontSize={19} fill="#F7F7F2" stroke="rgba(14,42,32,0.9)" strokeWidth={5} paintOrder="stroke" pointerEvents="none">{surname(m.name)}</text>
+                    )}
                   </g>
                 )
               })}
@@ -692,7 +771,7 @@ export default function Board() {
               return (
                 <div key={sd} className="mt-2 flex items-center gap-1.5 flex-wrap" aria-label={`${sd} dugout: manager, substitutes and unused players`}>
                   <span className="font-display text-[11px] tracking-widest text-[#AFCDBF] mr-1">{versus ? `${sd} dugout` : 'Dugout'}</span>
-                  <span title="Manager" className="font-display text-xs rounded-full px-2 py-1" style={{ minWidth: 30, textAlign: 'center', color: accent, border: `1px solid ${accent}` }}>M</span>
+                  <span title={t.manager ? `Manager: ${t.manager}` : 'Manager (type the name in the settings)'} className="font-display text-xs rounded-full px-2 py-1" style={{ minWidth: 30, textAlign: 'center', color: accent, border: `1px solid ${accent}` }}>{t.manager ? `M · ${surname(t.manager)}` : 'M'}</span>
                   {sq.map((p, i) => {
                     const lit = t.bench.includes(i)
                     const onPitch = t.slots.some((s) => s.pi === i)

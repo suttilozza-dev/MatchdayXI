@@ -12,7 +12,7 @@ Run locally: `bun install` then `bun run dev`. Secrets and local links (`.env*`,
 
 ## Plans
 
-Free (5 watermarked images), Trial (£0.99, 5 images), Unlimited (£30 once), Creator (£18.99/month or £199.99/year) and credit packs (£2.50/8, £5/25, £8.99/50). Prices and limits live in `src/lib/config.ts` and `src/lib/credits.ts`. Paid tiers work like this: the buyer signs in with Whop (`/api/auth/login`), pays through a Whop checkout link, Whop calls `/api/webhooks/whop` on `payment.succeeded`, and the app records the grant in Neon Postgres (`grants` table, created on first use). `/api/access` reports what the signed-in buyer owns and `/api/spend` counts an export against it. Variant to plan mapping lives in `src/lib/server/plans.ts`.
+Free (the first image needs no sign-up, tracked in the browser only; sign in with Whop for 5 more watermarked images), Trial (£0.99, 5 images), Unlimited (£30 once), Creator (£18.99/month or £199.99/year) and credit packs (£2.50/8, £5/25, £8.99/50). Prices and limits live in `src/lib/config.ts` and `src/lib/credits.ts`. The board also has a captain's armband, a manager name, marker styles (circle, shirt front, shirt back), name position, a phone Share image button and square / 4:5 / 9:16 / 16:9 / 4:1 image sizes. Paid tiers work like this: the buyer signs in with Whop (`/api/auth/login`), pays through a Whop checkout link, Whop calls `/api/webhooks/whop` on `payment.succeeded`, and the app records the grant in Neon Postgres (`grants` table, created on first use). `/api/access` reports what the signed-in buyer owns and `/api/spend` counts an export against it. Variant to plan mapping lives in `src/lib/server/plans.ts`.
 
 ### Secrets and setup (not in git)
 
