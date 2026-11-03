@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CLUBS, FORMATIONS, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
+import { CLUBS, FORMATIONS, SITE_URL, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
 import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
@@ -69,6 +69,35 @@ function decode(h: string): Saved | null {
   } catch {
     return null
   }
+}
+
+type Net = 'x' | 'facebook' | 'reddit' | 'instagram'
+const NET_LABEL: Record<Net, string> = { x: 'X', facebook: 'Facebook', reddit: 'Reddit', instagram: 'Instagram' }
+
+function NetIcon({ net }: { net: Net }) {
+  const common = { width: 18, height: 18, viewBox: '0 0 24 24', fill: 'currentColor', 'aria-hidden': true } as const
+  if (net === 'x') return <svg {...common}><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+  if (net === 'facebook') return <svg {...common}><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
+  if (net === 'reddit')
+    return (
+      <svg {...common}>
+        <circle cx="12" cy="13.5" r="7.5" />
+        <circle cx="19.5" cy="5" r="2" />
+        <circle cx="5.2" cy="9.3" r="2.2" />
+        <circle cx="18.8" cy="9.3" r="2.2" />
+        <circle cx="9.2" cy="13" r="1.4" fill="#0E2A20" />
+        <circle cx="14.8" cy="13" r="1.4" fill="#0E2A20" />
+        <path d="M9 16.4c1.7 1.2 4.3 1.2 6 0" stroke="#0E2A20" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+        <path d="M12 6.3l1.3-3.6 4.9 1.3" stroke="currentColor" strokeWidth="1.2" fill="none" />
+      </svg>
+    )
+  return (
+    <svg {...common} fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="3" y="3" width="18" height="18" rx="5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.3" cy="6.7" r="1.1" fill="currentColor" stroke="none" />
+    </svg>
+  )
 }
 
 export default function Board() {
@@ -435,20 +464,74 @@ export default function Board() {
     }
     location.href = '/api/auth/login'
   }
-  const doShare = async () => {
-    if (!access?.signedIn) {
-      setMsg(failMsg('signin'))
-      goSignIn()
+  const siteUrl = `https://${SITE_URL}`
+  const postText = `${versus ? `${home.club} v ${away.club}` : home.club} ${kind} (${versus ? home.formation + ' v ' + away.formation : home.formation}), gameweek ${gameweek}. Build yours free:`
+  const composeUrl = (net: Net): string | null => {
+    const t = encodeURIComponent(postText)
+    const u = encodeURIComponent(siteUrl)
+    if (net === 'x') return `https://twitter.com/intent/tweet?text=${t}&url=${u}`
+    if (net === 'facebook') return `https://www.facebook.com/sharer/sharer.php?u=${u}&quote=${t}`
+    if (net === 'reddit') return `https://www.reddit.com/submit?url=${u}&title=${encodeURIComponent(`${home.club} ${kind}, gameweek ${gameweek}`)}`
+    return null
+  }
+
+  /**
+   * Share to a network. Web pages cannot attach a picture to a post, so the image is copied to the clipboard (or
+   * downloaded if the browser refuses), and the network's post window opens with the text and the site link filled in.
+   * On a phone, Instagram opens the phone's share sheet with the image attached.
+   */
+  const doSocial = async (net: Net) => {
+    const phoneShare = net === 'instagram' && canShareFiles
+    // open the post window inside the click, so pop-up blockers allow it; it is pointed at the network once the image is ready
+    const win = phoneShare ? null : window.open('', '_blank')
+    setBusy(true)
+    setMsg('')
+    const r = await spendExport()
+    if (!r.ok) {
+      win?.close()
+      setMsg(failMsg(r.reason))
+      setBusy(false)
+      if (r.reason === 'signin') goSignIn()
       return
     }
-    const url = `${location.origin}${location.pathname}#${encode(buildSaved())}`
-    history.replaceState(null, '', url)
     try {
-      await navigator.clipboard.writeText(url)
-      setMsg('Link copied. Anyone with it sees your line-up.')
+      const blob = await renderCard(cardInput())
+      let done = ''
+      if (phoneShare) {
+        const file = new File([blob], 'matchday-xi.png', { type: 'image/png' })
+        try {
+          await navigator.share({ files: [file], title: `${home.club} ${kind}`, text: `${postText} ${siteUrl}` })
+          done = 'Shared.'
+        } catch (e) {
+          if ((e as Error).name === 'AbortError') done = 'Share cancelled.'
+          else {
+            downloadBlob(blob)
+            done = 'Image downloaded: open Instagram and post it from your gallery.'
+          }
+        }
+      } else if (net === 'instagram') {
+        downloadBlob(blob)
+        if (win) win.location.href = 'https://www.instagram.com/'
+        done = 'Image downloaded. Instagram takes posts from its app or website, so upload it there.'
+      } else {
+        let copied = true
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+        } catch {
+          copied = false
+          downloadBlob(blob)
+        }
+        const url = composeUrl(net)
+        if (win && url) win.location.href = url
+        done = `${copied ? 'Image copied: paste it into the post (Ctrl+V, or press and hold on a phone).' : 'Image downloaded: attach it to the post.'} The link to ${SITE_URL} is already in the post.`
+      }
+      if (r.anon) markAnonUsed()
+      setMsg(done + afterSpend(r.access, r.anon))
     } catch {
-      setMsg('Link is in your address bar. Copy it from there.')
+      win?.close()
+      setMsg('Could not make the image. Try again.')
     }
+    setBusy(false)
   }
 
   const active = team(tab)
@@ -706,11 +789,21 @@ export default function Board() {
             </div>
             <div className="flex gap-2 flex-wrap">
               <button className="btn btn-ghost" disabled={!caps.present} title={caps.present ? '' : 'Hidden controls for streaming: Creator plan'} onClick={() => setPresent((p) => !p)}>{present ? 'Show controls' : caps.present ? 'Present' : 'Present · Creator'}</button>
-              {canShareFiles && <button className="btn btn-lime" onClick={doShareImage} disabled={busy}>Share image</button>}
-              <button className="btn btn-ghost" onClick={doShare}>Share link</button>
               <button className="btn btn-ghost" onClick={doCopy} disabled={busy}>Copy image</button>
-              <button className={canShareFiles ? 'btn btn-ghost' : 'btn btn-lime'} onClick={doDownload} disabled={busy}>Download</button>
+              <button className="btn btn-lime" onClick={doDownload} disabled={busy}>Download</button>
             </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap pb-3" role="group" aria-label="Share to social media">
+            <span className="font-display text-xs tracking-widest text-[#AFCDBF]">Share to</span>
+            {(['x', 'facebook', 'reddit', 'instagram'] as Net[]).map((n) => (
+              <button key={n} className="chip inline-flex items-center gap-2" onClick={() => doSocial(n)} disabled={busy} aria-label={`Share to ${NET_LABEL[n]}`}>
+                <NetIcon net={n} />
+                {NET_LABEL[n]}
+              </button>
+            ))}
+            {canShareFiles && (
+              <button className="chip" onClick={doShareImage} disabled={busy}>More…</button>
+            )}
           </div>
           {!present && ImageSection}
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}

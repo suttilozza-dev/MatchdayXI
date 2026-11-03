@@ -30,7 +30,7 @@ export function Pricing({ current }: { current?: Tier }) {
     <section aria-label="Plans" className="mt-6">
       <h2 className="font-display text-xl font-bold mb-3">Plans{current ? <span className="text-sm text-[#AFCDBF]"> · you are on {TIER_LABEL[current]}</span> : null}</h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card title="Free" price="£0" active={current === 'free'} lines={[`Your first image needs no sign-up, then ${FREE_IMAGES} more free watermarked images when you sign in with Whop (no payment)`, 'MatchdayXI Stadium, branding and logos', 'Build as much as you like. Sign in after your first image, or to send a share link']} />
+        <Card title="Free" price="£0" active={current === 'free'} lines={[`Your first image needs no sign-up, then ${FREE_IMAGES} more free watermarked images when you sign in with Whop (no payment)`, 'MatchdayXI Stadium, branding and logos', 'Build as much as you like. Sign in after your first image']} />
         <Card title="Trial" price={TRIAL.label} active={current === 'trial'} lines={[`${TRIAL.images} images without the watermark`, 'One trial per user', "One club's stadium (club stadiums soon)", 'Keeps MatchdayXI branding and logo']}>
           <Buy id={TRIAL.id}>Start trial</Buy>
         </Card>
