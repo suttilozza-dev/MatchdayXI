@@ -1,4 +1,5 @@
 import squadsJson from '../data/squads.json'
+import managersJson from '../data/managers.json'
 
 export type Pos = 'GK' | 'DEF' | 'MID' | 'FWD'
 export type Player = { num: number | null; name: string; pos: Pos }
@@ -10,6 +11,11 @@ type RawSquad = Record<Pos, [number | null, string][]>
 const raw = (squadsJson as unknown as { clubs: Record<string, RawSquad> }).clubs
 
 export const CLUBS: string[] = Object.keys(raw).sort((a, b) => a.localeCompare(b))
+
+/** The club's head coach for 2026/27 (src/data/managers.json), or '' if unknown. */
+export function managerFor(club: string): string {
+  return (managersJson.managers as Record<string, string>)[club] ?? ''
+}
 
 export function squadFor(club: string): Player[] {
   const sq = raw[club]
