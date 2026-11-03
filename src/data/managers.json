@@ -1,0 +1,25 @@
+{
+  "_note": "Head coach per club, 2026/27. Read from web search results on 3 Nov 2026 (Premier League, DAZN, Sky Sports, Khelnow reported the same list). Managers change mid-season: edit this file and redeploy. VERIFY before launch.",
+  "managers": {
+    "Arsenal": "Mikel Arteta",
+    "Aston Villa": "Unai Emery",
+    "Bournemouth": "Marco Rose",
+    "Brentford": "Keith Andrews",
+    "Brighton and Hove Albion": "Fabian Hürzeler",
+    "Chelsea": "Xabi Alonso",
+    "Coventry City": "Frank Lampard",
+    "Crystal Palace": "Pierre Sage",
+    "Everton": "David Moyes",
+    "Fulham": "Álvaro Arbeloa",
+    "Hull City": "Sergej Jakirovic",
+    "Ipswich Town": "Gary O'Neil",
+    "Leeds United": "Daniel Farke",
+    "Liverpool": "Andoni Iraola",
+    "Manchester City": "Enzo Maresca",
+    "Manchester United": "Michael Carrick",
+    "Newcastle United": "Matthias Jaissle",
+    "Nottingham Forest": "Oliver Glasner",
+    "Sunderland": "Régis Le Bris",
+    "Tottenham Hotspur": "Roberto De Zerbi"
+  }
+}

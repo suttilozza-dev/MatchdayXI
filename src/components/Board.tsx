@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CLUBS, FORMATIONS, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
+import { CLUBS, FORMATIONS, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
 import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
@@ -9,7 +9,7 @@ import { LINE_PATHS, SHIRT_PATH, backFont, SPOTS, fromXY, linesTransform, render
 
 type Side = 'home' | 'away'
 type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
-type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[]; manager: string; captain: number | null }
+type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[]; captain: number | null }
 const BENCH_MAX = 9 // Premier League: nine named substitutes
 
 function autoFill(club: string, formation: string): Slot[] {
@@ -54,10 +54,10 @@ function makeTeam(club: string, formation: string): TeamState {
   const slots = autoFill(club, formation)
   const squad = squadFor(club)
   const [colour, colour2] = kitColours(club, 'home')!
-  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots), manager: '', captain: null }
+  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots), captain: null }
 }
 
-type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string; hm?: string; am?: string; hcap?: number | null; acap?: number | null; ms?: MarkerStyle; lp?: LabelPos }
+type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string; hcap?: number | null; acap?: number | null; ms?: MarkerStyle; lp?: LabelPos }
 
 function encode(s: Saved): string {
   return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -135,9 +135,9 @@ export default function Board() {
       t.slots = t.slots.map((sl, i) => ({ ...sl, pi: pis[i] ?? null, u: ps[i]?.[0] ?? sl.u, v: ps[i]?.[1] ?? sl.v }))
       return normalise(t)
     }
-    const withExtras = (t: TeamState, manager: string | undefined, captain: number | null | undefined): TeamState => ({ ...t, manager: (manager ?? '').slice(0, 40), captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
-    setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hm, s.hcap))
-    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(withExtras(build(s.ac, s.af, s.ak ?? '#1FD1C1', s.a2, s.ab, s.al ?? [], s.ap ?? []), s.am, s.acap))
+    const withExtras = (t: TeamState, captain: number | null | undefined): TeamState => ({ ...t, captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
+    setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hcap))
+    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(withExtras(build(s.ac, s.af, s.ak ?? '#1FD1C1', s.a2, s.ab, s.al ?? [], s.ap ?? []), s.acap))
     if (s.ms === 'circle' || s.ms === 'shirt' || s.ms === 'shirt-back') setMarkerStyle(s.ms)
     if (s.lp === 'below' || s.lp === 'above' || s.lp === 'off') setLabelPos(s.lp)
     setVersus(!!s.v)
@@ -319,8 +319,8 @@ export default function Board() {
     watermark: caps.watermark,
     transparent: caps.transparent && transparent,
     handle: caps.creatorBranding ? handle.trim() : '',
-    homeManager: home.manager,
-    awayManager: versus ? away.manager : '',
+    homeManager: managerFor(home.club),
+    awayManager: versus ? managerFor(away.club) : '',
     markerStyle,
     labelPos,
   })
@@ -410,13 +410,11 @@ export default function Board() {
       v: versus,
       gw: gameweek,
       k: kind,
-      hm: home.manager || undefined,
       hcap: home.captain,
       ms: markerStyle,
       lp: labelPos,
     }
     if (versus) {
-      s.am = away.manager || undefined
       s.acap = away.captain
       s.ac = away.club
       s.af = away.formation
@@ -495,7 +493,6 @@ export default function Board() {
             </label>
           </div>
         </div>
-        <input className="field" aria-label={`${side} manager`} value={t.manager} maxLength={40} placeholder="Manager's name (optional)" onChange={(e) => setTeam(side, (x) => ({ ...x, manager: e.target.value }))} />
       </div>
     )
   }
@@ -676,6 +673,7 @@ export default function Board() {
             }
             return (
               <>
+                <div className="font-display text-[11px] tracking-widest text-[#AFCDBF] px-2 py-1">Manager · <span className="text-[#F7F7F2]">{managerFor(active.club) || 'unknown'}</span></div>
                 <div className="font-display text-[11px] tracking-widest text-[#CFFF4D] px-2 py-1">Bench ({bench.length}/{BENCH_MAX})</div>
                 {bench.map((i) => row(i, 'bench'))}
                 <div className="font-display text-[11px] tracking-widest text-[#AFCDBF] px-2 py-1 mt-2">Unused ({unused.length})</div>
@@ -819,7 +817,7 @@ export default function Board() {
               return (
                 <div key={sd} className="mt-2 flex items-center gap-1.5 flex-wrap" aria-label={`${sd} dugout: manager, substitutes and unused players`}>
                   <span className="font-display text-[11px] tracking-widest text-[#AFCDBF] mr-1">{versus ? `${sd} dugout` : 'Dugout'}</span>
-                  <span title={t.manager ? `Manager: ${t.manager}` : 'Manager (type the name in the settings)'} className="font-display text-xs rounded-full px-2 py-1" style={{ minWidth: 30, textAlign: 'center', color: accent, border: `1px solid ${accent}` }}>{t.manager ? `M · ${surname(t.manager)}` : 'M'}</span>
+                  <span title="Manager" className="font-display text-xs rounded-full px-2 py-1" style={{ textAlign: 'center', color: accent, border: `1px solid ${accent}` }}>Manager · {managerFor(t.club) || 'unknown'}</span>
                   {sq.map((p, i) => {
                     const lit = t.bench.includes(i)
                     const onPitch = t.slots.some((s) => s.pi === i)
