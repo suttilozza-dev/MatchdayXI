@@ -587,8 +587,12 @@ export default function Board() {
           </div>
         </div>
       </details>
+    </div>
+  )
 
-      <details className="opt">
+  const ImageSection = (
+    <div className="panel p-3 mb-2">
+      <details className="opt" style={{ borderTop: 0, paddingTop: 0 }}>
         <summary><span className="set-title">Image</span><span className="opt-sum">{imageSummary}</span></summary>
         <div className="grid gap-x-8 gap-y-3 md:grid-cols-2 pt-3">
           <div className="flex flex-col gap-3">
@@ -710,6 +714,7 @@ export default function Board() {
               <button className={canShareFiles ? 'btn btn-ghost' : 'btn btn-lime'} onClick={doDownload} disabled={busy}>Download</button>
             </div>
           </div>
+          {!present && ImageSection}
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
           {!msg && access && !access.signedIn && (
             <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) for 5 more.</p>
