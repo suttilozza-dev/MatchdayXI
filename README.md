@@ -1,6 +1,6 @@
 # MatchdayXI
 
-MATCHDAY XI is a web app (it runs in the browser and can be installed to a phone's home screen; there is a web app manifest and schema.org WebApplication data). It is a Premier League line-up maker: a tactical board with formations, 2026/27 squads for all 20 clubs, home/away/third kit colours, a bench and dugout, PNG export and a share link. Built with TanStack Start and hosted on Whop (`whop apps deploy`).
+MATCHDAY XI is a web app (it runs in the browser and can be installed to a phone's home screen; there is a web app manifest and schema.org WebApplication data). It is a Premier League line-up maker: a tactical board with formations, 2026/27 squads for all 20 clubs, home/away/third kit colours, a bench and dugout, PNG export and one-click sharing to X, Facebook, Reddit and Instagram. Built with TanStack Start and hosted on Whop (`whop apps deploy`).
 
 - `src/components/Board.tsx`: the board
 - `src/lib/`: data, kits, pitch drawing and export, logos, credits (stub) and config

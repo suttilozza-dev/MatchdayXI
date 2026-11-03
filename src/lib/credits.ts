@@ -2,7 +2,7 @@
  * Tiers, what each one allows, and how exports are counted.
  *
  * A visitor's very first image (copy, download or share image) works without signing in, with the watermark. After that, and
- * for the share link, they sign in with Whop. That first image is remembered in the browser only. Signed-in
+ * they sign in with Whop. That first image is remembered in the browser only. Signed-in
  * accounts are looked up on the server: /api/access reads what they own, and /api/spend counts every export
  * against it (the FREE plan is 5 watermarked images per account, counted in the database, not in the browser). Purchases reach the server through the Whop webhook (src/routes/api/webhooks).
  * `vite dev` can still simulate any tier with ?access=free|trial|credits|lifetime|creator.
