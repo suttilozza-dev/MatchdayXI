@@ -173,7 +173,7 @@ export default function Board() {
     setOrient(s.o)
     setShape(s.v ? 'full' : s.s)
     setGameweek(s.gw)
-    setKind(s.k)
+    setKind(s.k === 'Dream XI' ? 'My XI' : s.k)
   }, [])
 
   // two teams on one pitch must be told apart: if the shirts clash, give the away side the brand cyan (or lime)
@@ -607,7 +607,7 @@ export default function Board() {
             <label className="text-xs text-[#AFCDBF]">Label
               <select className="field mt-1" value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option>Predicted XI</option>
-                <option>Dream XI</option>
+                <option>My XI</option>
                 <option>Starting XI</option>
               </select>
             </label>
