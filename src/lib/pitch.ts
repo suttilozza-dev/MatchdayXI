@@ -51,10 +51,18 @@ export function linesTransform(orient: Orient): string {
   return orient === 'landscape' ? '' : `matrix(0,-1,1,0,0,${PL})`
 }
 
-export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string }
+export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean }
 
-export type CardFormat = 'square' | 'portrait' | 'story' | 'banner'
-export const CARD_SIZES: Record<CardFormat, [number, number]> = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], banner: [1920, 1080] }
+/** How a player is drawn: a plain circle, or a shirt (front shows the number, back also shows the surname). */
+export type MarkerStyle = 'circle' | 'shirt' | 'shirt-back'
+export type LabelPos = 'below' | 'above' | 'off'
+
+/** A shirt shape centred on 0,0 (about 76 wide, 54 tall). Used by both the board and the exported image. */
+export const SHIRT_PATH = 'M-14,-27L-38,-17L-45,2L-31,8L-24,0L-24,27L24,27L24,0L31,8L45,2L38,-17L14,-27Q0,-17 -14,-27Z'
+
+export type CardFormat = 'square' | 'portrait' | 'story' | 'banner' | 'header'
+// portrait is 4:5 (feed), story is 9:16 (1080x1920), banner is 16:9, header is 4:1 (LinkedIn / X style cover)
+export const CARD_SIZES: Record<CardFormat, [number, number]> = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], banner: [1920, 1080], header: [1600, 400] }
 
 export type CardInput = {
   orient: Orient
@@ -77,6 +85,10 @@ export type CardInput = {
   watermark: boolean // free tier: diagonal watermark + site link
   transparent: boolean
   handle: string // creator handle; when set it replaces the MatchdayXI branding
+  homeManager: string
+  awayManager: string
+  markerStyle: MarkerStyle
+  labelPos: LabelPos
 }
 
 
@@ -112,6 +124,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     /* fall back to system fonts */
   }
   const branded = !input.handle
+  if (input.format === 'header') return renderHeader(canvas, ctx, input, branded)
   if (!input.transparent) {
     ctx.fillStyle = '#0E2A20'
     ctx.fillRect(0, 0, W, H)
@@ -177,7 +190,9 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.font = '600 22px Oswald, sans-serif'
   const subsHome = wrapSubs(ctx, input.homeBench, W - 96)
   const subsAway = input.versus ? wrapSubs(ctx, input.awayBench, W - 96) : []
-  const benchLines = subsHome.length + subsAway.length
+  const mgrHome = input.homeManager.trim() ? `MANAGER  ${input.homeManager.trim().toUpperCase()}` : ''
+  const mgrAway = input.versus && input.awayManager.trim() ? `MANAGER  ${input.awayManager.trim().toUpperCase()}` : ''
+  const benchLines = subsHome.length + subsAway.length + (mgrHome ? 1 : 0) + (mgrAway ? 1 : 0)
   const benchH = 34 * benchLines + 16
   const region = { x: 48, y: 190, w: W - 96, h: H - 190 - 100 - benchH }
   const sc = Math.min(region.w / vb.w, region.h / vb.h)
@@ -219,40 +234,25 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.restore()
 
   // markers
-  for (const m of input.markers) {
-    ctx.beginPath()
-    ctx.arc(m.x, m.y, 24, 0, Math.PI * 2)
-    ctx.fillStyle = m.colour
-    ctx.fill()
-    ctx.strokeStyle = m.ring
-    ctx.lineWidth = 4
-    ctx.stroke()
-    ctx.fillStyle = readableOn(m.colour)
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.font = '700 23px Oswald, sans-serif'
-    ctx.fillText(m.num == null ? '' : String(m.num), m.x, m.y + 1)
-    ctx.textBaseline = 'alphabetic'
-    ctx.font = '600 19px Inter, sans-serif'
-    const label = surname(m.name)
-    ctx.lineJoin = 'round'
-    ctx.lineWidth = 5
-    ctx.strokeStyle = 'rgba(14,42,32,0.9)'
-    ctx.strokeText(label, m.x, m.y + 47)
-    ctx.fillStyle = '#F7F7F2'
-    ctx.fillText(label, m.x, m.y + 47)
-  }
+  for (const m of input.markers) drawMarker(ctx, m, input)
   ctx.restore()
 
   // dugout / subs strip
   ctx.textAlign = 'left'
   ctx.font = '600 22px Oswald, sans-serif'
   const by = H - 100 - benchH + 34
+  let li = 0
+  if (mgrHome) {
+    ctx.fillStyle = '#CFFF4D'
+    ctx.fillText(mgrHome, 48, by + 34 * li++)
+  }
   ctx.fillStyle = '#CFFF4D'
-  subsHome.forEach((line, i) => ctx.fillText(i === 0 ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * i))
+  subsHome.forEach((line) => ctx.fillText(li === (mgrHome ? 1 : 0) ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
   if (input.versus) {
     ctx.fillStyle = '#1FD1C1'
-    subsAway.forEach((line, i) => ctx.fillText(i === 0 ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * (subsHome.length + i)))
+    if (mgrAway) ctx.fillText(mgrAway, 48, by + 34 * li++)
+    const first = li
+    subsAway.forEach((line) => ctx.fillText(li === first ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
   }
 
   // free-tier watermark: diagonal text across the card
@@ -276,5 +276,156 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.font = '400 15px Inter, sans-serif'
   ctx.fillText('Independent fan tool. Not affiliated with the Premier League or any club.', W - 48, H - 40)
 
+  return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('export failed'))), 'image/png'))
+}
+
+
+/** Font size that fits a surname across the back of the shirt. */
+export const backFont = (t: string) => Math.max(8, Math.min(13, 46 / (t.length * 0.66)))
+
+function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<CardInput, 'markerStyle' | 'labelPos'>, scale = 1, names = true) {
+  const style = input.markerStyle
+  ctx.save()
+  ctx.translate(m.x, m.y)
+  ctx.lineJoin = 'round'
+  if (style === 'circle') {
+    ctx.beginPath()
+    ctx.arc(0, 0, 24, 0, Math.PI * 2)
+    ctx.fillStyle = m.colour
+    ctx.fill()
+    ctx.strokeStyle = m.ring
+    ctx.lineWidth = 4
+    ctx.stroke()
+  } else {
+    const p = new Path2D(SHIRT_PATH)
+    ctx.fillStyle = m.colour
+    ctx.fill(p)
+    ctx.strokeStyle = m.ring
+    ctx.lineWidth = 3.5
+    ctx.stroke(p)
+  }
+  ctx.fillStyle = readableOn(m.colour)
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  if (style === 'shirt-back') {
+    const back = surname(m.name).toUpperCase().slice(0, 12)
+    ctx.font = `600 ${backFont(back)}px Inter, sans-serif`
+    ctx.fillText(back, 0, -11)
+    ctx.font = '700 25px Oswald, sans-serif'
+    ctx.fillText(m.num == null ? '' : String(m.num), 0, 8)
+  } else {
+    ctx.font = '700 23px Oswald, sans-serif'
+    ctx.fillText(m.num == null ? '' : String(m.num), 0, 1)
+  }
+  if (m.captain) {
+    // captain's armband: a lime badge with a C
+    ctx.beginPath()
+    ctx.arc(24, -22, 11, 0, Math.PI * 2)
+    ctx.fillStyle = '#CFFF4D'
+    ctx.fill()
+    ctx.strokeStyle = '#0E2A20'
+    ctx.lineWidth = 2
+    ctx.stroke()
+    ctx.fillStyle = '#0E2A20'
+    ctx.font = '700 15px Oswald, sans-serif'
+    ctx.fillText('C', 24, -21)
+  }
+  if (names && input.labelPos !== 'off' && style !== 'shirt-back') {
+    ctx.textBaseline = 'alphabetic'
+    ctx.font = '600 19px Inter, sans-serif'
+    const label = surname(m.name)
+    const dy = input.labelPos === 'above' ? -37 : style === 'circle' ? 47 : 50
+    ctx.lineWidth = 5
+    ctx.strokeStyle = 'rgba(14,42,32,0.9)'
+    ctx.strokeText(label, 0, dy)
+    ctx.fillStyle = '#F7F7F2'
+    ctx.fillText(label, 0, dy)
+  }
+  ctx.restore()
+  void scale
+}
+
+/** 4:1 cover image: title on the left, the pitch with numbered markers on the right. No names (too small to read). */
+async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, input: CardInput, branded: boolean): Promise<Blob> {
+  const W = canvas.width
+  const H = canvas.height
+  if (!input.transparent) {
+    ctx.fillStyle = '#0E2A20'
+    ctx.fillRect(0, 0, W, H)
+  }
+  ctx.textBaseline = 'alphabetic'
+  ctx.textAlign = 'left'
+  if (branded) {
+    ctx.fillStyle = '#F7F7F2'
+    ctx.font = '700 58px Oswald, sans-serif'
+    ctx.fillText('MATCHDAY', 44, 92)
+    const w = ctx.measureText('MATCHDAY ').width
+    ctx.fillStyle = '#CFFF4D'
+    ctx.fillText('XI', 44 + w, 92)
+  } else {
+    ctx.fillStyle = '#F7F7F2'
+    ctx.font = '700 50px Oswald, sans-serif'
+    ctx.fillText(input.handle.toUpperCase().slice(0, 28), 44, 92)
+  }
+  ctx.fillStyle = '#AFCDBF'
+  ctx.font = '600 26px Oswald, sans-serif'
+  ctx.fillText(`GAMEWEEK ${input.gameweek.toUpperCase()} · ${input.kind.toUpperCase()}`, 44, 136)
+  ctx.fillStyle = '#F7F7F2'
+  ctx.font = '600 30px Oswald, sans-serif'
+  ctx.fillText(`${input.homeName.toUpperCase()}  ${input.homeForm}`, 44, 196)
+  if (input.versus) ctx.fillText(`VS ${input.awayName.toUpperCase()}  ${input.awayForm}`, 44, 238)
+  if (input.homeManager.trim()) {
+    ctx.fillStyle = '#CFFF4D'
+    ctx.font = '600 22px Oswald, sans-serif'
+    ctx.fillText(`MANAGER  ${input.homeManager.trim().toUpperCase()}`, 44, input.versus ? 280 : 238)
+  }
+  ctx.fillStyle = '#AFCDBF'
+  ctx.font = '500 18px Oswald, sans-serif'
+  if (branded) ctx.fillText(SITE_URL.toUpperCase(), 44, H - 28)
+  const vb = viewBoxFor(input.orient, input.shape, input.ext)
+  const region = { x: 560, y: 14, w: W - 560 - 24, h: H - 28 }
+  const sc = Math.min(region.w / vb.w, region.h / vb.h)
+  const ox = region.x + (region.w - vb.w * sc) / 2 - vb.x * sc
+  const oy = region.y + (region.h - vb.h * sc) / 2 - vb.y * sc
+  ctx.save()
+  ctx.beginPath()
+  ctx.roundRect(region.x + (region.w - vb.w * sc) / 2, region.y + (region.h - vb.h * sc) / 2, vb.w * sc, vb.h * sc, 10)
+  ctx.clip()
+  ctx.translate(ox, oy)
+  ctx.scale(sc, sc)
+  ctx.save()
+  if (input.orient === 'portrait') ctx.transform(0, -1, 1, 0, 0, PL)
+  for (const sh of input.stadium) {
+    const p = new Path2D(sh.d)
+    ctx.globalAlpha = sh.opacity ?? 1
+    if (sh.fill) {
+      ctx.fillStyle = sh.fill
+      ctx.fill(p)
+    }
+    if (sh.stroke) {
+      ctx.strokeStyle = sh.stroke
+      ctx.lineWidth = sh.sw ?? 1
+      ctx.stroke(p)
+    }
+  }
+  ctx.globalAlpha = 1
+  ctx.fillStyle = '#1B5940'
+  ctx.fillRect(0, 0, PL, PW)
+  ctx.strokeStyle = 'rgba(247,247,242,0.45)'
+  ctx.lineWidth = 2.5
+  for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
+  ctx.restore()
+  for (const m of input.markers) drawMarker(ctx, m, input, 1, false)
+  ctx.restore()
+  if (input.watermark) {
+    ctx.save()
+    ctx.translate(W / 2, H / 2)
+    ctx.rotate(-Math.PI / 14)
+    ctx.font = '700 44px Oswald, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillStyle = 'rgba(247,247,242,0.17)'
+    for (let x = -W; x < W; x += 620) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x, 0)
+    ctx.restore()
+  }
   return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('export failed'))), 'image/png'))
 }

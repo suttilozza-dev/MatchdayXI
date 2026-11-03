@@ -9,8 +9,8 @@ export const Route = createFileRoute('/')({ component: Home })
 
 const STEPS = [
   { n: '01', t: 'Pick your clubs', d: 'Set one team for a solo XI, or two for a Home v Away match-up. Any of the 20 Premier League clubs, 2026/27 squads.' },
-  { n: '02', t: 'Drag it into shape', d: 'Choose a formation, then tap a marker and pick a player. Drag markers anywhere. Your subs sit in the dugout.' },
-  { n: '03', t: 'Share it', d: 'Copy the image straight into a post, or download a 1080×1080 card. Send a link and anyone can open your line-up.' },
+  { n: '02', t: 'Drag it into shape', d: 'Choose a formation, then tap a marker and pick a player. Drag markers anywhere, give someone the armband and set the manager. Your subs sit in the dugout.' },
+  { n: '03', t: 'Share it', d: 'Your first image is free with no sign-up. Copy it into a post, tap Share on your phone, or download a card in square, 4:5, story or header sizes.' },
 ]
 
 function Home() {
@@ -28,7 +28,7 @@ function Home() {
           </div>
           <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,10vw,7rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
           <p className="mx-auto mt-5 max-w-xl text-lg text-[#AFCDBF]">
-            Build your predicted or dream Premier League line-up on a tactical board, then download or copy it to share on socials.
+            The football line-up maker and squad builder. Pick a formation, name your captain and manager, and share your predicted XI, starting line-up or dream team as an image.
           </p>
           <div className="mt-7 flex gap-3 justify-center flex-wrap">
             <Link to="/board" className="btn btn-lime">Pick your XI</Link>
@@ -52,7 +52,7 @@ function Home() {
 
         <section className="mx-auto max-w-[1100px] px-4 pb-16">
           <h2 className="font-display font-bold text-3xl mb-1">Free to build. Pay to <span style={{ color: 'var(--boot-lime)' }}>export</span>.</h2>
-          <p className="text-sm text-[#AFCDBF]">Build and share a link as much as you like. Pick a plan when you want the image.</p>
+          <p className="text-sm text-[#AFCDBF]">Build as much as you like. Your first image needs no sign-up; pick a plan when you want more.</p>
           <Pricing />
         </section>
       </main>

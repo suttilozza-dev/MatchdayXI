@@ -102,3 +102,12 @@ body {
   .pitch-locked { display: none !important; }
   .print-note { display: block !important; }
 }
+
+/* settings panel */
+.set-title { font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--boot-lime); }
+details.opt { border-top: 1px solid rgba(247, 247, 242, 0.12); padding-top: 0.75rem; }
+details.opt > summary { cursor: pointer; display: flex; align-items: center; gap: 0.75rem; min-height: 32px; list-style: none; }
+details.opt > summary::-webkit-details-marker { display: none; }
+details.opt > summary::before { content: '+'; font-family: 'Oswald', sans-serif; color: var(--boot-lime); width: 1rem; }
+details.opt[open] > summary::before { content: '–'; }
+.opt-sum { font-size: 0.75rem; color: #AFCDBF; text-transform: capitalize; }
