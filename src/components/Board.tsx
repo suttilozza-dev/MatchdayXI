@@ -196,18 +196,22 @@ export default function Board() {
   const effShape: Shape = versus ? 'full' : shape
 
   // world (U,V) for a slot
+  // A slot's (u, v) is team-relative: u runs from the team's own goal (0) to the far goal. With one team that is 0..1 of the pitch
+  // (or of the home half). With Home v Away each team starts in its own half, but a player can be dragged anywhere, so u can
+  // reach 2 (the whole pitch length from the team's own goal line).
   const place = useCallback(
     (side: Side, s: Slot): [number, number] => {
       if (versus) return side === 'home' ? [s.u * 0.5, s.v] : [1 - s.u * 0.5, 1 - s.v]
-      if (effShape === 'half') return [s.u * 0.5, s.v]
-      return [s.u, s.v]
+      const u = Math.min(1, s.u) // a player dragged past halfway in Home v Away stays on the pitch when switching to one team
+      if (effShape === 'half') return [u * 0.5, s.v]
+      return [u, s.v]
     },
     [versus, effShape],
   )
   const unplace = useCallback(
     (side: Side, U: number, V: number): [number, number] => {
-      const cl = (n: number) => Math.min(1, Math.max(0, n))
-      if (versus) return side === 'home' ? [cl(U / 0.5), cl(V)] : [cl((1 - U) / 0.5), cl(1 - V)]
+      const cl = (n: number, max = 1) => Math.min(max, Math.max(0, n))
+      if (versus) return side === 'home' ? [cl(U / 0.5, 2), cl(V)] : [cl((1 - U) / 0.5, 2), cl(1 - V)]
       if (effShape === 'half') return [cl(U / 0.5), cl(V)]
       return [cl(U), cl(V)]
     },
