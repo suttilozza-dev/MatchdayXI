@@ -4,12 +4,12 @@
  * A visitor's very first image (copy, download or share image) works without signing in, with the watermark. After that, and
  * they sign in with Whop. That first image is remembered in the browser only. Signed-in
  * accounts are looked up on the server: /api/access reads what they own, and /api/spend counts every export
- * against it (the FREE plan is 5 watermarked images per account, counted in the database, not in the browser). Purchases reach the server through the Whop webhook (src/routes/api/webhooks).
+ * against it (the FREE plan is a few watermarked images per account each week, counted in the database, not in the browser). Purchases reach the server through the Whop webhook (src/routes/api/webhooks).
  * `vite dev` can still simulate any tier with ?access=free|trial|credits|lifetime|creator.
  */
-import { FREE_IMAGES, TRIAL } from './config'
+import { FREE_PER_WEEK } from './config'
 
-export type Tier = 'free' | 'trial' | 'credits' | 'lifetime' | 'creator'
+export type Tier = 'free' | 'pass' | 'trial' | 'credits' | 'plus' | 'lifetime' | 'creator'
 
 export type Caps = {
   watermark: boolean // watermark + site link on exports
@@ -23,13 +23,15 @@ export type Caps = {
 
 export const CAPS: Record<Tier, Caps> = {
   free: { watermark: true, unlimited: false, extraFormats: false, transparent: false, clubStadium: 'none', creatorBranding: false, present: false },
+  pass: { watermark: false, unlimited: true, extraFormats: true, transparent: false, clubStadium: 'one', creatorBranding: false, present: false },
   trial: { watermark: false, unlimited: false, extraFormats: false, transparent: false, clubStadium: 'one', creatorBranding: false, present: false },
   credits: { watermark: false, unlimited: false, extraFormats: false, transparent: false, clubStadium: 'none', creatorBranding: false, present: false },
-  lifetime: { watermark: false, unlimited: true, extraFormats: true, transparent: true, clubStadium: 'one', creatorBranding: false, present: false },
+  plus: { watermark: false, unlimited: true, extraFormats: true, transparent: true, clubStadium: 'all', creatorBranding: false, present: false },
+  lifetime: { watermark: false, unlimited: true, extraFormats: true, transparent: true, clubStadium: 'all', creatorBranding: false, present: false },
   creator: { watermark: false, unlimited: true, extraFormats: true, transparent: true, clubStadium: 'all', creatorBranding: true, present: true },
 }
 
-export const TIER_LABEL: Record<Tier, string> = { free: 'Free', trial: 'Trial', credits: 'Credit pack', lifetime: 'Unlimited (lifetime)', creator: 'Creator' }
+export const TIER_LABEL: Record<Tier, string> = { free: 'Free', pass: 'Gameweek Pass', trial: 'Trial', credits: 'Credit pack', plus: 'Plus', lifetime: 'Founder Lifetime', creator: 'Creator' }
 
 export type Access = { tier: Tier; remaining: number | null; caps: Caps; signedIn: boolean; name: string | null }
 
@@ -48,10 +50,10 @@ export async function getAccess(): Promise<Access> {
   if (import.meta.env.DEV && typeof location !== 'undefined') {
     const t = new URLSearchParams(location.search).get('access') as Tier | null
     if (t && t in CAPS && t !== 'free') {
-      const total = t === 'trial' ? TRIAL.images : t === 'credits' ? 8 : null
+      const total = t === 'trial' ? 5 : t === 'credits' ? 8 : null
       return { tier: t, remaining: total == null ? null : Math.max(0, total - devUsed), caps: CAPS[t], signedIn: true, name: 'Dev' }
     }
-    if (t === 'free') return { tier: 'free', remaining: Math.max(0, FREE_IMAGES - devUsed), caps: CAPS.free, signedIn: true, name: 'Dev' }
+    if (t === 'free') return { tier: 'free', remaining: Math.max(0, FREE_PER_WEEK - devUsed), caps: CAPS.free, signedIn: true, name: 'Dev' }
   }
   try {
     const r = await fetch('/api/access', { credentials: 'same-origin' })
@@ -106,4 +108,4 @@ export async function spendExport(): Promise<SpendResult> {
   return { ok: true, access: await getAccess() }
 }
 
-export const FREE_ALLOWANCE_NOTE = 'Free: your first image needs no sign-up. Sign in with Whop (no payment) for 5 more with a watermark and the site link.'
+export const FREE_ALLOWANCE_NOTE = `Free: your first image needs no sign-up. Sign in with Whop (no payment) for ${FREE_PER_WEEK} watermarked images every week.`

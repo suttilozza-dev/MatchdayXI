@@ -14,7 +14,7 @@ export const Route = createFileRoute('/api/spend')({
         if (!s) return json({ ok: false, reason: 'signed_out' }, 401)
         try {
           const e = await getEntitlement(s.uid)
-          if (e.tier === 'creator' || e.tier === 'lifetime') return json({ ok: true, ...e })
+          if (e.tier === 'creator' || e.tier === 'plus' || e.tier === 'lifetime' || e.tier === 'pass') return json({ ok: true, ...e })
           const ok = e.tier === 'free' ? await spendFree(s.uid) : await spendOne(s.uid)
           if (!ok) return json({ ok: false, reason: 'used_up' }, 402)
           return json({ ok: true, ...(await getEntitlement(s.uid)) })

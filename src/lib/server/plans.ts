@@ -2,11 +2,17 @@
  * Whop variant (plan_...) -> what it unlocks. These are the live GBP variants on the Matchday XI Whop account.
  * If a variant is ever recreated in Whop, update its id here and in config.ts.
  */
-export type PlanKey = 'trial' | 'lifetime' | 'creator-monthly' | 'creator-yearly' | 'pack-8' | 'pack-25' | 'pack-50'
+export type PlanKey = 'pass' | 'plus-monthly' | 'plus-yearly' | 'trial' | 'lifetime' | 'creator-monthly' | 'creator-yearly' | 'pack-8' | 'pack-25' | 'pack-50'
 
 export type PlanGrant = { key: PlanKey; images: number | null; days: number | null }
 
 export const VARIANT_PLANS: Record<string, PlanGrant> = {
+  // Current plans
+  plan_mlzw7odXT3JKw: { key: 'pass', images: null, days: 7 },
+  plan_XPaB1E6EWxArO: { key: 'plus-monthly', images: null, days: 35 },
+  plan_qQs7Ve4QozI5x: { key: 'plus-yearly', images: null, days: 370 },
+  plan_UCraiZ98hmIZm: { key: 'lifetime', images: null, days: null }, // Founder Lifetime
+  // Retired from the site but still honoured for anyone who bought them (trial, 30-pound Unlimited, credit packs)
   plan_lgUBoR82h7I1h: { key: 'trial', images: 5, days: null },
   plan_ldHvVl8XWpBlb: { key: 'lifetime', images: null, days: null },
   // Subscriptions: each successful renewal payment pushes expiry out, with a few days of slack for retries.
