@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, SITE_URL, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
+import { FREE_PER_WEEK } from '#/lib/config'
 import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
@@ -173,7 +174,7 @@ export default function Board() {
     setOrient(s.o)
     setShape(s.v ? 'full' : s.s)
     setGameweek(s.gw)
-    setKind(s.k)
+    setKind(s.k === 'Dream XI' ? 'My XI' : s.k)
   }, [])
 
   // two teams on one pitch must be told apart: if the shirts clash, give the away side the brand cyan (or lime)
@@ -356,11 +357,11 @@ export default function Board() {
 
   const failMsg = (reason: 'signin' | 'used_up' | 'unavailable') =>
     reason === 'signin'
-      ? 'That was your free first image. Sign in with Whop (free, no payment) for 5 more.'
+      ? `That was your free first image. Sign in with Whop (free, no payment) for ${FREE_PER_WEEK} more every week.`
       : reason === 'unavailable'
         ? 'We could not check your plan just now. Try again in a moment.'
         : access?.tier === 'free'
-          ? 'You have used your 5 free images. Pick a plan below to keep exporting.'
+          ? `You have used your ${FREE_PER_WEEK} free images for this week. They come back on Monday, or pick a plan below.`
           : 'You have used all your images on this plan. Pick a plan below to keep exporting.'
 
   const signOut = async () => {
@@ -369,7 +370,7 @@ export default function Board() {
   }
 
   const afterSpend = (a: Access, anon?: boolean) => {
-    if (anon) return ' That was your free first image. Sign in (free) for 5 more.'
+    if (anon) return ` That was your free first image. Sign in (free) for ${FREE_PER_WEEK} more every week.`
     setAccess(a)
     return a.remaining === null ? '' : ` ${a.remaining} left.`
   }
@@ -607,7 +608,7 @@ export default function Board() {
             <label className="text-xs text-[#AFCDBF]">Label
               <select className="field mt-1" value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option>Predicted XI</option>
-                <option>Dream XI</option>
+                <option>My XI</option>
                 <option>Starting XI</option>
               </select>
             </label>
@@ -776,7 +777,7 @@ export default function Board() {
       <div className="order-1 lg:col-span-2">
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
             <div className="font-display text-sm tracking-widest text-[#AFCDBF]">
-              Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left` : ''}
+              Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left${access?.tier === 'free' ? ' this week' : ''}` : ''}
               {' · '}
               {access?.signedIn ? (
                 <>
@@ -808,7 +809,7 @@ export default function Board() {
           {!present && ImageSection}
           {msg && <p role="status" className="text-sm text-[#CFFF4D] pb-2">{msg}</p>}
           {!msg && access && !access.signedIn && (
-            <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) for 5 more.</p>
+            <p className="text-xs text-[#AFCDBF] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#CFFF4D]" href="/api/auth/login">sign in with Whop</a> (free) for {FREE_PER_WEEK} more every week.</p>
           )}
           <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit matchday-xi.club for plans.</p>
       </div>

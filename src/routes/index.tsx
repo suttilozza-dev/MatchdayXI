@@ -52,7 +52,7 @@ function Home() {
 
         <section className="mx-auto max-w-[1100px] px-4 pb-16">
           <h2 className="font-display font-bold text-3xl mb-1">Free to build. Pay to <span style={{ color: 'var(--boot-lime)' }}>export</span>.</h2>
-          <p className="text-sm text-[#AFCDBF]">Build as much as you like. Your first image needs no sign-up; pick a plan when you want more.</p>
+          <p className="text-sm text-[#AFCDBF]">Build as much as you like. Your first image needs no sign-up, then 3 free images every week. Pick a plan for clean images in every size.</p>
           <Pricing />
         </section>
       </main>
