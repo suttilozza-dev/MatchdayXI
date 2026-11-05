@@ -20,6 +20,8 @@ export type KitDesign = {
   stripes?: { colour: string; n: number } // wide vertical stripes on the body
   sash?: string[] // thin diagonal lines across the body, in these colours, in order
   sleeveLines?: string[] // thin lines running down each sleeve, in these colours, repeating
+  fade?: string // colour the body fades into at the hem
+  centreStripe?: { colour: string; w: number } // one vertical stripe down the middle
   sidePanel?: string // thin panel down each side
   textureColour2?: string // second colour for line textures
   textureGap?: number // spacing for pinstripes
@@ -150,7 +152,8 @@ function collarSvg(k: KitDesign): string {
 }
 
 /** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
-export function kitSvg(k: KitDesign, uid = 'k'): string {
+export function kitSvg(k: KitDesign, rawUid = 'k'): string {
+  const uid = rawUid.replace(/[^a-zA-Z0-9_-]/g, '-')
   const o = k.outline ?? OUTLINE
   const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12, k.textureGap, k.textureColour2)
   const sl = k.sleeve ?? k.body
@@ -161,6 +164,8 @@ export function kitSvg(k: KitDesign, uid = 'k'): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>
     <clipPath id="${uid}-body"><path d="${BODY}"/></clipPath>
+    ${k.fade ? `<linearGradient id="${uid}-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${k.fade}" stop-opacity="0"/><stop offset="1" stop-color="${k.fade}" stop-opacity="1"/></linearGradient>` : ''}
+    ${k.centreStripe ? `<linearGradient id="${uid}-cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${k.centreStripe.colour}" stop-opacity="0.15"/><stop offset="0.5" stop-color="${k.centreStripe.colour}"/><stop offset="1" stop-color="${k.centreStripe.colour}"/></linearGradient>` : ''}
     <clipPath id="${uid}-torso"><rect x="62" y="10" width="116" height="212"/></clipPath>
     <clipPath id="${uid}-sl"><path d="${SLEEVE_L}"/><path d="${SLEEVE_R}"/></clipPath>
     ${tex.defs}
@@ -169,6 +174,8 @@ export function kitSvg(k: KitDesign, uid = 'k'): string {
     <path id="body" d="${BODY}" fill="${k.body}"/>
     <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
     ${k.stripes ? `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` : ''}
+    ${k.fade ? `<g id="fade" clip-path="url(#${uid}-body)"><rect x="0" y="110" width="${W}" height="112" fill="url(#${uid}-fade)"/></g>` : ''}
+    ${k.centreStripe ? `<g id="centre-stripe" clip-path="url(#${uid}-body)"><rect x="${120 - k.centreStripe.w / 2}" y="14" width="${k.centreStripe.w}" height="200" fill="url(#${uid}-cs)"/></g>` : ''}
     ${k.sash ? `<g id="sash" clip-path="url(#${uid}-body)"><g clip-path="url(#${uid}-torso)">${sashLines(k.sash)}</g></g>` : ''}
     ${k.sleeveLines ? `<g id="sleeve-lines" clip-path="url(#${uid}-sl)">${sleeveLines(k.sleeveLines)}</g>` : ''}
     ${k.sidePanel ? `<g id="side-panels" clip-path="url(#${uid}-body)"><path d="M62,84L69,84L71,208L62,208Z" fill="${k.sidePanel}"/><path d="M178,84L171,84L169,208L178,208Z" fill="${k.sidePanel}"/></g>` : ''}
@@ -238,4 +245,11 @@ export const LIVERPOOL: ClubKits = {
   home: { body: '#C8102E', collar: 'crew', collarColour: '#C8102E', collarInner: '#F4F6FB', cuffs: ['#F4F6FB', '#C8102E'], shoulder: '#F4F6FB', texture: 'slashes', textureColour: '#fff', textureOpacity: 0.7 },
   away: { body: '#F4F4F6', outline: '#8C93A8', collar: 'vneck', collarColour: '#C8102E', collarInner: '#F4F4F6', cuffs: ['#C8102E'] },
   third: { body: '#16151A', outline: '#6A7390', collar: 'crew', collarColour: '#16151A', collarInner: '#B6BBC8', cuffs: ['#B6BBC8', '#16151A'], shoulder: '#B6BBC8', texture: 'checks', textureColour: "#6E1432", textureOpacity: 0.6 },
+}
+
+/** Manchester City 2026-27: sky blue fading to white, black with pale gold trim, white with a blue centre stripe. */
+export const CITY: ClubKits = {
+  home: { body: '#8EC5F0', collar: 'crew', collarColour: '#EAF4FD', cuffs: ['#EAF4FD'], fade: '#EAF4FD' },
+  away: { body: '#0F1013', outline: '#4A5478', collar: 'crew', collarColour: '#EFCB82', cuffs: ['#EFCB82'], texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.05 },
+  third: { body: '#F6F8FC', outline: '#8C93A8', collar: 'vneck', collarColour: '#F6F8FC', collarInner: '#1B5FB5', cuffs: ['#F6F8FC'], centreStripe: { colour: '#1B5FB5', w: 22 }, sidePanel: '#8EC5F0' },
 }
