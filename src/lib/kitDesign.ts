@@ -278,3 +278,10 @@ export const ARSENAL: ClubKits = {
   away: { body: '#1C2C5E', collar: 'crew', collarColour: '#E3202B', collarInner: '#F2C318', cuffs: ['#F2C318', '#E3202B'], shoulder: '#F2C318', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.16 },
   third: { body: '#F8EDA3', outline: '#9AA0B5', collar: 'crew', collarColour: '#2A3358', collarInner: '#9E2A3A', cuffs: ['#2A3358', '#9E2A3A'], shoulder: '#2A3358' },
 }
+
+/** Brentford 2026-27: red and white stripes, navy pinstripe away with cream trim, yellow third with black trim. */
+export const BRENTFORD: ClubKits = {
+  home: { body: '#F4F6FB', sleeve: '#D9232A', stripes: { colour: '#D9232A', n: 3 }, outline: '#14130F', collar: 'crew', collarColour: '#14130F', collarInner: '#F2B91F', cuffs: ['#F2B91F', '#14130F'] },
+  away: { body: '#1B1C3F', outline: '#6A7390', collar: 'crew', collarColour: '#EFE5D3', cuffs: ['#EFE5D3'], texture: 'pinstripe', textureColour: '#fff', textureOpacity: 0.75, textureGap: 13 },
+  third: { body: '#F2D91F', collar: 'crew', collarColour: '#14130F', cuffs: ['#14130F'] },
+}
