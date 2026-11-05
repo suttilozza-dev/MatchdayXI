@@ -329,3 +329,34 @@ export const SPURS: ClubKits = {
   away: { body: '#14224A', sleeve: '#0F1B3E', outline: '#6A7390', collar: 'crew', collarColour: '#0F1B3E', cuffs: ['#0F1B3E'], texture: 'slashes', textureColour: '#FF8A3D', textureOpacity: 0.9 },
   third: { body: '#6B3CD6', collar: 'polo', collarColour: '#4A1FA8', cuffs: ['#4A1FA8'], sidePanel: '#3F1A8F', texture: 'pinstripe', textureColour: '#2A0F66', textureOpacity: 0.8, textureGap: 30 },
 }
+
+/** Ipswich Town 2026-27: royal blue with white neck trim, cream away with red and black lines, charcoal third with cyan trim. */
+export const IPSWICH: ClubKits = {
+  home: { body: '#1D3FA8', collar: 'crew', collarColour: '#14213F', collarInner: '#F4F6FB', cuffs: ['#14213F'], texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.12 },
+  away: { body: '#EFDFB0', outline: '#8C7C50', collar: 'vneck', collarColour: '#14130F', collarInner: '#D9232A', cuffs: ['#14130F'], texture: 'hlines', textureColour: '#14130F', textureColour2: '#D9232A', textureOpacity: 0.9, textureGap: 11 },
+  third: { body: '#3A3D44', sleeve: '#6B6E76', outline: '#14130F', collar: 'vneck', collarColour: '#3FC1E0', cuffs: ['#3FC1E0'], shoulder: '#3FC1E0', texture: 'hlines', textureColour: '#23252B', textureColour2: '#55585F', textureOpacity: 0.9, textureGap: 9 },
+}
+
+/** Every club's three kits, keyed by the club name used elsewhere in the site. */
+export const ALL_KITS: Record<string, ClubKits> = {
+  Arsenal: ARSENAL,
+  'Aston Villa': VILLA,
+  Bournemouth: BOURNEMOUTH,
+  Brentford: BRENTFORD,
+  'Brighton and Hove Albion': BRIGHTON,
+  Chelsea: CHELSEA,
+  'Coventry City': COVENTRY,
+  'Crystal Palace': PALACE,
+  Everton: EVERTON,
+  Fulham: FULHAM,
+  'Hull City': HULL,
+  'Ipswich Town': IPSWICH,
+  'Leeds United': LEEDS,
+  Liverpool: LIVERPOOL,
+  'Manchester City': CITY,
+  'Manchester United': UNITED,
+  'Newcastle United': NEWCASTLE,
+  'Nottingham Forest': FOREST,
+  Sunderland: SUNDERLAND,
+  'Tottenham Hotspur': SPURS,
+}
