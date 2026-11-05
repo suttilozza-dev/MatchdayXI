@@ -292,3 +292,10 @@ export const BRIGHTON: ClubKits = {
   away: { body: '#F4F6FB', outline: '#8C93A8', collar: 'vneck', collarColour: '#1757C2', cuffs: ['#1757C2'], texture: 'pinstripe', textureColour: '#3C86E0', textureOpacity: 0.85, textureGap: 18 },
   third: { body: '#0F4A4A', collar: 'vneck', collarColour: '#7FEAD2', cuffs: ['#7FEAD2'], shoulder: '#0F4A4A' },
 }
+
+/** Fulham 2026-27: white with black trim, red and black check away, light blue third with pink bands. */
+export const FULHAM: ClubKits = {
+  home: { body: '#F5F5F8', outline: '#8C93A8', collar: 'crew', collarColour: '#14130F', collarInner: '#D9232A', cuffs: ['#D9232A', '#14130F'], shoulder: '#14130F' },
+  away: { body: '#14130F', outline: '#6A7390', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#F4F6FB'], shoulder: '#F4F6FB', texture: 'checks', textureColour: '#D9232A', textureOpacity: 0.95 },
+  third: { body: '#79B9E8', collar: 'crew', collarColour: '#F46AB8', cuffs: ['#F46AB8'], shoulder: '#F46AB8', texture: 'hlines', textureColour: '#F4A3D2', textureColour2: '#fff', textureOpacity: 0.85, textureGap: 8 },
+}
