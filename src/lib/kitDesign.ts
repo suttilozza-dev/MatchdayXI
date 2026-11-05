@@ -299,3 +299,10 @@ export const FULHAM: ClubKits = {
   away: { body: '#14130F', outline: '#6A7390', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#F4F6FB'], shoulder: '#F4F6FB', texture: 'checks', textureColour: '#D9232A', textureOpacity: 0.95 },
   third: { body: '#79B9E8', collar: 'crew', collarColour: '#F46AB8', cuffs: ['#F46AB8'], shoulder: '#F46AB8', texture: 'hlines', textureColour: '#F4A3D2', textureColour2: '#fff', textureOpacity: 0.85, textureGap: 8 },
 }
+
+/** Manchester United 2026-27: red polo, blue away with red and white trim, cream third (long sleeves are drawn short for now). */
+export const UNITED: ClubKits = {
+  home: { body: '#DA1F26', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#14130F', '#F4F6FB'], shoulder: '#F4F6FB' },
+  away: { body: '#1F4FD0', collar: 'vneck', collarColour: '#F4F6FB', collarInner: '#DA1F26', cuffs: ['#DA1F26', '#F4F6FB'], shoulder: '#DA1F26' },
+  third: { body: '#F2EDE3', outline: '#8C93A8', collar: 'crew', collarColour: '#6E1A2C', cuffs: ['#6E1A2C', '#14130F'], shoulder: '#14130F' },
+}
