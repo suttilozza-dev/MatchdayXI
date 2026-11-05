@@ -1,64 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CLUBS, FORMATIONS, SITE_URL, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
+import { CLUBS, FORMATIONS, SITE_URL, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player } from '#/lib/data'
 import { FREE_PER_WEEK, PASS_PER_DAY } from '#/lib/config'
 import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
+import { BENCH_MAX, autoFill, benchText, defaultBench, makeTeam, normalise, type Slot, type TeamState } from '#/lib/team'
+import { COLLAR_PATH, PATTERNS, defaultPattern, patternShapes, type Pattern } from '#/lib/kit'
 import { Pricing } from '#/components/Pricing'
 import { Disclaimer } from '#/components/Disclaimer'
 import { LINE_PATHS, SHIRT_PATH, backFont, SPOTS, fromXY, linesTransform, renderCard, toXY, viewBoxFor, type CardFormat, type LabelPos, type MarkerStyle, type Orient, type PlacedMarker, type Shape_ as Shape } from '#/lib/pitch'
 
 type Side = 'home' | 'away'
-type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
-type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; slots: Slot[]; bench: number[]; captain: number | null }
-const BENCH_MAX = 9 // Premier League: nine named substitutes
-
-function autoFill(club: string, formation: string): Slot[] {
-  const squad = squadFor(club)
-  const used = new Set<number>()
-  return FORMATIONS[formation].map((f) => {
-    const idx = squad.findIndex((p, i) => p.pos === f.pos && !used.has(i))
-    if (idx >= 0) used.add(idx)
-    return { role: f.role, pos: f.pos, u: f.u, v: f.v, pi: idx >= 0 ? idx : null }
-  })
-}
-
-function defaultBench(squadLen: number, squad: Player[], slots: Slot[]): number[] {
-  const inXI = new Set(slots.map((s) => s.pi))
-  const rest = squad.map((_, i) => i).filter((i) => !inXI.has(i))
-  const gk = rest.find((i) => squad[i].pos === 'GK')
-  const out: number[] = gk != null ? [gk] : []
-  const order: Pos[] = ['DEF', 'MID', 'FWD']
-  const pools = order.map((pos) => rest.filter((i) => squad[i].pos === pos))
-  for (let k = 0; out.length < BENCH_MAX && pools.some((p) => p.length); k++) {
-    const next = pools[k % 3].shift()
-    if (next != null) out.push(next)
-  }
-  void squadLen
-  return out
-}
-
-/** A player can be in the XI once and on the bench once, never both. Applied to every change to a team. */
-function normalise(t: TeamState): TeamState {
-  const seen = new Set<number>()
-  const slots = t.slots.map((sl) => {
-    if (sl.pi == null) return sl
-    if (seen.has(sl.pi)) return { ...sl, pi: null }
-    seen.add(sl.pi)
-    return sl
-  })
-  const bench = [...new Set(t.bench)].filter((i) => !seen.has(i)).slice(0, BENCH_MAX)
-  return { ...t, slots, bench, captain: t.captain != null && seen.has(t.captain) ? t.captain : null }
-}
-
-function makeTeam(club: string, formation: string): TeamState {
-  const slots = autoFill(club, formation)
-  const squad = squadFor(club)
-  const [colour, colour2] = kitColours(club, 'home')!
-  return { club, formation, kit: 'home', colour, colour2, slots, bench: defaultBench(squad.length, squad, slots), captain: null }
-}
-
-type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string; hcap?: number | null; acap?: number | null; ms?: MarkerStyle; lp?: LabelPos }
+type Saved = { hc: string; hf: string; hk: string; h2?: string; hb?: number[]; hl: (number | null)[]; hp: [number, number][]; ac?: string; af?: string; ak?: string; a2?: string; ab?: number[]; al?: (number | null)[]; ap?: [number, number][]; o: Orient; s: Shape; v: boolean; gw: string; k: string; hcap?: number | null; acap?: number | null; hpt?: Pattern; apt?: Pattern; ms?: MarkerStyle; lp?: LabelPos }
 
 function encode(s: Saved): string {
   return btoa(unescape(encodeURIComponent(JSON.stringify(s)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -86,9 +39,9 @@ function NetIcon({ net }: { net: Net }) {
         <circle cx="19.5" cy="5" r="2" />
         <circle cx="5.2" cy="9.3" r="2.2" />
         <circle cx="18.8" cy="9.3" r="2.2" />
-        <circle cx="9.2" cy="13" r="1.4" fill="#07130E" />
-        <circle cx="14.8" cy="13" r="1.4" fill="#07130E" />
-        <path d="M9 16.4c1.7 1.2 4.3 1.2 6 0" stroke="#07130E" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+        <circle cx="9.2" cy="13" r="1.4" fill="#0A1020" />
+        <circle cx="14.8" cy="13" r="1.4" fill="#0A1020" />
+        <path d="M9 16.4c1.7 1.2 4.3 1.2 6 0" stroke="#0A1020" strokeWidth="1.2" fill="none" strokeLinecap="round" />
         <path d="M12 6.3l1.3-3.6 4.9 1.3" stroke="currentColor" strokeWidth="1.2" fill="none" />
       </svg>
     )
@@ -165,9 +118,10 @@ export default function Board() {
       t.slots = t.slots.map((sl, i) => ({ ...sl, pi: pis[i] ?? null, u: ps[i]?.[0] ?? sl.u, v: ps[i]?.[1] ?? sl.v }))
       return normalise(t)
     }
-    const withExtras = (t: TeamState, captain: number | null | undefined): TeamState => ({ ...t, captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
-    setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hcap))
-    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(withExtras(build(s.ac, s.af, s.ak ?? '#19E6D1', s.a2, s.ab, s.al ?? [], s.ap ?? []), s.acap))
+    const okPattern = (p: unknown): p is Pattern => PATTERNS.some((x) => x.id === p)
+    const withExtras = (t: TeamState, captain: number | null | undefined, pattern?: unknown): TeamState => ({ ...t, pattern: okPattern(pattern) ? pattern : t.pattern, captain: typeof captain === 'number' && t.slots.some((x) => x.pi === captain) ? captain : null })
+    setHome(withExtras(build(s.hc, s.hf, s.hk, s.h2, s.hb, s.hl, s.hp), s.hcap, s.hpt))
+    if (s.v && s.ac && s.af && FORMATIONS[s.af] && CLUBS.includes(s.ac)) setAway(withExtras(build(s.ac, s.af, s.ak ?? '#19E6D1', s.a2, s.ab, s.al ?? [], s.ap ?? []), s.acap, s.apt))
     if (s.ms === 'circle' || s.ms === 'shirt' || s.ms === 'shirt-back') setMarkerStyle(s.ms)
     if (s.lp === 'below' || s.lp === 'above' || s.lp === 'off') setLabelPos(s.lp)
     setVersus(!!s.v)
@@ -185,7 +139,7 @@ export default function Board() {
         const c = kitColours(a.club, k)
         if (c && colourDistance(home.colour, c[0]) >= 90) return { ...a, kit: k, colour: c[0], colour2: c[1] }
       }
-      const alt = colourDistance(home.colour, '#19E6D1') > 90 ? '#19E6D1' : '#D9FF3F'
+      const alt = colourDistance(home.colour, '#19E6D1') > 90 ? '#19E6D1' : '#C8FF3D'
       return { ...a, colour: alt }
     })
   }, [versus, home.colour, away.colour, away.club])
@@ -228,7 +182,7 @@ export default function Board() {
         const [U, V] = place(side, sl)
         const [x, y] = toXY(U, V, orient)
         const p: Player | undefined = sl.pi != null ? sq[sl.pi] : undefined
-        out.push({ key: `${side}${idx}`, side, idx, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, captain: sl.pi != null && t.captain === sl.pi })
+        out.push({ key: `${side}${idx}`, side, idx, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, captain: sl.pi != null && t.captain === sl.pi, pattern: t.pattern })
       })
     })
     return out
@@ -323,15 +277,6 @@ export default function Board() {
       return { ...t, formation, slots, bench: defaultBench(squad.length, squad, slots) }
     })
 
-  // "12 Darlow · 6 Martínez · ..." sorted by shirt number (players without a number come last)
-  const benchText = (t: TeamState, sq: Player[]) =>
-    t.bench
-      .map((i) => sq[i])
-      .filter((p): p is Player => !!p)
-      .sort((a, b) => (a.num ?? 999) - (b.num ?? 999))
-      .map((p) => (p.num != null ? `${p.num} ${surname(p.name)}` : surname(p.name)))
-      .join(' · ')
-
   const cardInput = () => ({
     orient,
     shape: effShape,
@@ -344,7 +289,7 @@ export default function Board() {
     awayColour: away.colour,
     gameweek,
     kind,
-    markers: markers.map(({ key, x, y, num, name, colour, ring, captain }) => ({ key, x, y, num, name, colour, ring, captain })),
+    markers: markers.map(({ key, x, y, num, name, colour, ring, captain, pattern }) => ({ key, x, y, num, name, colour, ring, captain, pattern })),
     format,
     homeBench: benchText(home, squads.home),
     awayBench: versus ? benchText(away, squads.away) : '',
@@ -447,11 +392,13 @@ export default function Board() {
       gw: gameweek,
       k: kind,
       hcap: home.captain,
+      hpt: home.pattern,
       ms: markerStyle,
       lp: labelPos,
     }
     if (versus) {
       s.acap = away.captain
+      s.apt = away.pattern
       s.ac = away.club
       s.af = away.formation
       s.ak = away.colour
@@ -547,7 +494,7 @@ export default function Board() {
 
   const teamBlock = (side: Side) => {
     const t = team(side)
-    const accent = side === 'home' ? '#D9FF3F' : '#19E6D1'
+    const accent = side === 'home' ? '#C8FF3D' : '#19E6D1'
     return (
       <div className="flex flex-col gap-2" style={versus ? { borderLeft: `3px solid ${accent}`, paddingLeft: 10 } : undefined}>
         {versus && <div className="set-title" style={{ color: accent }}>{side} team</div>}
@@ -567,14 +514,14 @@ export default function Board() {
               const c = kitColours(t.club, k)
               if (!c) return null
               return (
-                <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1] }))}>
+                <button key={k} className="chip" aria-pressed={t.kit === k} onClick={() => setTeam(side, (x) => ({ ...x, kit: k, colour: c[0], colour2: c[1], pattern: defaultPattern(x.club, k) }))}>
                   <span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: '50%', background: c[0], border: `2px solid ${c[1]}`, marginRight: 6, verticalAlign: 'middle' }} />
                   {k}
                 </button>
               )
             })}
           </div>
-          <div className="flex items-center gap-1 text-xs text-[#A4C9B6] ml-auto">
+          <div className="flex items-center gap-1 text-xs text-[#A9B4D0] ml-auto">
             <label className="flex items-center gap-1">Shirt
               <input type="color" aria-label={`${side} kit colour`} value={t.colour} onChange={(e) => setTeam(side, (x) => ({ ...x, colour: e.target.value }))} style={{ width: 36, height: 40, background: 'none', border: 0 }} />
             </label>
@@ -582,6 +529,12 @@ export default function Board() {
               <input type="color" aria-label={`${side} trim colour`} value={t.colour2} onChange={(e) => setTeam(side, (x) => ({ ...x, colour2: e.target.value }))} style={{ width: 36, height: 40, background: 'none', border: 0 }} />
             </label>
           </div>
+        </div>
+        <div className="flex gap-1.5 flex-wrap items-center" role="group" aria-label={`${side} kit style`}>
+          <span className="text-xs text-[#A9B4D0] mr-1">Kit style</span>
+          {PATTERNS.map((p) => (
+            <button key={p.id} className="chip" style={{ minHeight: 34, padding: '0.3rem 0.7rem' }} aria-pressed={t.pattern === p.id} disabled={markerStyle === 'circle'} title={markerStyle === 'circle' ? 'Switch markers to Shirt (Style section) to use kit styles' : p.hint} onClick={() => setTeam(side, (x) => ({ ...x, pattern: p.id }))}>{p.label}</button>
+          ))}
         </div>
       </div>
     )
@@ -608,10 +561,10 @@ export default function Board() {
         <section className="flex flex-col gap-3" aria-label="Match and pitch">
           <span className="set-title">Match</span>
           <div className="grid grid-cols-2 gap-2">
-            <label className="text-xs text-[#A4C9B6]">Gameweek
+            <label className="text-xs text-[#A9B4D0]">Gameweek
               <input className="field mt-1" value={gameweek} maxLength={6} onChange={(e) => setGameweek(e.target.value)} />
             </label>
-            <label className="text-xs text-[#A4C9B6]">Label
+            <label className="text-xs text-[#A9B4D0]">Label
               <select className="field mt-1" value={kind} onChange={(e) => setKind(e.target.value)}>
                 <option>Predicted XI</option>
                 <option>My XI</option>
@@ -634,20 +587,20 @@ export default function Board() {
         <div className="grid gap-x-8 gap-y-3 md:grid-cols-2 pt-3">
           <div className="flex flex-col gap-3">
             <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player markers">
-              <span className="text-xs text-[#A4C9B6] w-14">Markers</span>
+              <span className="text-xs text-[#A9B4D0] w-14">Markers</span>
               <button className="chip" aria-pressed={markerStyle === 'circle'} onClick={() => setMarkerStyle('circle')}>Circle</button>
               <button className="chip" aria-pressed={markerStyle === 'shirt'} onClick={() => setMarkerStyle('shirt')}>Shirt front</button>
               <button className="chip" aria-pressed={markerStyle === 'shirt-back'} onClick={() => setMarkerStyle('shirt-back')} title="Surname above the number, like the back of a shirt">Shirt back</button>
             </div>
             <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Player names">
-              <span className="text-xs text-[#A4C9B6] w-14">Names</span>
+              <span className="text-xs text-[#A9B4D0] w-14">Names</span>
               <button className="chip" aria-pressed={labelPos === 'below'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('below')}>Below</button>
               <button className="chip" aria-pressed={labelPos === 'above'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('above')}>Above</button>
               <button className="chip" aria-pressed={labelPos === 'off'} disabled={markerStyle === 'shirt-back'} onClick={() => setLabelPos('off')}>Off</button>
             </div>
           </div>
           <div className="flex flex-col gap-2">
-            <label className="text-xs text-[#A4C9B6]">Stadium
+            <label className="text-xs text-[#A9B4D0]">Stadium
               <select className="field mt-1" value={stadium} onChange={(e) => setStadium(e.target.value as StadiumId)}>
                 {STADIUMS.map((st) => <option key={st.id} value={st.id}>{st.name}</option>)}
                 <optgroup label={caps.clubStadium === 'none' ? 'Club grounds (Trial, Unlimited or Creator)' : 'Club grounds'}>
@@ -662,14 +615,14 @@ export default function Board() {
             )}
             {stadium.startsWith('club:') && (
               <div className="flex gap-2 flex-wrap items-center" role="group" aria-label="Stadium colours">
-                <span className="text-xs text-[#A4C9B6]">Colours</span>
+                <span className="text-xs text-[#A9B4D0]">Colours</span>
                 {(['home', 'away', 'third'] as KitName[]).map((k) => (
                   <button key={k} className="chip" aria-pressed={stadiumKit === k} disabled={k !== 'home' && caps.clubStadium !== 'all'} title={k !== 'home' && caps.clubStadium !== 'all' ? 'Colourways: Creator' : ''} onClick={() => setStadiumKit(k)}>{k}</button>
                 ))}
               </div>
             )}
             {stadium.startsWith('club:') && CLUB_GROUNDS[stadium.slice(5)] && (
-              <p className="text-[11px] text-[#A4C9B6]">{CLUB_GROUNDS[stadium.slice(5)].capacity.toLocaleString('en-GB')} capacity. Stylised, not to scale.</p>
+              <p className="text-[11px] text-[#A9B4D0]">{CLUB_GROUNDS[stadium.slice(5)].capacity.toLocaleString('en-GB')} capacity. Stylised, not to scale.</p>
             )}
           </div>
         </div>
@@ -690,14 +643,14 @@ export default function Board() {
               <button className="chip" aria-pressed={format === 'header'} disabled={!caps.extraFormats} title={caps.extraFormats ? '4:1 cover image, numbers only' : '4:1 cover: Unlimited or Creator'} onClick={() => { setFormat('header'); setOrient('landscape') }}>Header 4:1</button>
               <button className="chip" aria-pressed={format === 'banner'} disabled={!caps.extraFormats} title={caps.extraFormats ? '' : 'Wide banner: Unlimited or Creator'} onClick={() => setFormat('banner')}>Banner 16:9</button>
             </div>
-            {!caps.extraFormats && <p className="text-[11px] text-[#A4C9B6]">Story, Header and Banner sizes come with Unlimited or Creator.</p>}
+            {!caps.extraFormats && <p className="text-[11px] text-[#A9B4D0]">Story, Header and Banner sizes come with Unlimited or Creator.</p>}
           </div>
           <div className="flex flex-col gap-3">
-            <label className="flex items-center gap-2 text-xs text-[#A4C9B6]">
+            <label className="flex items-center gap-2 text-xs text-[#A9B4D0]">
               <input type="checkbox" disabled={!caps.transparent} checked={caps.transparent && transparent} onChange={(e) => setTransparent(e.target.checked)} style={{ width: 20, height: 20 }} />
               Transparent background {caps.transparent ? '' : '(Unlimited or Creator)'}
             </label>
-            <label className="text-xs text-[#A4C9B6]">Your handle or name on the image {caps.creatorBranding ? '' : '(Creator)'}
+            <label className="text-xs text-[#A9B4D0]">Your handle or name on the image {caps.creatorBranding ? '' : '(Creator)'}
               <input className="field mt-1" value={handle} maxLength={28} disabled={!caps.creatorBranding} placeholder="@yourchannel" onChange={(e) => setHandle(e.target.value)} />
             </label>
           </div>
@@ -714,7 +667,7 @@ export default function Board() {
             <button className="chip" role="tab" aria-pressed={tab === 'away'} onClick={() => setTab('away')}>Away squad</button>
           </div>
         )}
-        <p className="text-xs text-[#A4C9B6] mb-2">
+        <p className="text-xs text-[#A9B4D0] mb-2">
           {sel && sel.side === tab ? `Pick a player for ${active.slots[sel.idx].role}.` : 'Click a marker, then a player. Or drag a player onto a marker. Click two markers to swap them.'}
         </p>
         <div>
@@ -734,7 +687,7 @@ export default function Board() {
                   >
                     <span className="player-num">{p.num ?? '–'}</span>
                     <span className="text-sm">{p.name}</span>
-                    <span className="ml-auto text-[10px] text-[#A4C9B6]">{p.pos}</span>
+                    <span className="ml-auto text-[10px] text-[#A9B4D0]">{p.pos}</span>
                   </button>
                   {kind === 'xi' && (
                     <button
@@ -763,12 +716,12 @@ export default function Board() {
             }
             return (
               <>
-                <div className="font-display text-[11px] tracking-widest text-[#A4C9B6] px-2 py-1">Manager · <span className="text-[#FFFFFF]">{managerFor(active.club) || 'unknown'}</span></div>
-                <div className="font-display text-[11px] tracking-widest text-[#D9FF3F] px-2 py-1">Bench ({bench.length}/{BENCH_MAX})</div>
+                <div className="font-display text-[11px] tracking-widest text-[#A9B4D0] px-2 py-1">Manager · <span className="text-[#F5F7FF]">{managerFor(active.club) || 'unknown'}</span></div>
+                <div className="font-display text-[11px] tracking-widest text-[#C8FF3D] px-2 py-1">Bench ({bench.length}/{BENCH_MAX})</div>
                 {bench.map((i) => row(i, 'bench'))}
-                <div className="font-display text-[11px] tracking-widest text-[#A4C9B6] px-2 py-1 mt-2">Unused ({unused.length})</div>
+                <div className="font-display text-[11px] tracking-widest text-[#A9B4D0] px-2 py-1 mt-2">Unused ({unused.length})</div>
                 {unused.map((i) => row(i, 'unused'))}
-                <div className="font-display text-[11px] tracking-widest text-[#A4C9B6] px-2 py-1 mt-2">Starting XI</div>
+                <div className="font-display text-[11px] tracking-widest text-[#A9B4D0] px-2 py-1 mt-2">Starting XI</div>
                 {active.slots.map((s) => s.pi).filter((i): i is number => i != null).map((i) => row(i, 'xi'))}
               </>
             )
@@ -782,7 +735,7 @@ export default function Board() {
       <div className={present ? '' : 'grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]'}>
       <div className="order-1 lg:col-span-2">
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
-            <div className="font-display text-sm tracking-widest text-[#A4C9B6]">
+            <div className="font-display text-sm tracking-widest text-[#A9B4D0]">
               Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left${access?.tier === 'free' ? ' this week' : access?.tier === 'pass' ? ' today' : ''}` : ''}
               {' · '}
               {access?.signedIn ? (
@@ -791,7 +744,7 @@ export default function Board() {
                   <button type="button" className="underline" onClick={signOut}>Sign out</button>
                 </>
               ) : (
-                <a className="underline text-[#D9FF3F]" href="/api/auth/login">Sign in with Whop</a>
+                <a className="underline text-[#C8FF3D]" href="/api/auth/login">Sign in with Whop</a>
               )}
             </div>
             <div className="flex gap-2 flex-wrap">
@@ -801,7 +754,7 @@ export default function Board() {
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap pb-3" role="group" aria-label="Share to social media">
-            <span className="font-display text-xs tracking-widest text-[#A4C9B6]">Share to</span>
+            <span className="font-display text-xs tracking-widest text-[#A9B4D0]">Share to</span>
             {(['x', 'facebook', 'reddit', 'instagram'] as Net[]).map((n) => (
               <button key={n} className="chip inline-flex items-center gap-2" onClick={() => doSocial(n)} disabled={busy} aria-label={`Share to ${NET_LABEL[n]}`}>
                 <NetIcon net={n} />
@@ -813,9 +766,9 @@ export default function Board() {
             )}
           </div>
           {!present && ImageSection}
-          {msg && <p role="status" className="text-sm text-[#D9FF3F] pb-2">{msg}</p>}
+          {msg && <p role="status" className="text-sm text-[#C8FF3D] pb-2">{msg}</p>}
           {!msg && access && !access.signedIn && (
-            <p className="text-xs text-[#A4C9B6] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#D9FF3F]" href="/api/auth/login">sign in with Whop</a> (free) for {FREE_PER_WEEK} more every week.</p>
+            <p className="text-xs text-[#A9B4D0] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#C8FF3D]" href="/api/auth/login">sign in with Whop</a> (free) for {FREE_PER_WEEK} more every week.</p>
           )}
           <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit matchday-xi.club for plans.</p>
       </div>
@@ -823,25 +776,26 @@ export default function Board() {
         <div className="order-2 lg:order-3 min-w-0">
 
           {/* stadium surround: kept narrow so the pitch stays the star */}
-          <div className={`rounded-xl p-2 sm:p-3${caps.watermark ? ' pitch-locked' : ''}`} style={{ background: 'radial-gradient(circle at 5px 5px, rgba(217,255,63,.22) 1.6px, transparent 2.2px) 0 0/11px 11px, radial-gradient(circle at 10px 10px, rgba(25,230,209,.16) 1.4px, transparent 2px) 0 0/11px 11px, #060F0A', border: '1px solid rgba(255,255,255,.08)' }}>
+          <div className={`rounded-xl p-2 sm:p-3${caps.watermark ? ' pitch-locked' : ''}`} style={{ background: 'radial-gradient(circle at 5px 5px, rgba(200,255,61,.22) 1.6px, transparent 2.2px) 0 0/11px 11px, radial-gradient(circle at 10px 10px, rgba(25,230,209,.16) 1.4px, transparent 2px) 0 0/11px 11px, #070B18', border: '1px solid rgba(245,247,255,.08)' }}>
             <svg
               ref={svgRef}
               onContextMenu={(e) => { if (caps.watermark) e.preventDefault() }}
               viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
               className="w-full h-auto block rounded-lg"
-              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#060F0A', userSelect: caps.watermark ? 'none' : undefined, WebkitUserSelect: caps.watermark ? 'none' : undefined }}
+              style={{ maxHeight: orient === 'portrait' ? '78vh' : undefined, margin: '0 auto', touchAction: 'none', background: '#070B18', userSelect: caps.watermark ? 'none' : undefined, WebkitUserSelect: caps.watermark ? 'none' : undefined }}
               onPointerMove={onPointerMove}
               onPointerUp={onPointerUp}
               onPointerCancel={onPointerUp}
               role="application"
               aria-label="Tactical board"
             >
+              <defs><clipPath id="shirt-clip"><path d={SHIRT_PATH} /></clipPath></defs>
               <g transform={linesTransform(orient)}>
                 {stadiumShapes.map((sh, i) => <path key={i} d={sh.d} fill={sh.fill ?? 'none'} stroke={sh.stroke} strokeWidth={sh.sw} opacity={sh.opacity} />)}
-                <rect x={0} y={0} width={1050} height={680} fill="#1E8A55" />
+                <rect x={0} y={0} width={1050} height={680} fill="#23A261" />
                 {Array.from({ length: 10 }, (_, i) => (i % 2 === 0 ? <rect key={i} x={i * 105} y={0} width={105} height={680} fill="rgba(0,0,0,0.06)" /> : null))}
-                {LINE_PATHS.map((d, i) => <path key={i} d={d} fill="none" stroke="rgba(255,255,255,0.45)" strokeWidth={2.5} />)}
-                {SPOTS.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={3} fill="rgba(255,255,255,0.5)" />)}
+                {LINE_PATHS.map((d, i) => <path key={i} d={d} fill="none" stroke="rgba(245,247,255,0.45)" strokeWidth={2.5} />)}
+                {SPOTS.map(([x, y], i) => <circle key={i} cx={x} cy={y} r={3} fill="rgba(245,247,255,0.5)" />)}
               </g>
               {markers.map((m) => {
                 const selected = sel?.side === m.side && sel.idx === m.idx
@@ -862,11 +816,20 @@ export default function Board() {
                     aria-label={`${m.name} ${m.num ?? ''}`}
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSel(selected ? null : { side: m.side, idx: m.idx }); setTab(m.side) } }}
                   >
-                    {selected && <circle r={34} fill="none" stroke="#D9FF3F" strokeWidth={3} strokeDasharray="6 5" />}
+                    {selected && <circle r={34} fill="none" stroke="#C8FF3D" strokeWidth={3} strokeDasharray="6 5" />}
                     {markerStyle === 'circle' ? (
                       <circle r={26} fill={m.colour} stroke={m.ring} strokeWidth={4} />
                     ) : (
-                      <path d={SHIRT_PATH} fill={m.colour} stroke={m.ring} strokeWidth={3.5} strokeLinejoin="round" />
+                      <>
+                        <path d={SHIRT_PATH} fill={m.colour} />
+                        <g clipPath="url(#shirt-clip)">
+                          {patternShapes(m.pattern, m.ring).map((sh, i) =>
+                            sh.kind === 'rect' ? <rect key={i} x={sh.x} y={sh.y} width={sh.w} height={sh.h} fill={sh.fill} /> : <polygon key={i} points={sh.pts.map((p) => p.join(',')).join(' ')} fill={sh.fill} />,
+                          )}
+                        </g>
+                        <path d={SHIRT_PATH} fill="none" stroke={m.ring} strokeWidth={3.5} strokeLinejoin="round" />
+                        <path d={COLLAR_PATH} fill="none" stroke={m.ring} strokeWidth={4} strokeLinecap="round" />
+                      </>
                     )}
                     {markerStyle === 'shirt-back' ? (
                       <>
@@ -874,16 +837,16 @@ export default function Board() {
                         <text textAnchor="middle" y={16} fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={25} fill={readableOn(m.colour)} pointerEvents="none">{m.num ?? ''}</text>
                       </>
                     ) : (
-                      <text textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={24} fill={readableOn(m.colour)} pointerEvents="none">{m.num ?? ''}</text>
+                      <text textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={24} fill={readableOn(m.colour)} stroke={markerStyle !== 'circle' && m.pattern && m.pattern !== 'plain' ? readableOn(readableOn(m.colour)) : undefined} strokeWidth={4} paintOrder="stroke" pointerEvents="none">{m.num ?? ''}</text>
                     )}
                     {m.captain && (
                       <g pointerEvents="none">
-                        <circle cx={24} cy={-22} r={11} fill="#D9FF3F" stroke="#07130E" strokeWidth={2} />
-                        <text x={24} y={-21} textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={15} fill="#07130E">C</text>
+                        <circle cx={24} cy={-22} r={11} fill="#C8FF3D" stroke="#0A1020" strokeWidth={2} />
+                        <text x={24} y={-21} textAnchor="middle" dy="0.35em" fontFamily="Oswald, sans-serif" fontWeight={700} fontSize={15} fill="#0A1020">C</text>
                       </g>
                     )}
                     {labelPos !== 'off' && markerStyle !== 'shirt-back' && (
-                      <text y={labelPos === 'above' ? -37 : markerStyle === 'circle' ? 46 : 49} textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight={600} fontSize={19} fill="#FFFFFF" stroke="rgba(7,19,14,0.9)" strokeWidth={5} paintOrder="stroke" pointerEvents="none">{surname(m.name)}</text>
+                      <text y={labelPos === 'above' ? -37 : markerStyle === 'circle' ? 46 : 49} textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight={600} fontSize={19} fill="#F5F7FF" stroke="rgba(10,16,32,0.9)" strokeWidth={5} paintOrder="stroke" pointerEvents="none">{surname(m.name)}</text>
                     )}
                   </g>
                 )
@@ -899,7 +862,7 @@ export default function Board() {
                       fontFamily="Oswald, sans-serif"
                       fontWeight={700}
                       fontSize={Math.max(vb.w, vb.h) * 0.034}
-                      fill="rgba(255,255,255,0.2)"
+                      fill="rgba(245,247,255,0.2)"
                       stroke="rgba(0,0,0,0.22)"
                       strokeWidth={1}
                       paintOrder="stroke"
@@ -913,10 +876,10 @@ export default function Board() {
             {(['home', 'away'] as Side[]).filter((sd) => sd === 'home' || versus).map((sd) => {
               const t = team(sd)
               const sq = sd === 'home' ? squads.home : squads.away
-              const accent = sd === 'home' ? '#D9FF3F' : '#19E6D1'
+              const accent = sd === 'home' ? '#C8FF3D' : '#19E6D1'
               return (
                 <div key={sd} className="mt-2 flex items-center gap-1.5 flex-wrap" aria-label={`${sd} dugout: manager, substitutes and unused players`}>
-                  <span className="font-display text-[11px] tracking-widest text-[#A4C9B6] mr-1">{versus ? `${sd} dugout` : 'Dugout'}</span>
+                  <span className="font-display text-[11px] tracking-widest text-[#A9B4D0] mr-1">{versus ? `${sd} dugout` : 'Dugout'}</span>
                   <span title="Manager" className="font-display text-xs rounded-full px-2 py-1" style={{ textAlign: 'center', color: accent, border: `1px solid ${accent}` }}>Manager · {managerFor(t.club) || 'unknown'}</span>
                   {sq.map((p, i) => {
                     const lit = t.bench.includes(i)
@@ -927,7 +890,7 @@ export default function Board() {
                         title={`${p.name}${lit ? ' (bench)' : onPitch ? ' (starting)' : ' (unused)'}`}
                         onClick={() => { if (!onPitch) toggleBench(sd, i) }}
                         className="font-display text-xs rounded-full px-2 py-1"
-                        style={{ minWidth: 34, minHeight: 28, textAlign: 'center', background: lit ? accent : 'transparent', color: lit ? '#07130E' : 'rgba(175,205,191,.4)', border: `1px solid ${lit ? accent : 'rgba(175,205,191,.25)'}`, cursor: onPitch ? 'default' : 'pointer' }}
+                        style={{ minWidth: 34, minHeight: 28, textAlign: 'center', background: lit ? accent : 'transparent', color: lit ? '#0A1020' : 'rgba(175,205,191,.4)', border: `1px solid ${lit ? accent : 'rgba(175,205,191,.25)'}`, cursor: onPitch ? 'default' : 'pointer' }}
                       >
                         {p.num ?? '–'}
                       </button>
@@ -942,7 +905,7 @@ export default function Board() {
         </div>
         {!present && <aside className="order-4" aria-label="Squad list">{SquadList}</aside>}
       </div>
-      <Disclaimer className="text-xs text-[#A4C9B6] mt-6 max-w-3xl" />
+      <Disclaimer className="text-xs text-[#A9B4D0] mt-6 max-w-3xl" />
     </div>
   )
 }

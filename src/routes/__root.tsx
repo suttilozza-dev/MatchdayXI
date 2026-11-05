@@ -26,7 +26,7 @@ export const Route = createRootRoute({
         name: 'keywords',
         content: 'lineup maker, line-up maker, football lineup builder, squad builder, predicted XI, starting XI, dream team, formation builder, tactics board, Premier League line-up, team sheet',
       },
-      { name: 'theme-color', content: '#07130E' },
+      { name: 'theme-color', content: '#0A1020' },
       { name: 'application-name', content: 'MATCHDAY XI' },
       { name: 'mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
