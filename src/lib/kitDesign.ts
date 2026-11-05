@@ -4,7 +4,7 @@
  * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
  */
 export type Collar = 'polo' | 'vneck' | 'crew'
-export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts' | 'hlines' | 'shards'
 
 export type KitDesign = {
   body: string
@@ -21,6 +21,7 @@ export type KitDesign = {
   sash?: string[] // thin diagonal lines across the body, in these colours, in order
   sleeveLines?: string[] // thin lines running down each sleeve, in these colours, repeating
   sidePanel?: string // thin panel down each side
+  textureColour2?: string // second colour for line textures
   textureGap?: number // spacing for pinstripes
   outline?: string
 }
@@ -53,7 +54,7 @@ function shoulderLines(side: 'l' | 'r', c: string): string {
   return `<path d="${d}" stroke="${c}" stroke-width="3.2" fill="none" stroke-linecap="butt"/>`
 }
 
-function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9): { defs: string; fill: string } {
+function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9, c2 = c): { defs: string; fill: string } {
   if (t === 'diamonds')
     return {
       defs: `<pattern id="${id}" width="12" height="14" patternUnits="userSpaceOnUse"><path d="M6,1L11,7L6,13L1,7Z" fill="none" stroke="${c}" stroke-width="0.9" opacity="${o}"/></pattern>`,
@@ -75,6 +76,10 @@ function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9): { d
     return { defs: `<pattern id="${id}" width="14" height="16" patternUnits="userSpaceOnUse"><path d="M2,14Q6,6 12,2M0,8Q4,3 8,0M6,16Q10,10 14,7" fill="none" stroke="${c}" stroke-width="1.3" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'bolts')
     return { defs: `<pattern id="${id}" width="46" height="70" patternUnits="userSpaceOnUse"><path d="M14,0L32,0L21,28L35,28L7,70L13,38L0,38Z" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+  if (t === 'hlines')
+    return { defs: `<pattern id="${id}" width="10" height="${gap * 2}" patternUnits="userSpaceOnUse"><rect y="${gap * 0.4}" width="10" height="1.5" fill="${c}" opacity="${o}"/><rect y="${gap * 1.4}" width="10" height="1.5" fill="${c2}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+  if (t === 'shards')
+    return { defs: `<pattern id="${id}" width="60" height="80" patternUnits="userSpaceOnUse"><g fill="${c}" opacity="${o}"><path d="M0,10L24,0L30,34L6,44Z"/><path d="M34,38L58,30L60,66L38,74Z"/><path d="M8,56L26,52L24,80L4,80Z"/></g></pattern>`, fill: `url(#${id})` }
   if (t === 'pinstripe')
     return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
@@ -143,7 +148,7 @@ function collarSvg(k: KitDesign): string {
 /** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
 export function kitSvg(k: KitDesign, uid = 'k'): string {
   const o = k.outline ?? OUTLINE
-  const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12, k.textureGap)
+  const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12, k.textureGap, k.textureColour2)
   const sl = k.sleeve ?? k.body
   const n = k.cuffs.length
   const cuffs = k.cuffs
@@ -215,4 +220,11 @@ export const HULL: ClubKits = {
   home: { body: '#F6A623', sleeve: '#F6A623', stripes: { colour: '#14130F', n: 3 }, collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#F4F6FB'], shoulder: '#14130F' },
   away: { body: '#F6F6F8', outline: '#8C93A8', collar: 'crew', collarColour: '#14130F', collarInner: '#F6A623', cuffs: ['#F6A623', '#14130F'], shoulder: '#F6A623' },
   third: { body: '#2E55D8', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#C9B6E4', '#F4F6FB'], texture: 'none' },
+}
+
+/** Leeds United 2026-27: white with fine yellow and blue lines, yellow away, charcoal third with grey shards. */
+export const LEEDS: ClubKits = {
+  home: { body: '#F7F7F4', outline: '#8C93A8', collar: 'crew', collarColour: '#2B47B8', collarInner: '#F5D327', cuffs: ['#F5D327', '#2B47B8'], shoulder: '#2B47B8', texture: 'hlines', textureColour: '#2B47B8', textureColour2: '#F5D327', textureOpacity: 0.85, textureGap: 7 },
+  away: { body: '#F2D91F', collar: 'vneck', collarColour: '#14161C', collarInner: '#F7F7F4', cuffs: ['#14161C'], shoulder: '#14161C', texture: 'mottle', textureColour: '#C9B30F', textureOpacity: 0.4 },
+  third: { body: '#26282E', outline: '#6A7390', collar: 'crew', collarColour: '#B6BBC8', cuffs: ['#B6BBC8'], shoulder: '#B6BBC8', texture: 'shards', textureColour: '#8A8F9E', textureOpacity: 0.45 },
 }
