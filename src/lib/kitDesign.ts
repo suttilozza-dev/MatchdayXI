@@ -360,3 +360,21 @@ export const ALL_KITS: Record<string, ClubKits> = {
   Sunderland: SUNDERLAND,
   'Tottenham Hotspur': SPURS,
 }
+
+/** The shirt markup without the outer <svg>, for drawing inside another SVG. */
+export function kitInner(k: KitDesign, uid = 'k'): string {
+  return kitSvg(k, uid).replace(/^<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '')
+}
+
+/** The official shirt for a club's home, away or third kit, if we have one. */
+export function designFor(club: string, kit: 'home' | 'away' | 'third'): KitDesign | undefined {
+  return ALL_KITS[club]?.[kit]
+}
+
+/** True when the shirt has a busy pattern, so numbers on it need an outline to stay readable. */
+export function isBusy(k: KitDesign): boolean {
+  return !!(k.stripes || k.sash || k.fade || k.centreStripe || k.yoke || (k.texture && k.texture !== 'none' && (k.textureOpacity ?? 0.12) > 0.2))
+}
+
+/** Shirt size on the board: the drawing is 240 wide, scaled to about 77. */
+export const KIT_SCALE = 0.32

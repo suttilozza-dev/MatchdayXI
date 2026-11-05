@@ -2,7 +2,7 @@ import { FORMATIONS, kitColours, squadFor, surname, type KitName, type Player, t
 import { defaultPattern, type Pattern } from './kit'
 
 export type Slot = { role: string; pos: Pos; u: number; v: number; pi: number | null }
-export type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; pattern: Pattern; slots: Slot[]; bench: number[]; captain: number | null }
+export type TeamState = { club: string; formation: string; kit: KitName; colour: string; colour2: string; pattern: Pattern; custom: boolean; slots: Slot[]; bench: number[]; captain: number | null }
 export const BENCH_MAX = 9 // Premier League: nine named substitutes
 
 export function autoFill(club: string, formation: string): Slot[] {
@@ -47,7 +47,7 @@ export function makeTeam(club: string, formation: string): TeamState {
   const slots = autoFill(club, formation)
   const squad = squadFor(club)
   const [colour, colour2] = kitColours(club, 'home')!
-  return { club, formation, kit: 'home', colour, colour2, pattern: defaultPattern(club, 'home'), slots, bench: defaultBench(squad.length, squad, slots), captain: null }
+  return { club, formation, kit: 'home', colour, colour2, pattern: defaultPattern(club, 'home'), custom: false, slots, bench: defaultBench(squad.length, squad, slots), captain: null }
 }
 
 

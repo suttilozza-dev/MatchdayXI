@@ -82,5 +82,5 @@ export function stadiumFor(id: StadiumId, kit: KitName = 'home'): StadiumArt {
     const c = clubSurround(id.slice(5), kit)
     if (c) return c
   }
-  return groundSurround(DEFAULT_GROUND, '#1E6B4D', '#C8FF3D')
+  return groundSurround(DEFAULT_GROUND, '#1E3A6B', '#19E6D1')
 }

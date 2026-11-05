@@ -1,6 +1,7 @@
 import { GAMEWEEK_DEFAULT, managerFor, squadFor } from './data'
 import { stadiumFor } from './stadium'
 import { benchText, makeTeam } from './team'
+import { designFor } from './kitDesign'
 import { toXY, type CardInput } from './pitch'
 
 /** Formations to rotate through so the example cards do not all look alike. */
@@ -27,13 +28,14 @@ export function sampleCardInput(club: string, formation = '4-2-3-1'): CardInput 
     markers: t.slots.map((sl, idx) => {
       const [x, y] = toXY(sl.u, sl.v, 'portrait')
       const p = sl.pi != null ? squad[sl.pi] : undefined
-      return { key: `h${idx}`, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, pattern: t.pattern }
+      return { key: `h${idx}`, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, pattern: t.pattern, design: t.custom ? undefined : designFor(club, t.kit) }
     }),
     format: 'portrait',
     homeBench: benchText(t, squad),
     awayBench: '',
     stadium: art.shapes,
-    ext: art.ext,
+    // trim the outer apron so the pitch and shirts stay big on a small card
+    ext: { left: art.ext.left - 80, right: art.ext.right - 80, top: art.ext.top - 80, bottom: art.ext.bottom - 80 },
     watermark: false,
     transparent: false,
     handle: '',

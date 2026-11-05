@@ -53,7 +53,7 @@ export const CLUB_GROUNDS: Record<string, Spec> = {
 }
 
 /** The default MatchdayXI ground: a small stand and shelter in the site colours. */
-export const DEFAULT_GROUND: Spec = { ground: 'MatchdayXI Stadium', capacity: 5000, top: S(2, 1, 'flat'), bottom: S(1, 0.6, 'flat'), left: S(1, 0.6, 'none'), right: S(1, 0.6, 'none'), corners: NONE, seats: ['#1E6B4D', '#C8FF3D'], notes: 'A small ground in the site colours.' }
+export const DEFAULT_GROUND: Spec = { ground: 'MatchdayXI Stadium', capacity: 5000, top: S(2, 1, 'flat'), bottom: S(1, 0.6, 'flat'), left: S(1, 0.6, 'none'), right: S(1, 0.6, 'none'), corners: NONE, seats: ['#1E3A6B', '#19E6D1'], notes: 'A small ground in the site colours.' }
 
 const H = 10 // hoarding strip next to the pitch
 const TU = 46 // depth of one tier, before the side's own depth factor

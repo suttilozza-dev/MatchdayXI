@@ -1,5 +1,6 @@
 import { SITE_URL, readableOn, surname } from './data'
 import { COLLAR_PATH, patternShapes, type Pattern } from './kit'
+import { isBusy, kitSvg, KIT_SCALE, type KitDesign } from './kitDesign'
 import { SURROUND, type Extents, type Shape as DrawShape } from './stadium'
 
 export type Orient = 'landscape' | 'portrait'
@@ -52,7 +53,7 @@ export function linesTransform(orient: Orient): string {
   return orient === 'landscape' ? '' : `matrix(0,-1,1,0,0,${PL})`
 }
 
-export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean; pattern?: Pattern }
+export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean; pattern?: Pattern; design?: KitDesign }
 
 /** How a player is drawn: a plain circle, or a shirt (front shows the number, back also shows the surname). */
 export type MarkerStyle = 'circle' | 'shirt' | 'shirt-back'
@@ -113,6 +114,26 @@ function wrapSubs(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
   }
   lines.push(line)
   return lines
+}
+
+const designImages = new Map<string, HTMLImageElement>()
+const designKey = (d: KitDesign) => JSON.stringify(d)
+async function loadDesigns(markers: PlacedMarker[]) {
+  const seen = new Set<string>()
+  for (const m of markers) {
+    if (!m.design) continue
+    const key = designKey(m.design)
+    if (seen.has(key) || designImages.has(key)) continue
+    seen.add(key)
+    const img = new Image()
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(kitSvg(m.design, 'x'))
+    try {
+      await img.decode()
+      designImages.set(key, img)
+    } catch {
+      /* fall back to the simple shirt */
+    }
+  }
 }
 
 export async function renderCard(input: CardInput): Promise<Blob> {
@@ -250,6 +271,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.restore()
 
   // markers
+  await loadDesigns(input.markers)
   for (const m of input.markers) drawMarker(ctx, m, input)
   ctx.restore()
 
@@ -312,6 +334,9 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.strokeStyle = m.ring
     ctx.lineWidth = 4
     ctx.stroke()
+  } else if (m.design && designImages.has(designKey(m.design))) {
+    const img = designImages.get(designKey(m.design))!
+    ctx.drawImage(img, -120 * KIT_SCALE, -111 * KIT_SCALE, 240 * KIT_SCALE, 222 * KIT_SCALE)
   } else {
     const p = new Path2D(SHIRT_PATH)
     ctx.fillStyle = m.colour
@@ -338,8 +363,10 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.lineWidth = 4
     ctx.stroke(new Path2D(COLLAR_PATH)) // the neckline in the trim colour
   }
-  const patterned = style !== 'circle' && !!m.pattern && m.pattern !== 'plain'
-  ctx.fillStyle = readableOn(m.colour)
+  const useDesign = style !== 'circle' && !!m.design && designImages.has(designKey(m.design))
+  const base = useDesign ? m.design!.body : m.colour
+  const patterned = style !== 'circle' && (useDesign ? isBusy(m.design!) : !!m.pattern && m.pattern !== 'plain')
+  ctx.fillStyle = readableOn(base)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   if (style === 'shirt-back') {
@@ -349,7 +376,7 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.font = '700 25px Oswald, sans-serif'
     if (patterned) {
       ctx.lineWidth = 4
-      ctx.strokeStyle = readableOn(readableOn(m.colour))
+      ctx.strokeStyle = readableOn(readableOn(base))
       ctx.strokeText(m.num == null ? '' : String(m.num), 0, 8)
     }
     ctx.fillText(m.num == null ? '' : String(m.num), 0, 8)
@@ -357,7 +384,7 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.font = '700 23px Oswald, sans-serif'
     if (patterned) {
       ctx.lineWidth = 4
-      ctx.strokeStyle = readableOn(readableOn(m.colour))
+      ctx.strokeStyle = readableOn(readableOn(base))
       ctx.strokeText(m.num == null ? '' : String(m.num), 0, 1)
     }
     ctx.fillText(m.num == null ? '' : String(m.num), 0, 1)
@@ -379,7 +406,7 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.textBaseline = 'alphabetic'
     ctx.font = '600 19px Inter, sans-serif'
     const label = surname(m.name)
-    const dy = input.labelPos === 'above' ? -37 : style === 'circle' ? 47 : 50
+    const dy = input.labelPos === 'above' ? (useDesign ? -46 : -37) : style === 'circle' ? 47 : useDesign ? 58 : 50
     ctx.lineWidth = 5
     ctx.strokeStyle = 'rgba(10,16,32,0.9)'
     ctx.strokeText(label, 0, dy)
@@ -462,6 +489,7 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   ctx.lineWidth = 2.5
   for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
   ctx.restore()
+  await loadDesigns(input.markers)
   for (const m of input.markers) drawMarker(ctx, m, input, 1, false)
   ctx.restore()
   if (input.watermark) {
