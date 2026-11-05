@@ -4,7 +4,7 @@
  * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
  */
 export type Collar = 'polo' | 'vneck' | 'crew'
-export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts' | 'hlines' | 'shards' | 'slashes' | 'checks' | 'marble'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts' | 'hlines' | 'shards' | 'slashes' | 'checks' | 'marble' | 'zigzag'
 
 export type KitDesign = {
   body: string
@@ -88,6 +88,8 @@ function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9, c2 =
     return { defs: `<pattern id="${id}" width="28" height="28" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="${c}" opacity="${o}"/><rect x="14" y="14" width="14" height="14" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'marble')
     return { defs: `<pattern id="${id}" width="90" height="70" patternUnits="userSpaceOnUse"><g fill="${c}" opacity="${o}"><path d="M0,14Q22,0 40,16T90,10L90,20Q60,26 40,30T0,28Z"/><path d="M0,50Q30,34 56,48T90,40L90,52Q60,60 34,64T0,62Z"/><path d="M62,0Q70,20 90,24L90,30Q64,26 54,0Z"/></g></pattern>`, fill: `url(#${id})` }
+  if (t === 'zigzag')
+    return { defs: `<pattern id="${id}" width="36" height="30" patternUnits="userSpaceOnUse"><path d="M0,22L9,4L18,22L27,4L36,22" fill="none" stroke="${c}" stroke-width="2.2" opacity="${o}"/><path d="M0,30L9,14L18,30L27,14L36,30" fill="none" stroke="${c}" stroke-width="1.2" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'pinstripe')
     return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
@@ -261,4 +263,11 @@ export const FOREST: ClubKits = {
   home: { body: '#D01D26', collar: 'vneck', collarColour: '#D01D26', collarInner: '#F4F6FB', cuffs: ['#F4F6FB', '#D01D26'], shoulder: '#F4F6FB', texture: 'mottle', textureColour: '#8E0F17', textureOpacity: 0.35 },
   away: { body: '#1E4540', outline: '#0A1F1C', collar: 'vneck', collarColour: '#D01D26', cuffs: ['#D01D26'], shoulder: '#D01D26', texture: 'feathers', textureColour: '#fff', textureOpacity: 0.06 },
   third: { body: '#79C2EA', collar: 'crew', collarColour: '#F4F6FB', collarInner: '#14213F', cuffs: ['#F4F6FB', '#14213F'], texture: 'marble', textureColour: '#fff', textureOpacity: 0.55 },
+}
+
+/** AFC Bournemouth 2026-27: red and black bands, purple zigzag away, cream polo third with black and gold trim. */
+export const BOURNEMOUTH: ClubKits = {
+  home: { body: '#14130F', sleeve: '#14130F', stripes: { colour: '#D9242B', n: 4 }, collar: 'crew', collarColour: '#14130F', collarInner: '#C9A86A', cuffs: ['#14130F'], shoulder: '#C9A86A' },
+  away: { body: '#6D58C6', collar: 'crew', collarColour: '#4B3AA3', cuffs: ['#4B3AA3'], texture: 'zigzag', textureColour: '#fff', textureOpacity: 0.45 },
+  third: { body: '#F2EDE0', outline: '#8C93A8', collar: 'polo', collarColour: '#14130F', cuffs: ['#C9A86A', '#14130F'], sidePanel: '#14130F' },
 }
