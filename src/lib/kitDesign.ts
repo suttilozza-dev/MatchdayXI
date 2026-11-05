@@ -4,7 +4,7 @@
  * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
  */
 export type Collar = 'polo' | 'vneck' | 'crew'
-export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts'
 
 export type KitDesign = {
   body: string
@@ -18,6 +18,8 @@ export type KitDesign = {
   textureColour?: string
   textureOpacity?: number
   stripes?: { colour: string; n: number } // wide vertical stripes on the body
+  sash?: string[] // thin diagonal lines across the body, in these colours, in order
+  sleeveLines?: string[] // thin lines running down each sleeve, in these colours, repeating
   sidePanel?: string // thin panel down each side
   textureGap?: number // spacing for pinstripes
   outline?: string
@@ -69,9 +71,40 @@ function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9): { d
       defs: `<pattern id="${id}" width="40" height="36" patternUnits="userSpaceOnUse"><g fill="${c}" opacity="${o}"><circle cx="6" cy="8" r="4.5"/><circle cx="24" cy="5" r="3"/><circle cx="33" cy="17" r="5"/><circle cx="14" cy="22" r="3.5"/><circle cx="27" cy="30" r="4"/><circle cx="4" cy="32" r="2.5"/></g></pattern>`,
       fill: `url(#${id})`,
     }
+  if (t === 'feathers')
+    return { defs: `<pattern id="${id}" width="14" height="16" patternUnits="userSpaceOnUse"><path d="M2,14Q6,6 12,2M0,8Q4,3 8,0M6,16Q10,10 14,7" fill="none" stroke="${c}" stroke-width="1.3" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+  if (t === 'bolts')
+    return { defs: `<pattern id="${id}" width="46" height="70" patternUnits="userSpaceOnUse"><path d="M14,0L32,0L21,28L35,28L7,70L13,38L0,38Z" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'pinstripe')
     return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
+}
+
+function sashLines(cols: string[]): string {
+  const w = 6
+  const total = cols.length * w
+  return cols
+    .map((c, i) => {
+      const off = -total / 2 + i * w
+      const x = 76 + off
+      return `<path d="M${x},10L${x + w},10L${x + w + 106},214L${x + 106},214Z" fill="${c}"/>`
+    })
+    .join('')
+}
+
+function sleeveLines(cols: string[]): string {
+  let d = ''
+  const n = 9
+  for (let i = 0; i < n; i++) {
+    const u = (i + 0.5) / n
+    const c = cols[i % cols.length]
+    const lx = (a: number[], b: number[]) => [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u]
+    const t = lx([40, 36], [80, 21])
+    const b = lx([8, 100], [44, 116])
+    const line = (m: number) => `<path d="M${m ? 240 - t[0] : t[0]},${t[1]}L${m ? 240 - b[0] : b[0]},${b[1]}" stroke="${c}" stroke-width="3.4" fill="none"/>`
+    d += line(0) + line(1)
+  }
+  return d
 }
 
 function stripeRects(c: string, n: number): string {
@@ -119,6 +152,7 @@ export function kitSvg(k: KitDesign, uid = 'k'): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
   <defs>
     <clipPath id="${uid}-body"><path d="${BODY}"/></clipPath>
+    <clipPath id="${uid}-torso"><rect x="62" y="10" width="116" height="212"/></clipPath>
     <clipPath id="${uid}-sl"><path d="${SLEEVE_L}"/><path d="${SLEEVE_R}"/></clipPath>
     ${tex.defs}
   </defs>
@@ -126,6 +160,8 @@ export function kitSvg(k: KitDesign, uid = 'k'): string {
     <path id="body" d="${BODY}" fill="${k.body}"/>
     <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
     ${k.stripes ? `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` : ''}
+    ${k.sash ? `<g id="sash" clip-path="url(#${uid}-body)"><g clip-path="url(#${uid}-torso)">${sashLines(k.sash)}</g></g>` : ''}
+    ${k.sleeveLines ? `<g id="sleeve-lines" clip-path="url(#${uid}-sl)">${sleeveLines(k.sleeveLines)}</g>` : ''}
     ${k.sidePanel ? `<g id="side-panels" clip-path="url(#${uid}-body)"><path d="M62,84L69,84L71,208L62,208Z" fill="${k.sidePanel}"/><path d="M178,84L171,84L169,208L178,208Z" fill="${k.sidePanel}"/></g>` : ''}
     ${k.texture && k.texture !== 'none' ? `<g id="texture" clip-path="url(#${uid}-body)"><rect width="${W}" height="${H}" fill="${tex.fill}"/></g>` : ''}
     <g id="cuffs" clip-path="url(#${uid}-body)">${cuffs}</g>
@@ -158,4 +194,11 @@ export const COVENTRY: ClubKits = {
   home: { body: '#F4F7FB', sleeve: '#2E9BDB', stripes: { colour: '#2E9BDB', n: 4 }, collar: 'vneck', collarColour: '#14213F', cuffs: ['#14213F'], texture: 'mottle', textureColour: '#1C6FB5', textureOpacity: 0.35 },
   away: { body: '#F2EEE6', outline: '#8C93A8', collar: 'vneck', collarColour: '#14213F', cuffs: ['#F2EEE6'], shoulder: '#FF7A59', sidePanel: '#FF7A59', texture: 'none' },
   third: { body: '#C679E0', sleeve: '#C679E0', collar: 'crew', collarColour: '#C679E0', collarInner: '#9C4FB8', cuffs: ['#C679E0'], texture: 'dots', textureColour: '#FF6B5A', textureOpacity: 0.7 },
+}
+
+/** Crystal Palace 2026-27: white with a red and blue pinstripe sash, black away with feather texture, blue and red lightning third. */
+export const PALACE: ClubKits = {
+  home: { body: '#F5F6FA', collar: 'crew', collarColour: '#1B4FD0', collarInner: '#E21E3C', cuffs: ['#E21E3C', '#1B4FD0'], sash: ['#1B4FD0', '#E21E3C', '#1B4FD0', '#E21E3C', '#1B4FD0', '#E21E3C', '#1B4FD0'], sleeveLines: ['#E21E3C', '#1B4FD0'], outline: '#7C86A6' },
+  away: { body: '#111216', outline: '#4A5478', collar: 'crew', collarColour: '#E21E3C', collarInner: '#1B4FD0', cuffs: ['#E21E3C', '#1B4FD0'], sidePanel: '#1B4FD0', shoulder: '#E21E3C', texture: 'feathers', textureColour: '#fff', textureOpacity: 0.12 },
+  third: { body: '#1B4FD0', sleeve: '#16339A', collar: 'crew', collarColour: '#0E1B4A', collarInner: '#E21E3C', cuffs: ['#E21E3C', '#0E1B4A'], texture: 'bolts', textureColour: '#E21E3C', textureOpacity: 0.95 },
 }
