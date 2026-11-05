@@ -322,3 +322,10 @@ export const SUNDERLAND: ClubKits = {
   away: { body: '#EE9BB8', yoke: '#14130F', collar: 'polo', collarColour: '#EE9BB8', cuffs: ['#EE9BB8'], texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.12 },
   third: { body: '#1B3A99', collar: 'crew', collarColour: '#1B3A99', collarInner: '#D9894A', cuffs: ['#D9894A', '#1B3A99'], shoulder: '#D9894A', texture: 'waves', textureColour: '#4A6FE0', textureOpacity: 0.4 },
 }
+
+/** Tottenham Hotspur 2026-27: white with navy trim, navy away with orange and purple streaks, purple polo third with dark pinstripes. */
+export const SPURS: ClubKits = {
+  home: { body: '#F7F8FB', outline: '#8C93A8', collar: 'crew', collarColour: '#F7F8FB', collarInner: '#1B2A66', cuffs: ['#1B2A66'], shoulder: '#8C93C0', texture: 'pinstripe', textureColour: '#C7CCE0', textureOpacity: 0.5, textureGap: 24 },
+  away: { body: '#14224A', sleeve: '#0F1B3E', outline: '#6A7390', collar: 'crew', collarColour: '#0F1B3E', cuffs: ['#0F1B3E'], texture: 'slashes', textureColour: '#FF8A3D', textureOpacity: 0.9 },
+  third: { body: '#6B3CD6', collar: 'polo', collarColour: '#4A1FA8', cuffs: ['#4A1FA8'], sidePanel: '#3F1A8F', texture: 'pinstripe', textureColour: '#2A0F66', textureOpacity: 0.8, textureGap: 30 },
+}
