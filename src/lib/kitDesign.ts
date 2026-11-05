@@ -20,6 +20,7 @@ export type KitDesign = {
   stripes?: { colour: string; n: number } // wide vertical stripes on the body
   sash?: string[] // thin diagonal lines across the body, in these colours, in order
   sleeveLines?: string[] // thin lines running down each sleeve, in these colours, repeating
+  yoke?: string // colour of a yoke panel across the shoulders and upper chest
   fade?: string // colour the body fades into at the hem
   centreStripe?: { colour: string; w: number } // one vertical stripe down the middle
   sidePanel?: string // thin panel down each side
@@ -178,6 +179,7 @@ export function kitSvg(k: KitDesign, rawUid = 'k'): string {
     <path id="body" d="${BODY}" fill="${k.body}"/>
     <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
     ${k.stripes ? `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` : ''}
+    ${k.yoke ? `<g id="yoke" clip-path="url(#${uid}-body)"><path d="M0,0L${W},0L${W},58Q120,74 0,58Z" fill="${k.yoke}"/></g>` : ''}
     ${k.fade ? `<g id="fade" clip-path="url(#${uid}-body)"><rect x="0" y="110" width="${W}" height="112" fill="url(#${uid}-fade)"/></g>` : ''}
     ${k.centreStripe ? `<g id="centre-stripe" clip-path="url(#${uid}-body)"><rect x="${120 - k.centreStripe.w / 2}" y="14" width="${k.centreStripe.w}" height="200" fill="url(#${uid}-cs)"/></g>` : ''}
     ${k.sash ? `<g id="sash" clip-path="url(#${uid}-body)"><g clip-path="url(#${uid}-torso)">${sashLines(k.sash)}</g></g>` : ''}
@@ -312,4 +314,11 @@ export const NEWCASTLE: ClubKits = {
   home: { body: '#F4F6FB', sleeve: '#14130F', stripes: { colour: '#14130F', n: 5 }, outline: '#14130F', collar: 'crew', collarColour: '#14130F', collarInner: '#F4F6FB', cuffs: ['#F4F6FB', '#14130F'], shoulder: '#7FC8E8' },
   away: { body: '#1C3350', outline: '#6A7390', collar: 'vneck', collarColour: '#7FC8E8', collarInner: '#1C3350', cuffs: ['#7FC8E8'], shoulder: '#7FC8E8', texture: 'zigzag', textureColour: '#fff', textureOpacity: 0.12 },
   third: { body: '#D6B6E4', outline: '#6E4C8E', collar: 'vneck', collarColour: '#2C1B55', cuffs: ['#2C1B55'], shoulder: '#2C1B55' },
+}
+
+/** Sunderland 2026-27: red and white stripes, pink away with a black yoke, navy third with copper trim. */
+export const SUNDERLAND: ClubKits = {
+  home: { body: '#F4F6FB', sleeve: '#F4F6FB', stripes: { colour: '#D9232A', n: 4 }, outline: '#14130F', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#D9232A'] },
+  away: { body: '#EE9BB8', yoke: '#14130F', collar: 'polo', collarColour: '#EE9BB8', cuffs: ['#EE9BB8'], texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.12 },
+  third: { body: '#1B3A99', collar: 'crew', collarColour: '#1B3A99', collarInner: '#D9894A', cuffs: ['#D9894A', '#1B3A99'], shoulder: '#D9894A', texture: 'waves', textureColour: '#4A6FE0', textureOpacity: 0.4 },
 }
