@@ -4,7 +4,7 @@
  * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
  */
 export type Collar = 'polo' | 'vneck' | 'crew'
-export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle'
 
 export type KitDesign = {
   body: string
@@ -17,6 +17,8 @@ export type KitDesign = {
   texture?: Texture
   textureColour?: string
   textureOpacity?: number
+  stripes?: { colour: string; n: number } // wide vertical stripes on the body
+  sidePanel?: string // thin panel down each side
   textureGap?: number // spacing for pinstripes
   outline?: string
 }
@@ -60,9 +62,23 @@ function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9): { d
       defs: `<pattern id="${id}" width="20" height="14" patternUnits="userSpaceOnUse"><path d="M0,7Q5,1 10,7T20,7" fill="none" stroke="${c}" stroke-width="0.9" opacity="${o}"/></pattern>`,
       fill: `url(#${id})`,
     }
+  if (t === 'dots')
+    return { defs: `<pattern id="${id}" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="3.5" cy="3.5" r="1.5" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+  if (t === 'mottle')
+    return {
+      defs: `<pattern id="${id}" width="40" height="36" patternUnits="userSpaceOnUse"><g fill="${c}" opacity="${o}"><circle cx="6" cy="8" r="4.5"/><circle cx="24" cy="5" r="3"/><circle cx="33" cy="17" r="5"/><circle cx="14" cy="22" r="3.5"/><circle cx="27" cy="30" r="4"/><circle cx="4" cy="32" r="2.5"/></g></pattern>`,
+      fill: `url(#${id})`,
+    }
   if (t === 'pinstripe')
     return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
+}
+
+function stripeRects(c: string, n: number): string {
+  const w = 116 / (2 * n - 1)
+  let d = ''
+  for (let i = 0; i < n; i++) d += `<rect x="${(62 + i * 2 * w).toFixed(2)}" y="14" width="${w.toFixed(2)}" height="200" fill="${c}"/>`
+  return d
 }
 
 function collarSvg(k: KitDesign): string {
@@ -109,6 +125,8 @@ export function kitSvg(k: KitDesign, uid = 'k'): string {
   <g id="shirt">
     <path id="body" d="${BODY}" fill="${k.body}"/>
     <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
+    ${k.stripes ? `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` : ''}
+    ${k.sidePanel ? `<g id="side-panels" clip-path="url(#${uid}-body)"><path d="M62,84L69,84L71,208L62,208Z" fill="${k.sidePanel}"/><path d="M178,84L171,84L169,208L178,208Z" fill="${k.sidePanel}"/></g>` : ''}
     ${k.texture && k.texture !== 'none' ? `<g id="texture" clip-path="url(#${uid}-body)"><rect width="${W}" height="${H}" fill="${tex.fill}"/></g>` : ''}
     <g id="cuffs" clip-path="url(#${uid}-body)">${cuffs}</g>
     ${k.shoulder ? `<g id="shoulders" clip-path="url(#${uid}-sl)">${shoulderLines('l', k.shoulder)}${shoulderLines('r', k.shoulder)}</g>` : ''}
@@ -133,4 +151,11 @@ export const CHELSEA: ClubKits = {
   home: { body: '#2252D6', collar: 'polo', collarColour: '#1B44B8', cuffs: ['#1B44B8'], shoulder: '#7FA2F5', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.05 },
   away: { body: '#0C0C0F', outline: '#4A5478', collar: 'polo', collarColour: '#E6C21E', cuffs: ['#E6C21E'], texture: 'none' },
   third: { body: '#F4F6FB', collar: 'crew', collarColour: '#2250C8', cuffs: ['#2250C8'], texture: 'pinstripe', textureColour: '#E5484D', textureOpacity: 0.75, textureGap: 34 },
+}
+
+/** Coventry City 2026-27: sky-blue and white stripes, cream away with coral trim, orchid third with a halftone dot fade. */
+export const COVENTRY: ClubKits = {
+  home: { body: '#F4F7FB', sleeve: '#2E9BDB', stripes: { colour: '#2E9BDB', n: 4 }, collar: 'vneck', collarColour: '#14213F', cuffs: ['#14213F'], texture: 'mottle', textureColour: '#1C6FB5', textureOpacity: 0.35 },
+  away: { body: '#F2EEE6', outline: '#8C93A8', collar: 'vneck', collarColour: '#14213F', cuffs: ['#F2EEE6'], shoulder: '#FF7A59', sidePanel: '#FF7A59', texture: 'none' },
+  third: { body: '#C679E0', sleeve: '#C679E0', collar: 'crew', collarColour: '#C679E0', collarInner: '#9C4FB8', cuffs: ['#C679E0'], texture: 'dots', textureColour: '#FF6B5A', textureOpacity: 0.7 },
 }
