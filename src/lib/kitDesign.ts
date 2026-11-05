@@ -285,3 +285,10 @@ export const BRENTFORD: ClubKits = {
   away: { body: '#1B1C3F', outline: '#6A7390', collar: 'crew', collarColour: '#EFE5D3', cuffs: ['#EFE5D3'], texture: 'pinstripe', textureColour: '#fff', textureOpacity: 0.75, textureGap: 13 },
   third: { body: '#F2D91F', collar: 'crew', collarColour: '#14130F', cuffs: ['#14130F'] },
 }
+
+/** Brighton and Hove Albion 2026-27: blue and white pinstripes, dark teal third with mint trim. */
+export const BRIGHTON: ClubKits = {
+  home: { body: '#1757C2', collar: 'vneck', collarColour: '#F4F6FB', cuffs: ['#F4F6FB'], texture: 'pinstripe', textureColour: '#fff', textureOpacity: 0.85, textureGap: 18 },
+  away: { body: '#F4F6FB', outline: '#8C93A8', collar: 'vneck', collarColour: '#1757C2', cuffs: ['#1757C2'], texture: 'pinstripe', textureColour: '#3C86E0', textureOpacity: 0.85, textureGap: 18 },
+  third: { body: '#0F4A4A', collar: 'vneck', collarColour: '#7FEAD2', cuffs: ['#7FEAD2'], shoulder: '#0F4A4A' },
+}
