@@ -306,3 +306,10 @@ export const UNITED: ClubKits = {
   away: { body: '#1F4FD0', collar: 'vneck', collarColour: '#F4F6FB', collarInner: '#DA1F26', cuffs: ['#DA1F26', '#F4F6FB'], shoulder: '#DA1F26' },
   third: { body: '#F2EDE3', outline: '#8C93A8', collar: 'crew', collarColour: '#6E1A2C', cuffs: ['#6E1A2C', '#14130F'], shoulder: '#14130F' },
 }
+
+/** Newcastle United 2026-27: black and white stripes with sky-blue trim, navy away, lilac third with purple trim. */
+export const NEWCASTLE: ClubKits = {
+  home: { body: '#F4F6FB', sleeve: '#14130F', stripes: { colour: '#14130F', n: 5 }, outline: '#14130F', collar: 'crew', collarColour: '#14130F', collarInner: '#F4F6FB', cuffs: ['#F4F6FB', '#14130F'], shoulder: '#7FC8E8' },
+  away: { body: '#1C3350', outline: '#6A7390', collar: 'vneck', collarColour: '#7FC8E8', collarInner: '#1C3350', cuffs: ['#7FC8E8'], shoulder: '#7FC8E8', texture: 'zigzag', textureColour: '#fff', textureOpacity: 0.12 },
+  third: { body: '#D6B6E4', outline: '#6E4C8E', collar: 'vneck', collarColour: '#2C1B55', cuffs: ['#2C1B55'], shoulder: '#2C1B55' },
+}
