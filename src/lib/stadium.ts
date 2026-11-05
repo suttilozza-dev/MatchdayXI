@@ -1,4 +1,4 @@
-import { clubSurround } from './clubStadiums'
+import { clubSurround, DEFAULT_GROUND, groundSurround } from './clubStadiums'
 import type { KitName } from './data'
 
 const PL = 1050
@@ -9,7 +9,7 @@ export type Shape = { d: string; fill?: string; stroke?: string; sw?: number; op
 
 export type StadiumId = string // 'matchdayxi' or 'club:<Club name>'
 export const STADIUMS: { id: StadiumId; name: string; note: string }[] = [
-  { id: 'matchdayxi', name: 'MatchdayXI Stadium', note: 'A small lower-league ground: one stand, a covered shelter and a terrace behind each goal.' },
+  { id: 'matchdayxi', name: 'MatchdayXI Stadium', note: 'A small ground in the site colours: one two-tier stand and low stands round the other sides.' },
 ]
 
 /** Surround extent beyond the pitch, in landscape units. Used to size the board's view. */
@@ -82,5 +82,5 @@ export function stadiumFor(id: StadiumId, kit: KitName = 'home'): StadiumArt {
     const c = clubSurround(id.slice(5), kit)
     if (c) return c
   }
-  return { shapes: matchdayXIStadium(), ext: SURROUND }
+  return groundSurround(DEFAULT_GROUND, '#1E6B4D', '#C8FF3D')
 }
