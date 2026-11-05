@@ -4,7 +4,7 @@
  * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
  */
 export type Collar = 'polo' | 'vneck' | 'crew'
-export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts' | 'hlines' | 'shards'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe' | 'dots' | 'mottle' | 'feathers' | 'bolts' | 'hlines' | 'shards' | 'slashes' | 'checks'
 
 export type KitDesign = {
   body: string
@@ -80,6 +80,10 @@ function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9, c2 =
     return { defs: `<pattern id="${id}" width="10" height="${gap * 2}" patternUnits="userSpaceOnUse"><rect y="${gap * 0.4}" width="10" height="1.5" fill="${c}" opacity="${o}"/><rect y="${gap * 1.4}" width="10" height="1.5" fill="${c2}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'shards')
     return { defs: `<pattern id="${id}" width="60" height="80" patternUnits="userSpaceOnUse"><g fill="${c}" opacity="${o}"><path d="M0,10L24,0L30,34L6,44Z"/><path d="M34,38L58,30L60,66L38,74Z"/><path d="M8,56L26,52L24,80L4,80Z"/></g></pattern>`, fill: `url(#${id})` }
+  if (t === 'slashes')
+    return { defs: `<pattern id="${id}" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M4,10L14,2M20,22L34,8M8,36L18,26M30,40L40,30M24,4L28,0M2,24L6,18" stroke="${c}" stroke-width="1.5" opacity="${o}" fill="none"/></pattern>`, fill: `url(#${id})` }
+  if (t === 'checks')
+    return { defs: `<pattern id="${id}" width="28" height="28" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="${c}" opacity="${o}"/><rect x="14" y="14" width="14" height="14" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   if (t === 'pinstripe')
     return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
@@ -227,4 +231,11 @@ export const LEEDS: ClubKits = {
   home: { body: '#F7F7F4', outline: '#8C93A8', collar: 'crew', collarColour: '#2B47B8', collarInner: '#F5D327', cuffs: ['#F5D327', '#2B47B8'], shoulder: '#2B47B8', texture: 'hlines', textureColour: '#2B47B8', textureColour2: '#F5D327', textureOpacity: 0.85, textureGap: 7 },
   away: { body: '#F2D91F', collar: 'vneck', collarColour: '#14161C', collarInner: '#F7F7F4', cuffs: ['#14161C'], shoulder: '#14161C', texture: 'mottle', textureColour: '#C9B30F', textureOpacity: 0.4 },
   third: { body: '#26282E', outline: '#6A7390', collar: 'crew', collarColour: '#B6BBC8', cuffs: ['#B6BBC8'], shoulder: '#B6BBC8', texture: 'shards', textureColour: '#8A8F9E', textureOpacity: 0.45 },
+}
+
+/** Liverpool 2026-27: red with white slashes, white away with red V-neck, black and maroon check third. */
+export const LIVERPOOL: ClubKits = {
+  home: { body: '#C8102E', collar: 'crew', collarColour: '#C8102E', collarInner: '#F4F6FB', cuffs: ['#F4F6FB', '#C8102E'], shoulder: '#F4F6FB', texture: 'slashes', textureColour: '#fff', textureOpacity: 0.7 },
+  away: { body: '#F4F4F6', outline: '#8C93A8', collar: 'vneck', collarColour: '#C8102E', collarInner: '#F4F4F6', cuffs: ['#C8102E'] },
+  third: { body: '#16151A', outline: '#6A7390', collar: 'crew', collarColour: '#16151A', collarInner: '#B6BBC8', cuffs: ['#B6BBC8', '#16151A'], shoulder: '#B6BBC8', texture: 'checks', textureColour: "#6E1432", textureOpacity: 0.6 },
 }
