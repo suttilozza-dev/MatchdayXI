@@ -67,7 +67,7 @@ export type Surround = { shapes: Shape[]; ext: { left: number; right: number; to
 
 const ROOF_FILL: Record<Roof, { fill: string; op: number; line: string; cover: number }> = {
   none: { fill: '#0A1020', op: 0, line: '#F5F7FF', cover: 0 },
-  flat: { fill: '#2A3558', op: 0.97, line: '#A9B4D0', cover: 0.5 },
+  flat: { fill: '#3C4A78', op: 1, line: '#C4CCE4', cover: 0.5 },
   truss: { fill: '#C9D0E4', op: 1, line: '#7C86A6', cover: 0.55 },
   glass: { fill: '#8CC6EE', op: 0.9, line: '#E4F3FD', cover: 0.5 },
   solar: { fill: '#22408A', op: 0.97, line: '#7FA2E8', cover: 0.5 },
@@ -154,7 +154,7 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
   const seatDefault = sp.seats ?? [main, trim]
   const shapes: Shape[] = []
   const ext = { left: H, right: H, top: H, bottom: H }
-  const D = (sd: Side) => sd.t * TU * (sd.depth ?? 1)
+  const D = (sd: Side) => (sd.t > 0 ? Math.max(74, sd.t * TU * (sd.depth ?? 1)) : 0)
   const sides = { top: sp.top, bottom: sp.bottom, left: sp.left, right: sp.right }
   const map = (side: 'top' | 'bottom' | 'left' | 'right', s: number, d: number): [number, number] =>
     side === 'top' ? [s, -(H + d)] : side === 'bottom' ? [s, PW + H + d] : side === 'left' ? [-(H + d), s] : [PL + H + d, s]
@@ -176,7 +176,7 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
       body.push({ d: rr(b[0], b[1], b[2], b[3], rad((k + 1) / T)) + rrRev(a[0], a[1], a[2], a[3], rad(k / T)), fill: seatDefault[0], opacity: k % 2 ? 0.7 : 0.9 })
     }
     // crowd on the part of the bowl the roof does not cover
-    const cov = 0.42
+    const cov = 0.5
     const inner = box(cov), outerBox = box(1, 6), pit = box(0)
     for (let y = inner[1]; y < inner[3] + 1; y += 5.2) {
       for (let x = inner[0] + ((Math.round(y / 5.2) % 2) * 2.6); x < inner[2]; x += 5.2) {
@@ -249,8 +249,8 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
       const [seat, accent] = sd.seats ?? seatDefault
       ext[side] = H + total + 14
       for (let k = 0; k < sd.t; k++) {
-        const d0 = k * TU * (sd.depth ?? 1)
-        const d1 = (k + 1) * TU * (sd.depth ?? 1) - 2
+        const d0 = (k * total) / sd.t
+        const d1 = ((k + 1) * total) / sd.t - 2
         body.push({ d: rectPoly([map(side, s0, d0), map(side, s1, d0), map(side, s1, d1), map(side, s0, d1)]), fill: sd.brick && k === 0 ? '#8C3B2E' : seat, opacity: k % 2 ? 0.7 : 0.9 })
         body.push({ d: rectPoly([map(side, s0, d1), map(side, s1, d1), map(side, s1, d1 + 1.6), map(side, s0, d1 + 1.6)]), fill: accent, opacity: 0.5 })
       }
@@ -294,6 +294,21 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
       const mid = side === 'top' ? PL / 2 : PW / 2
       roofs.push({ d: rectPoly([map(side, mid - 70, g + 10), map(side, mid + 70, g + 10), map(side, mid, g + 32)]), fill: '#8C3B2E', stroke: '#F5F7FF', sw: 1.5 })
       ext[side] += 22
+    }
+    // low roofed blocks fill the corners that are not part of a stand
+    const cornerBlocks: [boolean, number, number, number, number][] = [
+      [sp.corners[0], -1, -1, D(sp.left), D(sp.top)],
+      [sp.corners[1], 1, -1, D(sp.right), D(sp.top)],
+      [sp.corners[2], -1, 1, D(sp.left), D(sp.bottom)],
+      [sp.corners[3], 1, 1, D(sp.right), D(sp.bottom)],
+    ]
+    for (const [filled, sx, sy, dx, dy] of cornerBlocks) {
+      if (filled || dx <= 0 || dy <= 0) continue
+      const w = dx * 0.85, h = dy * 0.85
+      const xa = sx < 0 ? -(H + w) : PL + H, xb = sx < 0 ? -H : PL + H + w
+      const ya = sy < 0 ? -(H + h) : PW + H, yb = sy < 0 ? -H : PW + H + h
+      roofs.push({ d: rectPoly([[xa, ya], [xb, ya], [xb, yb], [xa, yb]]), fill: '#232E50', opacity: 0.97 })
+      roofs.push({ d: rectPoly([[xa, ya], [xb, ya], [xb, yb], [xa, yb]]), stroke: '#A9B4D0', sw: 1.2, opacity: 0.35 })
     }
     // floodlight masts at the four corners
     for (const [x, y] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
