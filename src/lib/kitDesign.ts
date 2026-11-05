@@ -1,0 +1,128 @@
+/**
+ * Stylised full-detail shirts. Each shirt is described by a small data object (colours, collar, cuffs, shoulder trim,
+ * texture) and drawn as a layered SVG string. These are original drawings: no crests, sponsors or maker logos.
+ * Layers carry ids (body, sleeves, texture, cuffs, shoulders, collar) so they can be pulled apart in Canva.
+ */
+export type Collar = 'polo' | 'vneck' | 'crew'
+export type Texture = 'none' | 'diamonds' | 'waves' | 'pinstripe'
+
+export type KitDesign = {
+  body: string
+  sleeve?: string // defaults to body
+  collar: Collar
+  collarColour: string
+  collarInner?: string // second collar stripe (v-neck / crew)
+  cuffs: string[] // outermost last; one or more stripes
+  shoulder?: string // three-stripe style trim on the shoulders
+  texture?: Texture
+  textureColour?: string
+  textureOpacity?: number
+  outline?: string
+}
+
+const OUTLINE = '#070B18'
+const W = 240
+const H = 222
+
+const BODY = 'M88,16Q120,34 152,16L200,36L232,100L196,116L178,84Q181,150 176,208Q120,214 64,208Q59,150 62,84L44,116L8,100L40,36Z'
+const SLEEVE_L = 'M40,36L80,21L62,84L44,116L8,100Z'
+const SLEEVE_R = 'M200,36L160,21L178,84L196,116L232,100Z'
+
+/** A band across the end of a sleeve, from t0 to t1 (0 = hem, 1 = about 12 units in). */
+function cuffBand(side: 'l' | 'r', t0: number, t1: number): string {
+  const [a, b, v]: [number[], number[], number[]] = side === 'l' ? [[8, 100], [44, 116], [4, -11]] : [[232, 100], [196, 116], [-4, -11]]
+  const p = (o: number[], t: number) => `${(o[0] + v[0] * t * 1.1).toFixed(1)},${(o[1] + v[1] * t * 1.1).toFixed(1)}`
+  return `M${p(a, t0)}L${p(b, t0)}L${p(b, t1)}L${p(a, t1)}Z`
+}
+
+function shoulderLines(side: 'l' | 'r', c: string): string {
+  const s = side === 'l' ? 1 : -1
+  let d = ''
+  for (let k = 0; k < 3; k++) {
+    const ox = 1.8 * k * 1.1 * s
+    const oy = 4.1 * k * 1.1
+    const x0 = side === 'l' ? 30 : 210
+    const x1 = side === 'l' ? 96 : 144
+    d += `M${x0 + ox},${40 + oy - 3}L${x1 + ox},${12 + oy - 3}`
+  }
+  return `<path d="${d}" stroke="${c}" stroke-width="3.2" fill="none" stroke-linecap="butt"/>`
+}
+
+function textureDefs(id: string, t: Texture, c: string, o: number): { defs: string; fill: string } {
+  if (t === 'diamonds')
+    return {
+      defs: `<pattern id="${id}" width="12" height="14" patternUnits="userSpaceOnUse"><path d="M6,1L11,7L6,13L1,7Z" fill="none" stroke="${c}" stroke-width="0.9" opacity="${o}"/></pattern>`,
+      fill: `url(#${id})`,
+    }
+  if (t === 'waves')
+    return {
+      defs: `<pattern id="${id}" width="20" height="14" patternUnits="userSpaceOnUse"><path d="M0,7Q5,1 10,7T20,7" fill="none" stroke="${c}" stroke-width="0.9" opacity="${o}"/></pattern>`,
+      fill: `url(#${id})`,
+    }
+  if (t === 'pinstripe')
+    return { defs: `<pattern id="${id}" width="9" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+  return { defs: '', fill: 'none' }
+}
+
+function collarSvg(k: KitDesign): string {
+  const o = k.outline ?? OUTLINE
+  const c = k.collarColour
+  const i = k.collarInner
+  if (k.collar === 'polo') {
+    return `<g id="collar">
+      <path d="M86,15Q120,36 154,15L148,10Q120,26 92,10Z" fill="${c}" stroke="${o}" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M92,10L112,26L118,44L106,40L96,22Z" fill="${c}" stroke="${o}" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M148,10L128,26L122,44L134,40L144,22Z" fill="${c}" stroke="${o}" stroke-width="1.4" stroke-linejoin="round"/>
+      <path d="M120,30L120,56" stroke="${o}" stroke-width="1.2" opacity=".5"/>
+    </g>`
+  }
+  if (k.collar === 'vneck') {
+    return `<g id="collar">
+      <path d="M86,15L120,54L154,15" fill="none" stroke="${o}" stroke-width="10" stroke-linejoin="round"/>
+      <path d="M86,15L120,54L154,15" fill="none" stroke="${c}" stroke-width="7.4" stroke-linejoin="round"/>
+      ${i ? `<path d="M90,22L120,48L150,22" fill="none" stroke="${i}" stroke-width="3" stroke-linejoin="round"/>` : ''}
+    </g>`
+  }
+  return `<g id="collar">
+      <path d="M86,15Q120,46 154,15" fill="none" stroke="${o}" stroke-width="11" stroke-linecap="round"/>
+      <path d="M86,15Q120,46 154,15" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round"/>
+      ${i ? `<path d="M90,19Q120,45 150,19" fill="none" stroke="${i}" stroke-width="2.2"/>` : ''}
+    </g>`
+}
+
+/** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
+export function kitSvg(k: KitDesign, uid = 'k'): string {
+  const o = k.outline ?? OUTLINE
+  const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12)
+  const sl = k.sleeve ?? k.body
+  const n = k.cuffs.length
+  const cuffs = k.cuffs
+    .map((c, idx) => `<path d="${cuffBand('l', idx / n, (idx + 1) / n)}" fill="${c}"/><path d="${cuffBand('r', idx / n, (idx + 1) / n)}" fill="${c}"/>`)
+    .join('')
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  <defs>
+    <clipPath id="${uid}-body"><path d="${BODY}"/></clipPath>
+    <clipPath id="${uid}-sl"><path d="${SLEEVE_L}"/><path d="${SLEEVE_R}"/></clipPath>
+    ${tex.defs}
+  </defs>
+  <g id="shirt">
+    <path id="body" d="${BODY}" fill="${k.body}"/>
+    <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
+    ${k.texture && k.texture !== 'none' ? `<g id="texture" clip-path="url(#${uid}-body)"><rect width="${W}" height="${H}" fill="${tex.fill}"/></g>` : ''}
+    <g id="cuffs" clip-path="url(#${uid}-body)">${cuffs}</g>
+    ${k.shoulder ? `<g id="shoulders" clip-path="url(#${uid}-sl)">${shoulderLines('l', k.shoulder)}${shoulderLines('r', k.shoulder)}</g>` : ''}
+    <g id="seams" fill="none" stroke="${o}" stroke-width="1" opacity=".35"><path d="M80,21L62,84"/><path d="M160,21L178,84"/></g>
+    <path id="outline" d="${BODY}" fill="none" stroke="${o}" stroke-width="2.4" stroke-linejoin="round"/>
+    ${collarSvg(k)}
+  </g>
+</svg>`
+}
+
+export type ClubKits = { home: KitDesign; away: KitDesign; third: KitDesign }
+
+/** Aston Villa 2026-27, drawn from the official kit photos: colours, collar, cuffs, shoulder trim and the subtle shirt texture only. */
+export const VILLA: ClubKits = {
+  home: { body: '#7A1D3C', collar: 'polo', collarColour: '#A9CCEE', cuffs: ['#A9CCEE'], shoulder: '#A9CCEE', texture: 'pinstripe', textureColour: '#000', textureOpacity: 0.09 },
+  away: { body: '#232629', collar: 'vneck', collarColour: '#E9B93C', collarInner: '#7A1D3C', cuffs: ['#E9B93C', '#7A1D3C', '#A9CCEE'], shoulder: '#E9B93C', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.07 },
+  third: { body: '#BCD9F2', collar: 'crew', collarColour: '#7A1D3C', cuffs: ['#7A1D3C'], shoulder: '#7A1D3C', texture: 'waves', textureColour: '#fff', textureOpacity: 0.6 },
+}
