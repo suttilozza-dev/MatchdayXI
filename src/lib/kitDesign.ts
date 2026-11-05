@@ -202,3 +202,10 @@ export const PALACE: ClubKits = {
   away: { body: '#111216', outline: '#4A5478', collar: 'crew', collarColour: '#E21E3C', collarInner: '#1B4FD0', cuffs: ['#E21E3C', '#1B4FD0'], sidePanel: '#1B4FD0', shoulder: '#E21E3C', texture: 'feathers', textureColour: '#fff', textureOpacity: 0.12 },
   third: { body: '#1B4FD0', sleeve: '#16339A', collar: 'crew', collarColour: '#0E1B4A', collarInner: '#E21E3C', cuffs: ['#E21E3C', '#0E1B4A'], texture: 'bolts', textureColour: '#E21E3C', textureOpacity: 0.95 },
 }
+
+/** Everton 2026-27: royal blue with white and gold neck, white away with navy and gold pinstripes, dark green third with gold trim. */
+export const EVERTON: ClubKits = {
+  home: { body: '#1B3FBF', collar: 'crew', collarColour: '#F4F6FB', collarInner: '#F2B91F', cuffs: ['#F2B91F', '#F4F6FB'], texture: 'none' },
+  away: { body: '#F6F6F8', outline: '#8C93A8', collar: 'vneck', collarColour: '#1B1F5E', collarInner: '#F2B91F', cuffs: ['#F2B91F', '#1B1F5E'], texture: 'pinstripe', textureColour: '#C9A23A', textureOpacity: 0.9, textureGap: 28 },
+  third: { body: '#2F5F4E', outline: '#0E1B17', collar: 'crew', collarColour: '#17352B', collarInner: '#E9B64B', cuffs: ['#E9B64B', '#17352B'], texture: 'none' },
+}
