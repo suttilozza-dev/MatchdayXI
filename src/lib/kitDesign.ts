@@ -209,3 +209,10 @@ export const EVERTON: ClubKits = {
   away: { body: '#F6F6F8', outline: '#8C93A8', collar: 'vneck', collarColour: '#1B1F5E', collarInner: '#F2B91F', cuffs: ['#F2B91F', '#1B1F5E'], texture: 'pinstripe', textureColour: '#C9A23A', textureOpacity: 0.9, textureGap: 28 },
   third: { body: '#2F5F4E', outline: '#0E1B17', collar: 'crew', collarColour: '#17352B', collarInner: '#E9B64B', cuffs: ['#E9B64B', '#17352B'], texture: 'none' },
 }
+
+/** Hull City 2026-27: amber and black bands with a white polo collar, white away with amber shoulders, royal blue third. */
+export const HULL: ClubKits = {
+  home: { body: '#F6A623', sleeve: '#F6A623', stripes: { colour: '#14130F', n: 3 }, collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#F4F6FB'], shoulder: '#14130F' },
+  away: { body: '#F6F6F8', outline: '#8C93A8', collar: 'crew', collarColour: '#14130F', collarInner: '#F6A623', cuffs: ['#F6A623', '#14130F'], shoulder: '#F6A623' },
+  third: { body: '#2E55D8', collar: 'polo', collarColour: '#F4F6FB', cuffs: ['#C9B6E4', '#F4F6FB'], texture: 'none' },
+}
