@@ -3,6 +3,9 @@
 /** Free plan: this many watermarked images per signed-in account every week (Monday to Sunday, UTC). */
 export const FREE_PER_WEEK = 3
 
+/** Gameweek Pass: this many images with no watermark per day (UK time). Unused images do not roll over to the next day. */
+export const PASS_PER_DAY = 5
+
 export const PASS = { id: 'pass', label: '£2.99', days: 7 } as const
 export const PLUS = {
   monthly: { id: 'plus-monthly', label: '£4.99', note: 'a month' },

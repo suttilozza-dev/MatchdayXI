@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { CHECKOUT_LINKS, CREATOR, FOUNDER, FREE_PER_WEEK, PASS, PLUS } from '#/lib/config'
+import { CHECKOUT_LINKS, CREATOR, FOUNDER, FREE_PER_WEEK, PASS, PASS_PER_DAY, PLUS } from '#/lib/config'
 import { TIER_LABEL, type Tier } from '#/lib/credits'
 
 function Buy({ id, children, primary }: { id: string; children: React.ReactNode; primary?: boolean }) {
@@ -32,20 +31,11 @@ function Card({ title, price, per, sub, lines, children, active, badge }: { titl
   )
 }
 
-/** Plans. Items marked "soon" are not built yet. */
+/** Plans. Items marked "soon" are not built yet. Monthly and yearly are both shown and both buyable on the card. */
 export function Pricing({ current }: { current?: Tier }) {
-  const [yearly, setYearly] = useState(true)
-  const plus = yearly ? PLUS.yearly : PLUS.monthly
-  const creator = yearly ? CREATOR.yearly : CREATOR.monthly
   return (
     <section aria-label="Plans" className="mt-6">
-      <div className="flex items-center justify-between gap-3 flex-wrap mb-3">
-        <h2 className="font-display text-xl font-bold">Plans{current ? <span className="text-sm text-[#AFCDBF]"> · you are on {TIER_LABEL[current]}</span> : null}</h2>
-        <div className="flex gap-2" role="group" aria-label="Billing">
-          <button className="chip" aria-pressed={!yearly} onClick={() => setYearly(false)}>Monthly</button>
-          <button className="chip" aria-pressed={yearly} onClick={() => setYearly(true)}>Yearly · save up to 50%</button>
-        </div>
-      </div>
+      <h2 className="font-display text-xl font-bold mb-3">Plans{current ? <span className="text-sm text-[#AFCDBF]"> · you are on {TIER_LABEL[current]}</span> : null}</h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card
           title="Free"
@@ -60,32 +50,34 @@ export function Pricing({ current }: { current?: Tier }) {
           title="Gameweek Pass"
           price={PASS.label}
           per={`once · ${PASS.days} days`}
-          sub="No subscription"
+          sub="No subscription. Buy another whenever you need one."
           active={current === 'pass'}
-          lines={['Unlimited images with no watermark for 7 days', 'Square, 4:5, story, header and banner sizes', "One club's stadium"]}
+          lines={[`Up to ${PASS_PER_DAY} images a day with no watermark for 7 days`, 'The allowance resets every day and does not roll over', 'Square, 4:5, story, header and banner sizes', "One club's stadium"]}
         >
           <Buy id={PASS.id}>Get a pass</Buy>
         </Card>
         <Card
           title="Plus"
-          price={plus.label}
-          per={plus.note}
-          sub={yearly ? 'That is about £2.50 a month: 2 months free' : 'Or £29.99 a year (save 50%)'}
+          price={PLUS.yearly.label}
+          per={PLUS.yearly.note}
+          sub={`Season Pass: about £2.50 a month. Or ${PLUS.monthly.label} ${PLUS.monthly.note}.`}
           badge="Most popular"
           active={current === 'plus'}
-          lines={['Everything in the Pass, for as long as you subscribe', 'Transparent background', 'Every stadium and colourway', 'Saved line-ups and gameweek history (soon)']}
+          lines={['Unlimited images with no watermark, for as long as you subscribe', 'Transparent background', 'Every stadium and colourway', 'Saved line-ups and gameweek history (soon)']}
         >
-          <Buy id={yearly ? PLUS.yearly.id : PLUS.monthly.id} primary>{yearly ? 'Get the Season Pass' : 'Get Plus'}</Buy>
+          <Buy id={PLUS.yearly.id} primary>{PLUS.yearly.label} a year · save 50%</Buy>
+          <Buy id={PLUS.monthly.id}>{PLUS.monthly.label} a month</Buy>
         </Card>
         <Card
           title="Creator"
-          price={creator.label}
-          per={creator.note}
-          sub={yearly ? 'About £6.67 a month (save 33%)' : 'Or £79.99 a year (save 33%)'}
+          price={CREATOR.yearly.label}
+          per={CREATOR.yearly.note}
+          sub={`About £6.67 a month. Or ${CREATOR.monthly.label} ${CREATOR.monthly.note}.`}
           active={current === 'creator'}
           lines={['Everything in Plus', 'Your handle on the image, MatchdayXI branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive']}
         >
-          <Buy id={yearly ? CREATOR.yearly.id : CREATOR.monthly.id} primary>{yearly ? 'Go Creator (yearly)' : 'Go Creator'}</Buy>
+          <Buy id={CREATOR.yearly.id} primary>{CREATOR.yearly.label} a year · save 33%</Buy>
+          <Buy id={CREATOR.monthly.id}>{CREATOR.monthly.label} a month</Buy>
         </Card>
       </div>
       <div className="panel p-4 mt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: 'rgba(207,255,77,0.5)' }}>

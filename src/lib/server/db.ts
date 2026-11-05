@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless'
 import { env } from './env'
 import { OWNER_USER_IDS } from './plans'
-import { FREE_PER_WEEK } from '../config'
+import { FREE_PER_WEEK, PASS_PER_DAY } from '../config'
 
 const sql = () => neon(env('DATABASE_URL'))
 
@@ -29,6 +29,13 @@ export function ensureSchema() {
       used integer NOT NULL DEFAULT 0,
       PRIMARY KEY (user_id, week)
     )`
+    // Gameweek Pass: PASS_PER_DAY clean images per account per UK day. A new day starts a new row, so nothing rolls over.
+    await q`CREATE TABLE IF NOT EXISTS pass_usage_day (
+      user_id text NOT NULL,
+      day text NOT NULL,
+      used integer NOT NULL DEFAULT 0,
+      PRIMARY KEY (user_id, day)
+    )`
   })().catch((e) => {
     ready = null
     throw e
@@ -37,6 +44,11 @@ export function ensureSchema() {
 }
 
 export type Tier = 'free' | 'pass' | 'trial' | 'credits' | 'plus' | 'lifetime' | 'creator'
+
+/** Today's date in UK time (e.g. 2026-11-05): the Gameweek Pass daily allowance resets at midnight there. */
+export function dayKey(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+}
 
 /** The week the free allowance resets on: Monday to Sunday, UTC, as e.g. 2026-11-02 (the Monday). */
 export function weekKey(now = new Date()): string {
@@ -58,7 +70,10 @@ export async function getEntitlement(userId: string): Promise<Entitlement> {
   if (rows.some((r) => r.plan_key.startsWith('creator') && live(r))) return { tier: 'creator', remaining: null }
   if (rows.some((r) => r.plan_key.startsWith('plus') && live(r))) return { tier: 'plus', remaining: null }
   if (rows.some((r) => r.plan_key === 'lifetime')) return { tier: 'lifetime', remaining: null }
-  if (rows.some((r) => r.plan_key === 'pass' && live(r))) return { tier: 'pass', remaining: null }
+  if (rows.some((r) => r.plan_key === 'pass' && live(r))) {
+    const u = (await sql()`SELECT used FROM pass_usage_day WHERE user_id = ${userId} AND day = ${dayKey()}`) as { used: number }[]
+    return { tier: 'pass', remaining: Math.max(0, PASS_PER_DAY - (u[0]?.used ?? 0)) }
+  }
   const left = (keys: (r: Row) => boolean) => rows.filter(keys).reduce((n, r) => n + Math.max(0, (r.images_total ?? 0) - r.images_used), 0)
   const trial = left((r) => r.plan_key === 'trial')
   const packs = left((r) => r.plan_key.startsWith('pack-'))
@@ -76,6 +91,15 @@ export async function spendFree(userId: string): Promise<boolean> {
   await ensureSchema()
   const r = await sql()`INSERT INTO free_usage_week (user_id, week, used) VALUES (${userId}, ${weekKey()}, 1)
     ON CONFLICT (user_id, week) DO UPDATE SET used = free_usage_week.used + 1 WHERE free_usage_week.used < ${FREE_PER_WEEK}
+    RETURNING used`
+  return r.length > 0
+}
+
+/** Atomically use one of today's Gameweek Pass images. Returns false once today's allowance is gone. */
+export async function spendPassDay(userId: string): Promise<boolean> {
+  await ensureSchema()
+  const r = await sql()`INSERT INTO pass_usage_day (user_id, day, used) VALUES (${userId}, ${dayKey()}, 1)
+    ON CONFLICT (user_id, day) DO UPDATE SET used = pass_usage_day.used + 1 WHERE pass_usage_day.used < ${PASS_PER_DAY}
     RETURNING used`
   return r.length > 0
 }

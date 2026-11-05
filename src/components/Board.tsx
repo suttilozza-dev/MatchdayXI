@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CLUBS, FORMATIONS, SITE_URL, managerFor, colourDistance, kitColours, type KitName, GAMEWEEK_DEFAULT, readableOn, squadFor, surname, type Player, type Pos } from '#/lib/data'
-import { FREE_PER_WEEK } from '#/lib/config'
+import { FREE_PER_WEEK, PASS_PER_DAY } from '#/lib/config'
 import { CAPS, getAccess, markAnonUsed, spendExport, type Access } from '#/lib/credits'
 import { STADIUMS, stadiumFor, type StadiumId } from '#/lib/stadium'
 import { CLUB_GROUNDS } from '#/lib/clubStadiums'
@@ -364,9 +364,11 @@ export default function Board() {
       ? `That was your free first image. Sign in with Whop (free, no payment) for ${FREE_PER_WEEK} more every week.`
       : reason === 'unavailable'
         ? 'We could not check your plan just now. Try again in a moment.'
-        : access?.tier === 'free'
-          ? `You have used your ${FREE_PER_WEEK} free images for this week. They come back on Monday, or pick a plan below.`
-          : 'You have used all your images on this plan. Pick a plan below to keep exporting.'
+        : access?.tier === 'pass'
+          ? `You have used today's ${PASS_PER_DAY} Gameweek Pass images. They reset at midnight UK time, or go Plus for unlimited images.`
+          : access?.tier === 'free'
+            ? `You have used your ${FREE_PER_WEEK} free images for this week. They come back on Monday, or pick a plan below.`
+            : 'You have used all your images on this plan. Pick a plan below to keep exporting.'
 
   const signOut = async () => {
     await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' })
@@ -781,7 +783,7 @@ export default function Board() {
       <div className="order-1 lg:col-span-2">
           <div className="flex items-center justify-between gap-3 flex-wrap py-3">
             <div className="font-display text-sm tracking-widest text-[#AFCDBF]">
-              Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left${access?.tier === 'free' ? ' this week' : ''}` : ''}
+              Gameweek {gameweek} · {kind}{left != null ? ` · ${left} image${left === 1 ? '' : 's'} left${access?.tier === 'free' ? ' this week' : access?.tier === 'pass' ? ' today' : ''}` : ''}
               {' · '}
               {access?.signedIn ? (
                 <>
