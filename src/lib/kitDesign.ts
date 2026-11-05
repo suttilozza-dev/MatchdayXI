@@ -271,3 +271,10 @@ export const BOURNEMOUTH: ClubKits = {
   away: { body: '#6D58C6', collar: 'crew', collarColour: '#4B3AA3', cuffs: ['#4B3AA3'], texture: 'zigzag', textureColour: '#fff', textureOpacity: 0.45 },
   third: { body: '#F2EDE0', outline: '#8C93A8', collar: 'polo', collarColour: '#14130F', cuffs: ['#C9A86A', '#14130F'], sidePanel: '#14130F' },
 }
+
+/** Arsenal 2026-27: red with white sleeves, navy geometric away with yellow trim, pale yellow third. */
+export const ARSENAL: ClubKits = {
+  home: { body: '#E3202B', sleeve: '#F4F6FB', collar: 'crew', collarColour: '#8E1020', cuffs: ['#8E1020'] },
+  away: { body: '#1C2C5E', collar: 'crew', collarColour: '#E3202B', collarInner: '#F2C318', cuffs: ['#F2C318', '#E3202B'], shoulder: '#F2C318', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.16 },
+  third: { body: '#F8EDA3', outline: '#9AA0B5', collar: 'crew', collarColour: '#2A3358', collarInner: '#9E2A3A', cuffs: ['#2A3358', '#9E2A3A'], shoulder: '#2A3358' },
+}
