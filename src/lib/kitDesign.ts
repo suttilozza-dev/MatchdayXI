@@ -157,7 +157,10 @@ function collarSvg(k: KitDesign): string {
 }
 
 /** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
-export function kitSvg(k: KitDesign, rawUid = 'k'): string {
+export type KitLayer = { id: string; label: string; markup: string }
+
+/** The shirt split into named layers (body, sleeves, stripes ... collar), plus the shared <defs>. Used for the Canva exports. */
+export function kitLayers(k: KitDesign, rawUid = 'k'): { defs: string; layers: KitLayer[] } {
   const uid = rawUid.replace(/[^a-zA-Z0-9_-]/g, '-')
   const o = k.outline ?? OUTLINE
   const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12, k.textureGap, k.textureColour2)
@@ -166,31 +169,41 @@ export function kitSvg(k: KitDesign, rawUid = 'k'): string {
   const cuffs = k.cuffs
     .map((c, idx) => `<path d="${cuffBand('l', idx / n, (idx + 1) / n)}" fill="${c}"/><path d="${cuffBand('r', idx / n, (idx + 1) / n)}" fill="${c}"/>`)
     .join('')
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
-  <defs>
-    <clipPath id="${uid}-body"><path d="${BODY}"/></clipPath>
+  const defs = `<clipPath id="${uid}-body"><path d="${BODY}"/></clipPath>
     ${k.fade ? `<linearGradient id="${uid}-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${k.fade}" stop-opacity="0"/><stop offset="1" stop-color="${k.fade}" stop-opacity="1"/></linearGradient>` : ''}
     ${k.centreStripe ? `<linearGradient id="${uid}-cs" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${k.centreStripe.colour}" stop-opacity="0.15"/><stop offset="0.5" stop-color="${k.centreStripe.colour}"/><stop offset="1" stop-color="${k.centreStripe.colour}"/></linearGradient>` : ''}
     <clipPath id="${uid}-torso"><rect x="62" y="10" width="116" height="212"/></clipPath>
     <clipPath id="${uid}-sl"><path d="${SLEEVE_L}"/><path d="${SLEEVE_R}"/></clipPath>
-    ${tex.defs}
+    ${tex.defs}`
+  const layers: (KitLayer | null)[] = [
+    { id: 'body', label: 'Body', markup: `<path id="body" d="${BODY}" fill="${k.body}"/>` },
+    { id: 'sleeves', label: 'Sleeves', markup: `<g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>` },
+    k.stripes ? { id: 'stripes', label: 'Stripes', markup: `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` } : null,
+    k.yoke ? { id: 'yoke', label: 'Yoke', markup: `<g id="yoke" clip-path="url(#${uid}-body)"><path d="M0,0L${W},0L${W},58Q120,74 0,58Z" fill="${k.yoke}"/></g>` } : null,
+    k.fade ? { id: 'fade', label: 'Fade', markup: `<g id="fade" clip-path="url(#${uid}-body)"><rect x="0" y="110" width="${W}" height="112" fill="url(#${uid}-fade)"/></g>` } : null,
+    k.centreStripe ? { id: 'centre-stripe', label: 'Centre stripe', markup: `<g id="centre-stripe" clip-path="url(#${uid}-body)"><rect x="${120 - k.centreStripe.w / 2}" y="14" width="${k.centreStripe.w}" height="200" fill="url(#${uid}-cs)"/></g>` } : null,
+    k.sash ? { id: 'sash', label: 'Sash', markup: `<g id="sash" clip-path="url(#${uid}-body)"><g clip-path="url(#${uid}-torso)">${sashLines(k.sash)}</g></g>` } : null,
+    k.sleeveLines ? { id: 'sleeve-lines', label: 'Sleeve lines', markup: `<g id="sleeve-lines" clip-path="url(#${uid}-sl)">${sleeveLines(k.sleeveLines)}</g>` } : null,
+    k.sidePanel ? { id: 'side-panels', label: 'Side panels', markup: `<g id="side-panels" clip-path="url(#${uid}-body)"><path d="M62,84L69,84L71,208L62,208Z" fill="${k.sidePanel}"/><path d="M178,84L171,84L169,208L178,208Z" fill="${k.sidePanel}"/></g>` } : null,
+    k.texture && k.texture !== 'none' ? { id: 'texture', label: 'Texture', markup: `<g id="texture" clip-path="url(#${uid}-body)"><rect width="${W}" height="${H}" fill="${tex.fill}"/></g>` } : null,
+    { id: 'cuffs', label: 'Cuffs', markup: `<g id="cuffs" clip-path="url(#${uid}-body)">${cuffs}</g>` },
+    k.shoulder ? { id: 'shoulders', label: 'Shoulder trim', markup: `<g id="shoulders" clip-path="url(#${uid}-sl)">${shoulderLines('l', k.shoulder)}${shoulderLines('r', k.shoulder)}</g>` } : null,
+    { id: 'seams', label: 'Seams', markup: `<g id="seams" fill="none" stroke="${o}" stroke-width="1" opacity=".35"><path d="M80,21L62,84"/><path d="M160,21L178,84"/></g>` },
+    { id: 'outline', label: 'Outline', markup: `<path id="outline" d="${BODY}" fill="none" stroke="${o}" stroke-width="2.4" stroke-linejoin="round"/>` },
+    { id: 'collar', label: 'Collar', markup: collarSvg(k) },
+  ]
+  return { defs, layers: layers.filter((l): l is KitLayer => !!l) }
+}
+
+/** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
+export function kitSvg(k: KitDesign, rawUid = 'k'): string {
+  const { defs, layers } = kitLayers(k, rawUid)
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+  <defs>
+    ${defs}
   </defs>
   <g id="shirt">
-    <path id="body" d="${BODY}" fill="${k.body}"/>
-    <g id="sleeves" clip-path="url(#${uid}-body)"><path d="${SLEEVE_L}" fill="${sl}"/><path d="${SLEEVE_R}" fill="${sl}"/></g>
-    ${k.stripes ? `<g id="stripes" clip-path="url(#${uid}-body)">${stripeRects(k.stripes.colour, k.stripes.n)}</g>` : ''}
-    ${k.yoke ? `<g id="yoke" clip-path="url(#${uid}-body)"><path d="M0,0L${W},0L${W},58Q120,74 0,58Z" fill="${k.yoke}"/></g>` : ''}
-    ${k.fade ? `<g id="fade" clip-path="url(#${uid}-body)"><rect x="0" y="110" width="${W}" height="112" fill="url(#${uid}-fade)"/></g>` : ''}
-    ${k.centreStripe ? `<g id="centre-stripe" clip-path="url(#${uid}-body)"><rect x="${120 - k.centreStripe.w / 2}" y="14" width="${k.centreStripe.w}" height="200" fill="url(#${uid}-cs)"/></g>` : ''}
-    ${k.sash ? `<g id="sash" clip-path="url(#${uid}-body)"><g clip-path="url(#${uid}-torso)">${sashLines(k.sash)}</g></g>` : ''}
-    ${k.sleeveLines ? `<g id="sleeve-lines" clip-path="url(#${uid}-sl)">${sleeveLines(k.sleeveLines)}</g>` : ''}
-    ${k.sidePanel ? `<g id="side-panels" clip-path="url(#${uid}-body)"><path d="M62,84L69,84L71,208L62,208Z" fill="${k.sidePanel}"/><path d="M178,84L171,84L169,208L178,208Z" fill="${k.sidePanel}"/></g>` : ''}
-    ${k.texture && k.texture !== 'none' ? `<g id="texture" clip-path="url(#${uid}-body)"><rect width="${W}" height="${H}" fill="${tex.fill}"/></g>` : ''}
-    <g id="cuffs" clip-path="url(#${uid}-body)">${cuffs}</g>
-    ${k.shoulder ? `<g id="shoulders" clip-path="url(#${uid}-sl)">${shoulderLines('l', k.shoulder)}${shoulderLines('r', k.shoulder)}</g>` : ''}
-    <g id="seams" fill="none" stroke="${o}" stroke-width="1" opacity=".35"><path d="M80,21L62,84"/><path d="M160,21L178,84"/></g>
-    <path id="outline" d="${BODY}" fill="none" stroke="${o}" stroke-width="2.4" stroke-linejoin="round"/>
-    ${collarSvg(k)}
+    ${layers.map((l) => l.markup).join('\n    ')}
   </g>
 </svg>`
 }

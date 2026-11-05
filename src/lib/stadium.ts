@@ -5,7 +5,7 @@ const PL = 1050
 const PW = 680
 
 /** One drawable piece of a stadium surround, in landscape pitch coordinates (pitch is 0..PL by 0..PW). */
-export type Shape = { d: string; fill?: string; stroke?: string; sw?: number; opacity?: number }
+export type Shape = { layer?: 'ground' | 'apron' | 'stands' | 'crowd' | 'roofs'; d: string; fill?: string; stroke?: string; sw?: number; opacity?: number }
 
 export type StadiumId = string // 'matchdayxi' or 'club:<Club name>'
 export const STADIUMS: { id: StadiumId; name: string; note: string }[] = [
