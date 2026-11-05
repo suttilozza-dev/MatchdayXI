@@ -17,6 +17,7 @@ export type KitDesign = {
   texture?: Texture
   textureColour?: string
   textureOpacity?: number
+  textureGap?: number // spacing for pinstripes
   outline?: string
 }
 
@@ -48,7 +49,7 @@ function shoulderLines(side: 'l' | 'r', c: string): string {
   return `<path d="${d}" stroke="${c}" stroke-width="3.2" fill="none" stroke-linecap="butt"/>`
 }
 
-function textureDefs(id: string, t: Texture, c: string, o: number): { defs: string; fill: string } {
+function textureDefs(id: string, t: Texture, c: string, o: number, gap = 9): { defs: string; fill: string } {
   if (t === 'diamonds')
     return {
       defs: `<pattern id="${id}" width="12" height="14" patternUnits="userSpaceOnUse"><path d="M6,1L11,7L6,13L1,7Z" fill="none" stroke="${c}" stroke-width="0.9" opacity="${o}"/></pattern>`,
@@ -60,7 +61,7 @@ function textureDefs(id: string, t: Texture, c: string, o: number): { defs: stri
       fill: `url(#${id})`,
     }
   if (t === 'pinstripe')
-    return { defs: `<pattern id="${id}" width="9" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
+    return { defs: `<pattern id="${id}" width="${gap}" height="10" patternUnits="userSpaceOnUse"><rect width="1.6" height="10" fill="${c}" opacity="${o}"/></pattern>`, fill: `url(#${id})` }
   return { defs: '', fill: 'none' }
 }
 
@@ -93,7 +94,7 @@ function collarSvg(k: KitDesign): string {
 /** The complete shirt as an SVG string (viewBox 0 0 240 222). `uid` keeps pattern and clip ids unique on a page. */
 export function kitSvg(k: KitDesign, uid = 'k'): string {
   const o = k.outline ?? OUTLINE
-  const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12)
+  const tex = textureDefs(`${uid}-tx`, k.texture ?? 'none', k.textureColour ?? '#fff', k.textureOpacity ?? 0.12, k.textureGap)
   const sl = k.sleeve ?? k.body
   const n = k.cuffs.length
   const cuffs = k.cuffs
@@ -125,4 +126,11 @@ export const VILLA: ClubKits = {
   home: { body: '#7A1D3C', collar: 'polo', collarColour: '#A9CCEE', cuffs: ['#A9CCEE'], shoulder: '#A9CCEE', texture: 'pinstripe', textureColour: '#000', textureOpacity: 0.09 },
   away: { body: '#232629', collar: 'vneck', collarColour: '#E9B93C', collarInner: '#7A1D3C', cuffs: ['#E9B93C', '#7A1D3C', '#A9CCEE'], shoulder: '#E9B93C', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.07 },
   third: { body: '#BCD9F2', collar: 'crew', collarColour: '#7A1D3C', cuffs: ['#7A1D3C'], shoulder: '#7A1D3C', texture: 'waves', textureColour: '#fff', textureOpacity: 0.6 },
+}
+
+/** Chelsea 2026-27 from the kit photos: royal blue polo, black and gold away, white third with thin red pinstripes. */
+export const CHELSEA: ClubKits = {
+  home: { body: '#2252D6', collar: 'polo', collarColour: '#1B44B8', cuffs: ['#1B44B8'], shoulder: '#7FA2F5', texture: 'diamonds', textureColour: '#fff', textureOpacity: 0.05 },
+  away: { body: '#0C0C0F', outline: '#4A5478', collar: 'polo', collarColour: '#E6C21E', cuffs: ['#E6C21E'], texture: 'none' },
+  third: { body: '#F4F6FB', collar: 'crew', collarColour: '#2250C8', cuffs: ['#2250C8'], texture: 'pinstripe', textureColour: '#E5484D', textureOpacity: 0.75, textureGap: 34 },
 }
