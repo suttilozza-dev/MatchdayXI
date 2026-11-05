@@ -324,7 +324,9 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
   ext.right += APRON
   ext.top += APRON
   ext.bottom += APRON
-  shapes.push(...apron(ext), ...body, ...crowd.shapes(), ...roofs)
+  const tag = (layer: NonNullable<Shape['layer']>) => (sh: Shape): Shape => ({ ...sh, layer })
+  bg.layer = 'ground'
+  shapes.push(...apron(ext).map(tag('apron')), ...body.map(tag('stands')), ...crowd.shapes().map(tag('crowd')), ...roofs.map(tag('roofs')))
   bg.d = rectPoly([[-ext.left, -ext.top], [PL + ext.right, -ext.top], [PL + ext.right, PW + ext.bottom], [-ext.left, PW + ext.bottom]])
   return { shapes, ext }
 }
