@@ -1,4 +1,6 @@
 import { SITE_URL, readableOn, surname } from './data'
+import { COLLAR_PATH, patternShapes, type Pattern } from './kit'
+import { isBusy, kitSvg, KIT_SCALE, type KitDesign } from './kitDesign'
 import { SURROUND, type Extents, type Shape as DrawShape } from './stadium'
 
 export type Orient = 'landscape' | 'portrait'
@@ -51,7 +53,7 @@ export function linesTransform(orient: Orient): string {
   return orient === 'landscape' ? '' : `matrix(0,-1,1,0,0,${PL})`
 }
 
-export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean }
+export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean; pattern?: Pattern; design?: KitDesign }
 
 /** How a player is drawn: a plain circle, or a shirt (front shows the number, back also shows the surname). */
 export type MarkerStyle = 'circle' | 'shirt' | 'shirt-back'
@@ -65,6 +67,8 @@ export type CardFormat = 'square' | 'portrait' | 'story' | 'banner' | 'header'
 export const CARD_SIZES: Record<CardFormat, [number, number]> = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], banner: [1920, 1080], header: [1600, 400] }
 
 export type CardInput = {
+  /** keep the card at its standard size: a bigger stadium surround then shrinks the pitch instead of growing the image */
+  fixedSize?: boolean
   orient: Orient
   shape: Shape_
   versus: boolean
@@ -112,8 +116,39 @@ function wrapSubs(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
   return lines
 }
 
+const designImages = new Map<string, HTMLImageElement>()
+const designKey = (d: KitDesign) => JSON.stringify(d)
+async function loadDesigns(markers: PlacedMarker[]) {
+  const seen = new Set<string>()
+  for (const m of markers) {
+    if (!m.design) continue
+    const key = designKey(m.design)
+    if (seen.has(key) || designImages.has(key)) continue
+    seen.add(key)
+    const img = new Image()
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(kitSvg(m.design, 'x'))
+    try {
+      await img.decode()
+      designImages.set(key, img)
+    } catch {
+      /* fall back to the simple shirt */
+    }
+  }
+}
+
 export async function renderCard(input: CardInput): Promise<Blob> {
-  const [W, H] = CARD_SIZES[input.format]
+  let [W, H] = CARD_SIZES[input.format]
+  if (!input.fixedSize && input.format !== 'header') {
+    // A bigger stadium surround grows the image instead of shrinking the pitch: the pitch keeps the size it has with the standard surround.
+    const sctx = document.createElement('canvas').getContext('2d')!
+    sctx.font = '600 22px Oswald, sans-serif'
+    const lines = wrapSubs(sctx, input.homeBench, W - 96).length + (input.versus ? wrapSubs(sctx, input.awayBench, W - 96).length : 0) + (input.homeManager.trim() ? 1 : 0) + (input.versus && input.awayManager.trim() ? 1 : 0)
+    const vb0 = viewBoxFor(input.orient, input.shape, SURROUND)
+    const vb1 = viewBoxFor(input.orient, input.shape, input.ext)
+    const sc0 = Math.min((W - 96) / vb0.w, (H - 190 - 100 - (34 * lines + 16)) / vb0.h)
+    W = Math.round(W + Math.max(0, vb1.w - vb0.w) * sc0)
+    H = Math.round(H + Math.max(0, vb1.h - vb0.h) * sc0)
+  }
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
@@ -126,15 +161,15 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   const branded = !input.handle
   if (input.format === 'header') return renderHeader(canvas, ctx, input, branded)
   if (!input.transparent) {
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#0A1020'
     ctx.fillRect(0, 0, W, H)
     for (let cx = 6; cx < W; cx += 11) for (let cy = 6; cy < H; cy += 11) {
-      ctx.fillStyle = ((cx + cy) / 11) % 2 === 0 ? 'rgba(207,255,77,0.10)' : 'rgba(31,209,193,0.08)'
+      ctx.fillStyle = ((cx + cy) / 11) % 2 === 0 ? 'rgba(200,255,61,0.10)' : 'rgba(25,230,209,0.08)'
       ctx.beginPath()
       ctx.arc(cx, cy, 1.4, 0, Math.PI * 2)
       ctx.fill()
     }
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#0A1020'
     ctx.fillRect(0, 0, W, 176)
   }
 
@@ -142,19 +177,19 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   if (branded) {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 64px Oswald, sans-serif'
     ctx.fillText('MATCHDAY', 48, 96)
     const w = ctx.measureText('MATCHDAY ').width
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#C8FF3D'
     ctx.fillText('XI', 48 + w, 96)
   } else {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 56px Oswald, sans-serif'
     ctx.fillText(input.handle.toUpperCase().slice(0, 28), 48, 96)
   }
   ctx.textAlign = 'right'
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A9B4D0'
   ctx.font = '600 28px Oswald, sans-serif'
   ctx.fillText(`GAMEWEEK ${input.gameweek.toUpperCase()} · ${input.kind.toUpperCase()}`, W - 48, 94)
   ctx.textAlign = 'left'
@@ -166,21 +201,21 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.beginPath()
     ctx.arc(x, 146, 11, 0, Math.PI * 2)
     ctx.fill()
-    ctx.strokeStyle = 'rgba(247,247,242,.6)'
+    ctx.strokeStyle = 'rgba(245,247,255,.6)'
     ctx.lineWidth = 2
     ctx.stroke()
   }
   dot(60, input.homeColour)
-  ctx.fillStyle = '#F7F7F2'
+  ctx.fillStyle = '#F5F7FF'
   const homeText = `${input.homeName.toUpperCase()}  ${input.homeForm}`
   ctx.fillText(homeText, 82, 158)
   if (input.versus) {
     const hw = ctx.measureText(homeText).width
-    ctx.fillStyle = '#AFCDBF'
+    ctx.fillStyle = '#A9B4D0'
     ctx.fillText('VS', 82 + hw + 22, 158)
     const vx = 82 + hw + 22 + ctx.measureText('VS ').width + 24
     dot(vx + 6, input.awayColour)
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.fillText(`${input.awayName.toUpperCase()}  ${input.awayForm}`, vx + 28, 158)
   }
 
@@ -220,12 +255,14 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     }
   }
   ctx.globalAlpha = 1
-  ctx.fillStyle = '#1B5940'
+  ctx.fillStyle = '#23A261'
   ctx.fillRect(0, 0, PL, PW)
-  ctx.strokeStyle = 'rgba(247,247,242,0.45)'
+  ctx.fillStyle = 'rgba(0,0,0,0.07)'
+  for (let i = 1; i < 10; i += 2) ctx.fillRect(i * 105, 0, 105, PW) // mowing stripes, as on the board
+  ctx.strokeStyle = 'rgba(245,247,255,0.45)'
   ctx.lineWidth = 2.5
   for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
-  ctx.fillStyle = 'rgba(247,247,242,0.5)'
+  ctx.fillStyle = 'rgba(245,247,255,0.5)'
   for (const [sx, sy] of SPOTS) {
     ctx.beginPath()
     ctx.arc(sx, sy, 3, 0, Math.PI * 2)
@@ -234,6 +271,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.restore()
 
   // markers
+  await loadDesigns(input.markers)
   for (const m of input.markers) drawMarker(ctx, m, input)
   ctx.restore()
 
@@ -243,13 +281,13 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   const by = H - 100 - benchH + 34
   let li = 0
   if (mgrHome) {
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#C8FF3D'
     ctx.fillText(mgrHome, 48, by + 34 * li++)
   }
-  ctx.fillStyle = '#CFFF4D'
+  ctx.fillStyle = '#C8FF3D'
   subsHome.forEach((line) => ctx.fillText(li === (mgrHome ? 1 : 0) ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
   if (input.versus) {
-    ctx.fillStyle = '#1FD1C1'
+    ctx.fillStyle = '#19E6D1'
     if (mgrAway) ctx.fillText(mgrAway, 48, by + 34 * li++)
     const first = li
     subsAway.forEach((line) => ctx.fillText(li === first ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
@@ -262,14 +300,14 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.rotate(-Math.PI / 7)
     ctx.font = '700 52px Oswald, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(247,247,242,0.15)'
+    ctx.fillStyle = 'rgba(245,247,255,0.15)'
     for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
     ctx.restore()
   }
 
   // footer: site link (branded only) + disclaimer line
   ctx.textAlign = 'left'
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A9B4D0'
   ctx.font = '500 20px Oswald, sans-serif'
   if (branded) ctx.fillText(SITE_URL.toUpperCase(), 48, H - 40)
   ctx.textAlign = 'right'
@@ -296,15 +334,39 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.strokeStyle = m.ring
     ctx.lineWidth = 4
     ctx.stroke()
+  } else if (m.design && designImages.has(designKey(m.design))) {
+    const img = designImages.get(designKey(m.design))!
+    ctx.drawImage(img, -120 * KIT_SCALE, -111 * KIT_SCALE, 240 * KIT_SCALE, 222 * KIT_SCALE)
   } else {
     const p = new Path2D(SHIRT_PATH)
     ctx.fillStyle = m.colour
     ctx.fill(p)
+    const shapes = patternShapes(m.pattern, m.ring)
+    if (shapes.length) {
+      ctx.save()
+      ctx.clip(p)
+      for (const sh of shapes) {
+        ctx.fillStyle = sh.fill
+        if (sh.kind === 'rect') ctx.fillRect(sh.x, sh.y, sh.w, sh.h)
+        else {
+          ctx.beginPath()
+          sh.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)))
+          ctx.closePath()
+          ctx.fill()
+        }
+      }
+      ctx.restore()
+    }
     ctx.strokeStyle = m.ring
     ctx.lineWidth = 3.5
     ctx.stroke(p)
+    ctx.lineWidth = 4
+    ctx.stroke(new Path2D(COLLAR_PATH)) // the neckline in the trim colour
   }
-  ctx.fillStyle = readableOn(m.colour)
+  const useDesign = style !== 'circle' && !!m.design && designImages.has(designKey(m.design))
+  const base = useDesign ? m.design!.body : m.colour
+  const patterned = style !== 'circle' && (useDesign ? isBusy(m.design!) : !!m.pattern && m.pattern !== 'plain')
+  ctx.fillStyle = readableOn(base)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   if (style === 'shirt-back') {
@@ -312,21 +374,31 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.font = `600 ${backFont(back)}px Inter, sans-serif`
     ctx.fillText(back, 0, -11)
     ctx.font = '700 25px Oswald, sans-serif'
+    if (patterned) {
+      ctx.lineWidth = 4
+      ctx.strokeStyle = readableOn(readableOn(base))
+      ctx.strokeText(m.num == null ? '' : String(m.num), 0, 8)
+    }
     ctx.fillText(m.num == null ? '' : String(m.num), 0, 8)
   } else {
     ctx.font = '700 23px Oswald, sans-serif'
+    if (patterned) {
+      ctx.lineWidth = 4
+      ctx.strokeStyle = readableOn(readableOn(base))
+      ctx.strokeText(m.num == null ? '' : String(m.num), 0, 1)
+    }
     ctx.fillText(m.num == null ? '' : String(m.num), 0, 1)
   }
   if (m.captain) {
     // captain's armband: a lime badge with a C
     ctx.beginPath()
     ctx.arc(24, -22, 11, 0, Math.PI * 2)
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#C8FF3D'
     ctx.fill()
-    ctx.strokeStyle = '#0E2A20'
+    ctx.strokeStyle = '#0A1020'
     ctx.lineWidth = 2
     ctx.stroke()
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#0A1020'
     ctx.font = '700 15px Oswald, sans-serif'
     ctx.fillText('C', 24, -21)
   }
@@ -334,11 +406,11 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     ctx.textBaseline = 'alphabetic'
     ctx.font = '600 19px Inter, sans-serif'
     const label = surname(m.name)
-    const dy = input.labelPos === 'above' ? -37 : style === 'circle' ? 47 : 50
+    const dy = input.labelPos === 'above' ? (useDesign ? -46 : -37) : style === 'circle' ? 47 : useDesign ? 58 : 50
     ctx.lineWidth = 5
-    ctx.strokeStyle = 'rgba(14,42,32,0.9)'
+    ctx.strokeStyle = 'rgba(10,16,32,0.9)'
     ctx.strokeText(label, 0, dy)
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.fillText(label, 0, dy)
   }
   ctx.restore()
@@ -350,36 +422,36 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   const W = canvas.width
   const H = canvas.height
   if (!input.transparent) {
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#0A1020'
     ctx.fillRect(0, 0, W, H)
   }
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   if (branded) {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 58px Oswald, sans-serif'
     ctx.fillText('MATCHDAY', 44, 92)
     const w = ctx.measureText('MATCHDAY ').width
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#C8FF3D'
     ctx.fillText('XI', 44 + w, 92)
   } else {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 50px Oswald, sans-serif'
     ctx.fillText(input.handle.toUpperCase().slice(0, 28), 44, 92)
   }
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A9B4D0'
   ctx.font = '600 26px Oswald, sans-serif'
   ctx.fillText(`GAMEWEEK ${input.gameweek.toUpperCase()} · ${input.kind.toUpperCase()}`, 44, 136)
-  ctx.fillStyle = '#F7F7F2'
+  ctx.fillStyle = '#F5F7FF'
   ctx.font = '600 30px Oswald, sans-serif'
   ctx.fillText(`${input.homeName.toUpperCase()}  ${input.homeForm}`, 44, 196)
   if (input.versus) ctx.fillText(`VS ${input.awayName.toUpperCase()}  ${input.awayForm}`, 44, 238)
   if (input.homeManager.trim()) {
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#C8FF3D'
     ctx.font = '600 22px Oswald, sans-serif'
     ctx.fillText(`MANAGER  ${input.homeManager.trim().toUpperCase()}`, 44, input.versus ? 280 : 238)
   }
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A9B4D0'
   ctx.font = '500 18px Oswald, sans-serif'
   if (branded) ctx.fillText(SITE_URL.toUpperCase(), 44, H - 28)
   const vb = viewBoxFor(input.orient, input.shape, input.ext)
@@ -409,12 +481,15 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     }
   }
   ctx.globalAlpha = 1
-  ctx.fillStyle = '#1B5940'
+  ctx.fillStyle = '#23A261'
   ctx.fillRect(0, 0, PL, PW)
-  ctx.strokeStyle = 'rgba(247,247,242,0.45)'
+  ctx.fillStyle = 'rgba(0,0,0,0.07)'
+  for (let i = 1; i < 10; i += 2) ctx.fillRect(i * 105, 0, 105, PW) // mowing stripes, as on the board
+  ctx.strokeStyle = 'rgba(245,247,255,0.45)'
   ctx.lineWidth = 2.5
   for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
   ctx.restore()
+  await loadDesigns(input.markers)
   for (const m of input.markers) drawMarker(ctx, m, input, 1, false)
   ctx.restore()
   if (input.watermark) {
@@ -423,7 +498,7 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     ctx.rotate(-Math.PI / 14)
     ctx.font = '700 44px Oswald, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(247,247,242,0.17)'
+    ctx.fillStyle = 'rgba(245,247,255,0.17)'
     for (let x = -W; x < W; x += 620) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x, 0)
     ctx.restore()
   }

@@ -2,8 +2,8 @@ import { Link, createFileRoute } from '@tanstack/react-router'
 import { Pricing } from '#/components/Pricing'
 import { Disclaimer } from '#/components/Disclaimer'
 import { GAMEWEEK_DEFAULT } from '#/lib/data'
-import { HeaderLogo, Logo } from '#/components/Logo'
-import { LOGOS } from '#/lib/logos'
+import { HeaderLogo } from '#/components/Logo'
+import { HeroCarousel } from '#/components/HeroCarousel'
 
 export const Route = createFileRoute('/')({ component: Home })
 
@@ -18,23 +18,24 @@ function Home() {
     <div>
       <header className="mx-auto max-w-[1100px] px-4 py-5 flex items-center justify-between">
         <HeaderLogo />
-        <Link to="/board" className="font-display text-sm tracking-widest text-[#CFFF4D]">Open the board →</Link>
+        <Link to="/board" className="font-display text-sm tracking-widest text-[#C8FF3D]">Open the board →</Link>
       </header>
 
       <main>
-        <section className="mx-auto max-w-[1100px] px-4 pt-10 pb-16 text-center">
-          <div className="mx-auto mb-6 rounded-2xl overflow-hidden" style={{ width: 'min(320px, 80vw)', background: LOGOS['02'].bg }}>
-            <Logo id="02" label="Matchday XI pitch monogram" />
+        <section className="mx-auto max-w-[1100px] px-4 pt-8 pb-16 grid gap-10 md:grid-cols-[1.1fr_0.9fr] items-center" style={{ backgroundImage: 'radial-gradient(520px 420px at 78% 45%, rgba(35,162,97,.38), transparent 70%)' }}>
+          <div className="text-center md:text-left">
+            <p className="font-display text-xs tracking-widest text-[#C8FF3D] mb-3">Football line-up maker</p>
+            <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,9vw,6rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
+            <p className="mt-5 max-w-xl text-lg text-[#A9B4D0] mx-auto md:mx-0">
+              Pick a formation, name your captain and manager, and share your predicted XI, starting line-up or dream team as an image. Your first one is free, with no sign-up.
+            </p>
+            <div className="mt-7 flex gap-3 justify-center md:justify-start flex-wrap">
+              <Link to="/board" className="btn btn-lime">Build your XI</Link>
+              <a href="#plans" className="btn btn-ghost">See plans</a>
+            </div>
+            <p className="mt-4 font-display text-xs tracking-widest text-[#A9B4D0]">Gameweek {GAMEWEEK_DEFAULT} board is live</p>
           </div>
-          <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,10vw,7rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-[#AFCDBF]">
-            The football line-up maker and squad builder. Pick a formation, name your captain and manager, and share your predicted XI, starting line-up or dream team as an image.
-          </p>
-          <div className="mt-7 flex gap-3 justify-center flex-wrap">
-            <Link to="/board" className="btn btn-lime">Pick your XI</Link>
-            <Link to="/board" className="btn btn-ghost">Share the line-up</Link>
-          </div>
-          <p className="mt-4 font-display text-xs tracking-widest text-[#AFCDBF]">Gameweek {GAMEWEEK_DEFAULT} board is live</p>
+          <HeroCarousel />
         </section>
 
         <section className="mx-auto max-w-[1100px] px-4 pb-16">
@@ -42,24 +43,24 @@ function Home() {
           <div className="grid gap-4 md:grid-cols-3">
             {STEPS.map((s) => (
               <div key={s.n} className="panel p-5">
-                <div className="font-display text-2xl text-[#CFFF4D]">{s.n}</div>
+                <div className="font-display text-2xl text-[#C8FF3D]">{s.n}</div>
                 <div className="font-display text-lg mt-1">{s.t}</div>
-                <p className="mt-2 text-sm text-[#AFCDBF]">{s.d}</p>
+                <p className="mt-2 text-sm text-[#A9B4D0]">{s.d}</p>
               </div>
             ))}
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1100px] px-4 pb-16">
-          <h2 className="font-display font-bold text-3xl mb-1">Free to build. Pay to <span style={{ color: 'var(--boot-lime)' }}>export</span>.</h2>
-          <p className="text-sm text-[#AFCDBF]">Build as much as you like. Your first image needs no sign-up, then 3 free images every week. Pick a plan for clean images in every size.</p>
+        <section id="plans" className="mx-auto max-w-[1100px] px-4 pb-16">
+          <h2 className="font-display font-bold text-3xl mb-1">Start free. Upgrade for <span style={{ color: 'var(--boot-lime)' }}>clean images</span>.</h2>
+          <p className="text-sm text-[#A9B4D0]">Build as much as you like. Your first image needs no sign-up, then 3 free images every week. Pick a plan for clean images in every size.</p>
           <Pricing />
         </section>
       </main>
 
       <footer className="mx-auto max-w-[1100px] px-4 pb-10 flex flex-col gap-2">
         <Disclaimer />
-        <p className="text-xs text-[#AFCDBF]">matchday-xi.club</p>
+        <p className="text-xs text-[#A9B4D0]">matchday-xi.club</p>
       </footer>
     </div>
   )
