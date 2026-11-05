@@ -12,6 +12,7 @@ export function sampleCardInput(club: string, formation = '4-2-3-1'): CardInput 
   const squad = squadFor(club)
   const art = stadiumFor('matchdayxi', 'home')
   return {
+    fixedSize: true,
     orient: 'portrait',
     shape: 'full',
     versus: false,

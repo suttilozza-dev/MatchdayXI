@@ -56,22 +56,97 @@ export const CLUB_GROUNDS: Record<string, Spec> = {
 export const DEFAULT_GROUND: Spec = { ground: 'MatchdayXI Stadium', capacity: 5000, top: S(2, 1, 'flat'), bottom: S(1, 0.6, 'flat'), left: S(1, 0.6, 'none'), right: S(1, 0.6, 'none'), corners: NONE, seats: ['#1E6B4D', '#C8FF3D'], notes: 'A small ground in the site colours.' }
 
 const H = 10 // hoarding strip next to the pitch
-const TU = 42 // depth of one tier, before the side's own depth factor
+const TU = 46 // depth of one tier, before the side's own depth factor
 const PL = 1050
 const PW = 680
 const rectPoly = (pts: [number, number][]) => `M${pts.map((p) => p.join(',')).join('L')}Z`
-const dot = (cx: number, cy: number, r: number) => `M${cx - r},${cy}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`
 const rr = (x0: number, y0: number, x1: number, y1: number, r: number) => `M${x0 + r},${y0}H${x1 - r}A${r},${r} 0 0 1 ${x1},${y0 + r}V${y1 - r}A${r},${r} 0 0 1 ${x1 - r},${y1}H${x0 + r}A${r},${r} 0 0 1 ${x0},${y1 - r}V${y0 + r}A${r},${r} 0 0 1 ${x0 + r},${y0}Z`
 const rrRev = (x0: number, y0: number, x1: number, y1: number, r: number) => `M${x0 + r},${y0}A${r},${r} 0 0 0 ${x0},${y0 + r}V${y1 - r}A${r},${r} 0 0 0 ${x0 + r},${y1}H${x1 - r}A${r},${r} 0 0 0 ${x1},${y1 - r}V${y0 + r}A${r},${r} 0 0 0 ${x1 - r},${y0}Z`
 
 export type Surround = { shapes: Shape[]; ext: { left: number; right: number; top: number; bottom: number } }
 
-const ROOF_FILL: Record<Roof, { fill: string; op: number; line: string }> = {
-  none: { fill: '#0A1020', op: 0, line: '#F5F7FF' },
-  flat: { fill: '#1B2644', op: 0.92, line: '#A9B4D0' },
-  truss: { fill: '#CFD6E8', op: 0.28, line: '#F5F7FF' },
-  glass: { fill: '#6FB7E8', op: 0.3, line: '#C8E6FA' },
-  solar: { fill: '#1D3A7A', op: 0.9, line: '#7FA2E8' },
+const ROOF_FILL: Record<Roof, { fill: string; op: number; line: string; cover: number }> = {
+  none: { fill: '#0A1020', op: 0, line: '#F5F7FF', cover: 0 },
+  flat: { fill: '#2A3558', op: 0.97, line: '#A9B4D0', cover: 0.5 },
+  truss: { fill: '#C9D0E4', op: 1, line: '#7C86A6', cover: 0.55 },
+  glass: { fill: '#8CC6EE', op: 0.9, line: '#E4F3FD', cover: 0.5 },
+  solar: { fill: '#22408A', op: 0.97, line: '#7FA2E8', cover: 0.5 },
+}
+
+const r1 = (n: number) => Math.round(n * 10) / 10
+const hash = (x: number, y: number) => {
+  const v = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453
+  return v - Math.floor(v)
+}
+const smallDot = (x: number, y: number, r: number) => `M${r1(x - r)},${r1(y)}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0`
+
+/** Crowd spots: many small dots in the club's colours. Only used on seating with no roof over it. */
+class Crowd {
+  private by: Record<string, string> = {}
+  constructor(private palette: string[]) {}
+  add(x: number, y: number) {
+    const h = hash(x, y)
+    if (h < 0.07) return // an empty seat
+    const h2 = hash(y, x)
+    const c = this.palette[Math.floor(h2 * this.palette.length) % this.palette.length]
+    this.by[c] = (this.by[c] ?? '') + smallDot(x + (h - 0.5) * 1.2, y + (h2 - 0.5) * 1.2, 1.9)
+  }
+  shapes(): Shape[] {
+    return Object.entries(this.by).map(([fill, d]) => ({ d, fill, opacity: 0.92 }))
+  }
+}
+
+const inRR = (x: number, y: number, b: [number, number, number, number], r: number) => {
+  if (x < b[0] || x > b[2] || y < b[1] || y > b[3]) return false
+  const cx = x < b[0] + r ? b[0] + r : x > b[2] - r ? b[2] - r : x
+  const cy = y < b[1] + r ? b[1] + r : y > b[3] - r ? b[3] - r : y
+  return (x - cx) ** 2 + (y - cy) ** 2 <= r * r
+}
+
+const APRON = 110 // room for the outside of the ground: concourse, road, trees and car parks
+
+/** Outside the stands: a lighter apron, a road with a centre line, trees and a few parked cars. */
+function apron(ext: { left: number; right: number; top: number; bottom: number }): Shape[] {
+  const out: Shape[] = []
+  const x0 = -ext.left, y0 = -ext.top, x1 = PL + ext.right, y1 = PW + ext.bottom
+  out.push({ d: rectPoly([[x0, y0], [x1, y0], [x1, y1], [x0, y1]]), fill: '#0D1630' })
+  // road ring
+  const m = 26
+  out.push({ d: rr(x0 + m, y0 + m, x1 - m, y1 - m, 46), stroke: '#18234A', sw: 18 })
+  out.push({ d: rr(x0 + m, y0 + m, x1 - m, y1 - m, 46), stroke: '#F5F7FF', sw: 1.2, opacity: 0.18 })
+  // trees in the corners and along the outer edge
+  let trees = ''
+  let treesLight = ''
+  const spots: [number, number][] = []
+  for (let i = 0; i < 34; i++) {
+    const t = i / 34
+    const per = 2 * ((x1 - x0) + (y1 - y0))
+    let p = t * per + hash(i, 3) * 40
+    const w = x1 - x0, h = y1 - y0
+    let px: number, py: number
+    const off = 4 + hash(i, 9) * 14
+    if (p < w) { px = x0 + p; py = y0 + off }
+    else if ((p -= w) < h) { px = x1 - off; py = y0 + p }
+    else if ((p -= h) < w) { px = x1 - p; py = y1 - off }
+    else { px = x0 + off; py = y1 - (p - w - h) }
+    spots.push([px, py])
+  }
+  for (const [px, py] of spots) {
+    const r = 6 + hash(px, py) * 7
+    trees += smallDot(px, py, r)
+    treesLight += smallDot(px - 1.5, py - 1.5, r * 0.55)
+  }
+  out.push({ d: trees, fill: '#123A2E', opacity: 0.95 })
+  out.push({ d: treesLight, fill: '#1E5A44', opacity: 0.8 })
+  // parked cars in the bottom corners
+  let cars = ''
+  for (let i = 0; i < 18; i++) {
+    const cx = x0 + 52 + (i % 9) * 11
+    const cy = y1 - 62 + Math.floor(i / 9) * 14
+    cars += `M${cx},${cy}h7v11h-7Z`
+  }
+  out.push({ d: cars, fill: '#A9B4D0', opacity: 0.35 })
+  return out
 }
 
 /** Build the surround for a ground spec. `main` and `trim` are only used when the spec has no seat colours. */
@@ -86,81 +161,70 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
 
   const bg: Shape = { d: '', fill: '#070B18' }
   shapes.push(bg)
+  const crowd = new Crowd([seatDefault[1], seatDefault[1], '#F5F7FF', '#F5F7FF', '#A9B4D0', seatDefault[0], '#0A1020'])
+  const body: Shape[] = []
+  const roofs: Shape[] = []
 
   if (sp.ring) {
-    // ---- continuous bowl: tiers as rounded rings, then one roof ring over the back half ----
+    // ---- continuous bowl: tiers as rounded rings, crowd on the exposed inner part, one roof ring over the back ----
     const dT = D(sp.top), dB = D(sp.bottom), dL = D(sp.left), dR = D(sp.right)
     const T = Math.max(sp.top.t, sp.bottom.t, sp.left.t, sp.right.t, 1)
     const box = (f: number, grow = 0): [number, number, number, number] => [-(H + dL * f + grow), -(H + dT * f + grow), PL + H + dR * f + grow, PW + H + dB * f + grow]
     const rad = (f: number) => 40 + 70 * f
     for (let k = 0; k < T; k++) {
       const a = box(k / T), b = box((k + 1) / T - 0.012)
-      shapes.push({ d: rr(b[0], b[1], b[2], b[3], rad((k + 1) / T)) + rrRev(a[0], a[1], a[2], a[3], rad(k / T)), fill: seatDefault[0], opacity: k % 2 ? 0.78 : 1 })
-      shapes.push({ d: rr(b[0], b[1], b[2], b[3], rad((k + 1) / T)) + rrRev(b[0] + 1.5, b[1] + 1.5, b[2] - 1.5, b[3] - 1.5, rad((k + 1) / T)), fill: seatDefault[1], opacity: 0.4 })
+      body.push({ d: rr(b[0], b[1], b[2], b[3], rad((k + 1) / T)) + rrRev(a[0], a[1], a[2], a[3], rad(k / T)), fill: seatDefault[0], opacity: k % 2 ? 0.7 : 0.9 })
     }
-    // seat rows as fine lines
-    let rows = ''
-    for (let f = 0.12; f < 1; f += 0.12) {
-      const b = box(f)
-      rows += rr(b[0], b[1], b[2], b[3], rad(f))
-    }
-    shapes.push({ d: rows, stroke: '#F5F7FF', sw: 1, opacity: 0.1 })
-    // roof ring
-    const inner = box(0.42), outer = box(1, 6)
-    const R = sp.ring.colour
-    shapes.push({ d: rr(outer[0], outer[1], outer[2], outer[3], rad(1) + 6) + rrRev(inner[0], inner[1], inner[2], inner[3], rad(0.42)), fill: R, opacity: 0.9 })
-    // roof lines
-    let ln = ''
-    const step = sp.ring.style === 'truss' ? 70 : 46
-    for (let s = 60; s < PL - 40; s += step) {
-      ln += `M${s},${inner[1]}L${s},${outer[1]}M${s},${inner[3]}L${s},${outer[3]}`
-    }
-    for (let s = 70; s < PW - 40; s += step) {
-      ln += `M${inner[0]},${s}L${outer[0]},${s}M${inner[2]},${s}L${outer[2]},${s}`
-    }
-    ln += `M${inner[0] + 30},${inner[1] + 30}L${outer[0] + 10},${outer[1] + 10}M${inner[2] - 30},${inner[1] + 30}L${outer[2] - 10},${outer[1] + 10}M${inner[0] + 30},${inner[3] - 30}L${outer[0] + 10},${outer[3] - 10}M${inner[2] - 30},${inner[3] - 30}L${outer[2] - 10},${outer[3] - 10}`
-    shapes.push({ d: ln, stroke: '#0A1020', sw: 1.4, opacity: sp.ring.style === 'truss' ? 0.45 : 0.28 })
-    if (sp.ring.style === 'truss') {
-      // cross braces along the long sides, like Emirates and the Stadium of Light
-      let x = ''
-      for (let s = 60; s < PL - 110; s += 70) {
-        x += `M${s},${inner[1]}L${s + 70},${outer[1]}M${s + 70},${inner[1]}L${s},${outer[1]}M${s},${inner[3]}L${s + 70},${outer[3]}M${s + 70},${inner[3]}L${s},${outer[3]}`
+    // crowd on the part of the bowl the roof does not cover
+    const cov = 0.42
+    const inner = box(cov), outerBox = box(1, 6), pit = box(0)
+    for (let y = inner[1]; y < inner[3] + 1; y += 5.2) {
+      for (let x = inner[0] + ((Math.round(y / 5.2) % 2) * 2.6); x < inner[2]; x += 5.2) {
+        if (inRR(x, y, inner, rad(cov)) && !(x > pit[0] + 2 && x < pit[2] - 2 && y > pit[1] + 2 && y < pit[3] - 2)) crowd.add(x, y)
       }
-      shapes.push({ d: x, stroke: '#0A1020', sw: 1, opacity: 0.25 })
+    }
+    // roof ring
+    const R = sp.ring.colour
+    roofs.push({ d: rr(inner[0] - 5, inner[1] - 5, inner[2] + 5, inner[3] + 5, rad(cov) + 5) + rrRev(inner[0], inner[1], inner[2], inner[3], rad(cov)), fill: '#000000', opacity: 0.4 })
+    roofs.push({ d: rr(outerBox[0], outerBox[1], outerBox[2], outerBox[3], rad(1) + 6) + rrRev(inner[0], inner[1], inner[2], inner[3], rad(cov)), fill: R, opacity: 0.97 })
+    let ln = ''
+    const step = sp.ring.style === 'truss' ? 66 : 42
+    for (let s = 60; s < PL - 40; s += step) ln += `M${s},${inner[1]}L${s},${outerBox[1]}M${s},${inner[3]}L${s},${outerBox[3]}`
+    for (let s = 70; s < PW - 40; s += step) ln += `M${inner[0]},${s}L${outerBox[0]},${s}M${inner[2]},${s}L${outerBox[2]},${s}`
+    ln += `M${inner[0] + 26},${inner[1] + 26}L${outerBox[0] + 10},${outerBox[1] + 10}M${inner[2] - 26},${inner[1] + 26}L${outerBox[2] - 10},${outerBox[1] + 10}M${inner[0] + 26},${inner[3] - 26}L${outerBox[0] + 10},${outerBox[3] - 10}M${inner[2] - 26},${inner[3] - 26}L${outerBox[2] - 10},${outerBox[3] - 10}`
+    roofs.push({ d: ln, stroke: '#0A1020', sw: 1.3, opacity: sp.ring.style === 'truss' ? 0.5 : 0.3 })
+    if (sp.ring.style === 'truss') {
+      let x = ''
+      for (let s = 60; s < PL - 110; s += 66) x += `M${s},${inner[1]}L${s + 66},${outerBox[1]}M${s + 66},${inner[1]}L${s},${outerBox[1]}M${s},${inner[3]}L${s + 66},${outerBox[3]}M${s + 66},${inner[3]}L${s},${outerBox[3]}`
+      roofs.push({ d: x, stroke: '#0A1020', sw: 1, opacity: 0.3 })
     }
     if (sp.ring.style === 'arches') {
-      // two white steel arches along the long sides
       const ay = (y: number, dir: number) => `M${40},${y}Q${PL / 2},${y + dir * 120} ${PL - 40},${y}`
-      shapes.push({ d: ay(inner[1] - 4, -1), stroke: '#FFFFFF', sw: 5, opacity: 0.95 })
-      shapes.push({ d: ay(inner[3] + 4, 1), stroke: '#FFFFFF', sw: 5, opacity: 0.95 })
+      roofs.push({ d: ay(inner[1] - 4, -1), stroke: '#FFFFFF', sw: 6, opacity: 0.95 })
+      roofs.push({ d: ay(inner[3] + 4, 1), stroke: '#FFFFFF', sw: 6, opacity: 0.95 })
     }
-    // outer rim highlight
-    shapes.push({ d: rr(outer[0], outer[1], outer[2], outer[3], rad(1) + 6), stroke: '#F5F7FF', sw: 2, opacity: 0.5 })
-    // masts and towers
+    roofs.push({ d: rr(outerBox[0], outerBox[1], outerBox[2], outerBox[3], rad(1) + 6), stroke: '#F5F7FF', sw: 2, opacity: 0.5 })
     if (sp.ring.masts) {
-      const pts: [number, number][] = []
       const n = sp.ring.masts
+      const w = outerBox[2] - outerBox[0], h = outerBox[3] - outerBox[1]
+      const per = 2 * (w + h)
       for (let i = 0; i < n; i++) {
-        const u = (i + 0.5) / n
-        const per = 2 * ((outer[2] - outer[0]) + (outer[3] - outer[1]))
-        let p = u * per
-        const w = outer[2] - outer[0], h = outer[3] - outer[1]
-        if (p < w) pts.push([outer[0] + p, outer[1] - 10])
-        else if ((p -= w) < h) pts.push([outer[2] + 10, outer[1] + p])
-        else if ((p -= h) < w) pts.push([outer[2] - p, outer[3] + 10])
-        else pts.push([outer[0] - 10, outer[3] - (p - w - h)])
-      }
-      for (const [x, y] of pts) {
-        shapes.push({ d: dot(x, y, 6), fill: '#F5F7FF', stroke: '#0A1020', sw: 2 })
+        let p = ((i + 0.5) / n) * per
+        let pt: [number, number]
+        if (p < w) pt = [outerBox[0] + p, outerBox[1] - 10]
+        else if ((p -= w) < h) pt = [outerBox[2] + 10, outerBox[1] + p]
+        else if ((p -= h) < w) pt = [outerBox[2] - p, outerBox[3] + 10]
+        else pt = [outerBox[0] - 10, outerBox[3] - (p - w - h)]
+        roofs.push({ d: smallDot(pt[0], pt[1], 6), fill: '#F5F7FF', stroke: '#0A1020', sw: 2 })
       }
       for (const k of ['left', 'right', 'top', 'bottom'] as const) ext[k] += 14
     }
     if (sp.ring.towers) {
-      const w = outer[2] - outer[0]
+      const w = outerBox[2] - outerBox[0]
       for (let i = 0; i < 4; i++) {
-        const x = outer[0] + w * (0.18 + i * 0.213)
-        shapes.push({ d: dot(x, outer[3] + 18, 20), fill: '#8FB8D8', stroke: '#F5F7FF', sw: 2.5 })
-        shapes.push({ d: dot(x, outer[3] + 18, 10), fill: '#F5F7FF', opacity: 0.8 })
+        const x = outerBox[0] + w * (0.18 + i * 0.213)
+        roofs.push({ d: smallDot(x, outerBox[3] + 18, 20), fill: '#8FB8D8', stroke: '#F5F7FF', sw: 2.5 })
+        roofs.push({ d: smallDot(x, outerBox[3] + 18, 10), fill: '#F5F7FF', opacity: 0.8 })
       }
       ext.bottom += 30
     }
@@ -168,95 +232,84 @@ export function groundSurround(sp: Spec, main: string, trim: string): Surround {
     ext.right += dR + 12
     ext.top += dT + 12
     ext.bottom += dB + 12
-    bg.d = rectPoly([[-ext.left, -ext.top], [PL + ext.right, -ext.top], [PL + ext.right, PW + ext.bottom], [-ext.left, PW + ext.bottom]])
-    return { shapes, ext }
-  }
-
-  // ---- separate stands ----
-  const sideSpan = (side: 'top' | 'bottom' | 'left' | 'right'): [number, number] => {
-    const [tl, tr, bl, br] = sp.corners
-    if (side === 'top') return [tl ? -(H + D(sp.left)) : 0, tr ? PL + H + D(sp.right) : PL]
-    if (side === 'bottom') return [bl ? -(H + D(sp.left)) : 0, br ? PL + H + D(sp.right) : PL]
-    return [0, PW]
-  }
-
-  ;(['top', 'bottom', 'left', 'right'] as const).forEach((side) => {
-    const sd = sides[side]
-    const total = D(sd)
-    if (sd.t <= 0) return
-    const [s0, s1] = sideSpan(side)
-    const [seat, accent] = sd.seats ?? seatDefault
-    ext[side] = H + total + 14
-    const along = (d: number) => [map(side, s0, d), map(side, s1, d)] as const
-    for (let k = 0; k < sd.t; k++) {
-      const d0 = k * TU * (sd.depth ?? 1)
-      const d1 = (k + 1) * TU * (sd.depth ?? 1) - 2
-      shapes.push({ d: rectPoly([map(side, s0, d0), map(side, s1, d0), map(side, s1, d1), map(side, s0, d1)]), fill: sd.brick && k === 0 ? '#8C3B2E' : seat, opacity: k % 2 ? 0.78 : 1 })
-      shapes.push({ d: rectPoly([map(side, s0, d1), map(side, s1, d1), map(side, s1, d1 + 1.6), map(side, s0, d1 + 1.6)]), fill: accent, opacity: 0.45 })
+  } else {
+    // ---- separate stands ----
+    const sideSpan = (side: 'top' | 'bottom' | 'left' | 'right'): [number, number] => {
+      const [tl, tr, bl, br] = sp.corners
+      if (side === 'top') return [tl ? -(H + D(sp.left)) : 0, tr ? PL + H + D(sp.right) : PL]
+      if (side === 'bottom') return [bl ? -(H + D(sp.left)) : 0, br ? PL + H + D(sp.right) : PL]
+      return [0, PW]
     }
-    // seat rows and aisles
-    let rows = ''
-    for (let f = 0.18; f < 1; f += 0.2) {
-      const [a, b] = along(total * f)
-      rows += `M${a[0]},${a[1]}L${b[0]},${b[1]}`
-    }
-    for (let s = s0 + 90; s < s1 - 40; s += 130) {
-      const a = map(side, s, 0), b = map(side, s, total)
-      rows += `M${a[0]},${a[1]}L${b[0]},${b[1]}`
-    }
-    shapes.push({ d: rows, stroke: '#F5F7FF', sw: 1, opacity: 0.1 })
 
-    // roof over the back of the stand
-    const roof = ROOF_FILL[sd.roof ?? 'flat']
-    if (roof.op > 0) {
-      const r0 = total * 0.5, r1 = total + 8
-      shapes.push({ d: rectPoly([map(side, s0, r0), map(side, s1, r0), map(side, s1, r1), map(side, s0, r1)]), fill: roof.fill, opacity: roof.op })
-      shapes.push({ d: rectPoly([map(side, s0, r0), map(side, s1, r0), map(side, s1, r0 + 1.6), map(side, s0, r0 + 1.6)]), fill: roof.line, opacity: 0.55 })
-      let tr = ''
-      const gap = sd.roof === 'truss' ? 36 : sd.roof === 'solar' ? 22 : 90
-      for (let s = s0 + gap; s < s1; s += gap) {
-        const a = map(side, s, r0), b = map(side, s, r1)
-        tr += `M${a[0]},${a[1]}L${b[0]},${b[1]}`
-        if (sd.roof === 'truss') {
-          const c = map(side, s + gap, r1)
-          tr += `M${a[0]},${a[1]}L${c[0]},${c[1]}`
+    ;(['top', 'bottom', 'left', 'right'] as const).forEach((side) => {
+      const sd = sides[side]
+      const total = D(sd)
+      if (sd.t <= 0) return
+      const [s0, s1] = sideSpan(side)
+      const [seat, accent] = sd.seats ?? seatDefault
+      ext[side] = H + total + 14
+      for (let k = 0; k < sd.t; k++) {
+        const d0 = k * TU * (sd.depth ?? 1)
+        const d1 = (k + 1) * TU * (sd.depth ?? 1) - 2
+        body.push({ d: rectPoly([map(side, s0, d0), map(side, s1, d0), map(side, s1, d1), map(side, s0, d1)]), fill: sd.brick && k === 0 ? '#8C3B2E' : seat, opacity: k % 2 ? 0.7 : 0.9 })
+        body.push({ d: rectPoly([map(side, s0, d1), map(side, s1, d1), map(side, s1, d1 + 1.6), map(side, s0, d1 + 1.6)]), fill: accent, opacity: 0.5 })
+      }
+      const roof = ROOF_FILL[sd.roof ?? 'flat']
+      const exposedTo = roof.op > 0 ? total * roof.cover : total
+      // crowd on the exposed seating only
+      for (let d = 3; d < exposedTo; d += 5.2) {
+        const row = Math.round(d / 5.2)
+        for (let s = s0 + 3 + (row % 2) * 2.6; s < s1 - 2; s += 5.2) {
+          const [x, y] = map(side, s, d)
+          crowd.add(x, y)
         }
       }
-      shapes.push({ d: tr, stroke: roof.line, sw: 1.2, opacity: sd.roof === 'flat' ? 0.22 : 0.5 })
+      // roof over the back of the stand, with a soft shadow on the seats below its edge
+      if (roof.op > 0) {
+        const r0 = exposedTo, r1_ = total + 10
+        roofs.push({ d: rectPoly([map(side, s0, r0 - 7), map(side, s1, r0 - 7), map(side, s1, r0), map(side, s0, r0)]), fill: '#000000', opacity: 0.35 })
+        roofs.push({ d: rectPoly([map(side, s0, r0), map(side, s1, r0), map(side, s1, r1_), map(side, s0, r1_)]), fill: roof.fill, opacity: roof.op })
+        roofs.push({ d: rectPoly([map(side, s0, r0), map(side, s1, r0), map(side, s1, r0 + 2), map(side, s0, r0 + 2)]), fill: roof.line, opacity: 0.7 })
+        let tr = ''
+        const gap = sd.roof === 'truss' ? 30 : sd.roof === 'solar' ? 20 : 70
+        for (let s = s0 + gap; s < s1; s += gap) {
+          const a = map(side, s, r0), b = map(side, s, r1_)
+          tr += `M${a[0]},${a[1]}L${b[0]},${b[1]}`
+          if (sd.roof === 'truss') {
+            const c = map(side, s + gap, r1_)
+            tr += `M${a[0]},${a[1]}L${c[0]},${c[1]}`
+          }
+        }
+        roofs.push({ d: tr, stroke: roof.line, sw: 1.2, opacity: sd.roof === 'flat' ? 0.3 : 0.6 })
+      }
+      for (let s = s0; s < s1; s += 60) body.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, s1), -H), map(side, Math.min(s + 54, s1), -H + 6), map(side, s, -H + 6)]), fill: ['#F5F7FF', accent, seat][(s / 60) % 3 | 0], opacity: 0.55 })
+    })
+    for (const side of ['left', 'right'] as const) {
+      if (sides[side].t > 0) continue
+      for (let s = 0; s < PW; s += 60) body.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, PW), -H), map(side, Math.min(s + 54, PW), -H + 6), map(side, s, -H + 6)]), fill: '#F5F7FF', opacity: 0.35 })
     }
-
-    // hoarding strip
-    for (let s = s0; s < s1; s += 60) shapes.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, s1), -H), map(side, Math.min(s + 54, s1), -H + 6), map(side, s, -H + 6)]), fill: ['#F5F7FF', accent, seat][(s / 60) % 3 | 0], opacity: 0.55 })
-  })
-
-  // empty ends still get a hoarding strip
-  for (const side of ['left', 'right'] as const) {
-    if (sides[side].t > 0) continue
-    for (let s = 0; s < PW; s += 60) shapes.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, PW), -H), map(side, Math.min(s + 54, PW), -H + 6), map(side, s, -H + 6)]), fill: '#F5F7FF', opacity: 0.35 })
+    if (sp.top.brick || sp.right.brick) {
+      const side = sp.top.brick ? 'top' : 'right'
+      const g = D(sp[side])
+      const mid = side === 'top' ? PL / 2 : PW / 2
+      roofs.push({ d: rectPoly([map(side, mid - 70, g + 10), map(side, mid + 70, g + 10), map(side, mid, g + 32)]), fill: '#8C3B2E', stroke: '#F5F7FF', sw: 1.5 })
+      ext[side] += 22
+    }
+    // floodlight masts at the four corners
+    for (const [x, y] of [[-1, -1], [1, -1], [-1, 1], [1, 1]] as const) {
+      const px = x < 0 ? -(H + D(sp.left) * 0.5 + 22) : PL + H + D(sp.right) * 0.5 + 22
+      const py = y < 0 ? -(H + D(sp.top) * 0.5 + 22) : PW + H + D(sp.bottom) * 0.5 + 22
+      roofs.push({ d: smallDot(px, py, 14), fill: '#FFE9A8', opacity: 0.12 })
+      roofs.push({ d: smallDot(px, py, 5), fill: '#F5F7FF', opacity: 0.95 })
+    }
   }
 
-  // extra features
-  if (sp.top.brick || sp.right.brick) {
-    const side = sp.top.brick ? 'top' : 'right'
-    const g = D(sp[side])
-    const mid = side === 'top' ? PL / 2 : PW / 2
-    shapes.push({ d: rectPoly([map(side, mid - 70, g + 8), map(side, mid + 70, g + 8), map(side, mid, g + 28)]), fill: '#8C3B2E', stroke: '#F5F7FF', sw: 1.5 })
-    ext[side] += 20
-  }
-  // floodlight masts at the four corners
-  const masts: [number, number][] = [
-    [-(H + 4), -(H + 4)],
-    [PL + H + 4, -(H + 4)],
-    [-(H + 4), PW + H + 4],
-    [PL + H + 4, PW + H + 4],
-  ]
-  for (const [x, y] of masts) {
-    const px = x < 0 ? -(H + D(sp.left) * 0.4 + 18) : PL + H + D(sp.right) * 0.4 + 18
-    const py = y < 0 ? -(H + D(sp.top) * 0.4 + 18) : PW + H + D(sp.bottom) * 0.4 + 18
-    shapes.push({ d: dot(px, py, 5), fill: '#F5F7FF', opacity: 0.9 })
-    shapes.push({ d: dot(px, py, 14), fill: '#FFE9A8', opacity: 0.12 })
-  }
-
+  // room for the outside of the ground
+  ext.left += APRON
+  ext.right += APRON
+  ext.top += APRON
+  ext.bottom += APRON
+  shapes.push(...apron(ext), ...body, ...crowd.shapes(), ...roofs)
   bg.d = rectPoly([[-ext.left, -ext.top], [PL + ext.right, -ext.top], [PL + ext.right, PW + ext.bottom], [-ext.left, PW + ext.bottom]])
   return { shapes, ext }
 }

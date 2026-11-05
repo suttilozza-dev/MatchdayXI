@@ -66,6 +66,8 @@ export type CardFormat = 'square' | 'portrait' | 'story' | 'banner' | 'header'
 export const CARD_SIZES: Record<CardFormat, [number, number]> = { square: [1080, 1080], portrait: [1080, 1350], story: [1080, 1920], banner: [1920, 1080], header: [1600, 400] }
 
 export type CardInput = {
+  /** keep the card at its standard size: a bigger stadium surround then shrinks the pitch instead of growing the image */
+  fixedSize?: boolean
   orient: Orient
   shape: Shape_
   versus: boolean
@@ -114,7 +116,18 @@ function wrapSubs(ctx: CanvasRenderingContext2D, text: string, maxW: number): st
 }
 
 export async function renderCard(input: CardInput): Promise<Blob> {
-  const [W, H] = CARD_SIZES[input.format]
+  let [W, H] = CARD_SIZES[input.format]
+  if (!input.fixedSize && input.format !== 'header') {
+    // A bigger stadium surround grows the image instead of shrinking the pitch: the pitch keeps the size it has with the standard surround.
+    const sctx = document.createElement('canvas').getContext('2d')!
+    sctx.font = '600 22px Oswald, sans-serif'
+    const lines = wrapSubs(sctx, input.homeBench, W - 96).length + (input.versus ? wrapSubs(sctx, input.awayBench, W - 96).length : 0) + (input.homeManager.trim() ? 1 : 0) + (input.versus && input.awayManager.trim() ? 1 : 0)
+    const vb0 = viewBoxFor(input.orient, input.shape, SURROUND)
+    const vb1 = viewBoxFor(input.orient, input.shape, input.ext)
+    const sc0 = Math.min((W - 96) / vb0.w, (H - 190 - 100 - (34 * lines + 16)) / vb0.h)
+    W = Math.round(W + Math.max(0, vb1.w - vb0.w) * sc0)
+    H = Math.round(H + Math.max(0, vb1.h - vb0.h) * sc0)
+  }
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
