@@ -62,7 +62,7 @@ export function clubSurround(club: string, kit: KitName = 'home'): Surround | nu
   const sp = CLUB_GROUNDS[club]
   if (!sp) return null
   const [main, trim] = kitColours(club, kit) ?? kitColours(club, 'home')!
-  const roofCol = '#0E2A20'
+  const roofCol = '#07130E'
   const seatsFor = (sd: Side): [string, string] => sd.seats ?? [main, trim]
   const shapes: Shape[] = []
   const ext = { left: H, right: H, top: H, bottom: H }
@@ -72,12 +72,12 @@ export function clubSurround(club: string, kit: KitName = 'home'): Surround | nu
     side === 'top' ? [s, -(H + d)] : side === 'bottom' ? [s, PW + H + d] : side === 'left' ? [-(H + d), s] : [PL + H + d, s]
 
   // ground behind everything (sized after the stands are known, so push now and patch later)
-  const bg: Shape = { d: '', fill: '#0B2119' }
+  const bg: Shape = { d: '', fill: '#060F0A' }
   shapes.push(bg)
 
   const dotsBy: Record<string, string> = {}
   const addDot = (c: string, x: number, y: number, r: number) => (dotsBy[c] = (dotsBy[c] ?? '') + dot(x, y, r))
-  const palette = [trim, '#F7F7F2', main, '#AFCDBF']
+  const palette = [trim, '#FFFFFF', main, '#A4C9B6']
 
   const sideSpan = (side: 'top' | 'bottom' | 'left' | 'right'): [number, number] => {
     const [tl, tr, bl, br] = sp.corners
@@ -111,7 +111,7 @@ export function clubSurround(club: string, kit: KitName = 'home'): Surround | nu
     const r0 = total * 0.55
     shapes.push({ d: rectPoly([map(side, s0, r0), map(side, s1, r0), map(side, s1, total + 8), map(side, s0, total + 8)]), fill: roofCol, stroke: accent, sw: 2, opacity: 0.55 })
     // hoarding strip
-    for (let s = s0; s < s1; s += 60) shapes.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, s1), -H), map(side, Math.min(s + 54, s1), -H + 7), map(side, s, -H + 7)]), fill: ['#F7F7F2', accent, main][(s / 60) % 3 | 0], opacity: 0.8 })
+    for (let s = s0; s < s1; s += 60) shapes.push({ d: rectPoly([map(side, s, -H), map(side, Math.min(s + 54, s1), -H), map(side, Math.min(s + 54, s1), -H + 7), map(side, s, -H + 7)]), fill: ['#FFFFFF', accent, main][(s / 60) % 3 | 0], opacity: 0.8 })
   })
 
   // extra features
@@ -120,7 +120,7 @@ export function clubSurround(club: string, kit: KitName = 'home'): Surround | nu
     for (let i = 1; i <= 4; i++) pts.push(map('top', (PL * i) / 5, ext.top - 4), map('bottom', (PL * i) / 5, ext.bottom - 4))
     for (let i = 1; i <= 2; i++) pts.push(map('left', (PW * i) / 3, ext.left - 4), map('right', (PW * i) / 3, ext.right - 4))
     for (const [x, y] of pts) {
-      shapes.push({ d: dot(x, y, 7), fill: '#F7F7F2', stroke: main, sw: 2.5 })
+      shapes.push({ d: dot(x, y, 7), fill: '#FFFFFF', stroke: main, sw: 2.5 })
       shapes.push({ d: dot(x, y, 2.5), fill: main })
     }
     for (const k of ['top', 'bottom'] as const) ext[k] += 8
@@ -129,8 +129,8 @@ export function clubSurround(club: string, kit: KitName = 'home'): Surround | nu
   if (sp.top.brick) {
     // Craven Cottage pavilion and the gable of the brick stand
     const g = D(sp.top)
-    shapes.push({ d: rectPoly([map('top', -40, 0), map('top', 28, 0), map('top', 28, g + 6), map('top', -40, g + 6)]), fill: '#8C3B2E', stroke: '#F7F7F2', sw: 1.5 })
-    shapes.push({ d: rectPoly([map('top', PL / 2 - 70, g + 6), map('top', PL / 2 + 70, g + 6), map('top', PL / 2, g + 24)]), fill: '#8C3B2E', stroke: '#F7F7F2', sw: 1.5 })
+    shapes.push({ d: rectPoly([map('top', -40, 0), map('top', 28, 0), map('top', 28, g + 6), map('top', -40, g + 6)]), fill: '#8C3B2E', stroke: '#FFFFFF', sw: 1.5 })
+    shapes.push({ d: rectPoly([map('top', PL / 2 - 70, g + 6), map('top', PL / 2 + 70, g + 6), map('top', PL / 2, g + 24)]), fill: '#8C3B2E', stroke: '#FFFFFF', sw: 1.5 })
     ext.top += 14
   }
 

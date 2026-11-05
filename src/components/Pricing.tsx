@@ -13,17 +13,17 @@ function Buy({ id, children, primary }: { id: string; children: React.ReactNode;
 
 function Card({ title, price, per, sub, lines, children, active, badge }: { title: string; price: string; per?: string; sub?: string; lines: string[]; children?: React.ReactNode; active?: boolean; badge?: string }) {
   return (
-    <div className="panel p-4 flex flex-col gap-2 relative" style={active || badge ? { borderColor: '#CFFF4D', borderWidth: 1.5 } : undefined}>
+    <div className="panel p-4 flex flex-col gap-2 relative" style={active || badge ? { borderColor: '#D9FF3F', borderWidth: 1.5 } : undefined}>
       {badge && (
-        <span className="font-display text-[10px] tracking-widest absolute -top-2.5 right-3 rounded-full px-2.5 py-0.5" style={{ background: '#CFFF4D', color: '#0E2A20' }}>{badge}</span>
+        <span className="font-display text-[10px] tracking-widest absolute -top-2.5 right-3 rounded-full px-2.5 py-0.5" style={{ background: '#D9FF3F', color: '#07130E' }}>{badge}</span>
       )}
       <div className="font-display tracking-widest text-sm">{title}</div>
       <div>
-        <span className="font-display text-3xl font-bold text-[#CFFF4D]">{price}</span>
-        {per && <span className="text-sm text-[#AFCDBF]"> {per}</span>}
+        <span className="font-display text-3xl font-bold text-[#D9FF3F]">{price}</span>
+        {per && <span className="text-sm text-[#A4C9B6]"> {per}</span>}
       </div>
-      <div className="text-xs text-[#AFCDBF] min-h-4">{sub ?? ''}</div>
-      <ul className="text-sm text-[#AFCDBF] list-disc pl-5 flex flex-col gap-1 flex-1">
+      <div className="text-xs text-[#A4C9B6] min-h-4">{sub ?? ''}</div>
+      <ul className="text-sm text-[#A4C9B6] list-disc pl-5 flex flex-col gap-1 flex-1">
         {lines.map((l) => <li key={l}>{l}</li>)}
       </ul>
       {children && <div className="flex gap-2 flex-wrap mt-2">{children}</div>}
@@ -35,7 +35,7 @@ function Card({ title, price, per, sub, lines, children, active, badge }: { titl
 export function Pricing({ current }: { current?: Tier }) {
   return (
     <section aria-label="Plans" className="mt-6">
-      <h2 className="font-display text-xl font-bold mb-3">Plans{current ? <span className="text-sm text-[#AFCDBF]"> · you are on {TIER_LABEL[current]}</span> : null}</h2>
+      <h2 className="font-display text-xl font-bold mb-3">Plans{current ? <span className="text-sm text-[#A4C9B6]"> · you are on {TIER_LABEL[current]}</span> : null}</h2>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card
           title="Free"
@@ -80,10 +80,10 @@ export function Pricing({ current }: { current?: Tier }) {
           <Buy id={CREATOR.monthly.id}>{CREATOR.monthly.label} a month</Buy>
         </Card>
       </div>
-      <div className="panel p-4 mt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: 'rgba(207,255,77,0.5)' }}>
+      <div className="panel p-4 mt-4 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: 'rgba(217,255,63,0.5)' }}>
         <div>
           <div className="font-display tracking-widest text-sm">Founder Lifetime · {FOUNDER.label} {FOUNDER.note}</div>
-          <p className="text-sm text-[#AFCDBF]">Plus for life, with every future Plus feature. Only the first {FOUNDER.cap} people can have it.</p>
+          <p className="text-sm text-[#A4C9B6]">Plus for life, with every future Plus feature. Only the first {FOUNDER.cap} people can have it.</p>
         </div>
         <Buy id={FOUNDER.id} primary>Become a Founder</Buy>
       </div>

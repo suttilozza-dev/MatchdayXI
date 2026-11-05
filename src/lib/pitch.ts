@@ -126,15 +126,15 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   const branded = !input.handle
   if (input.format === 'header') return renderHeader(canvas, ctx, input, branded)
   if (!input.transparent) {
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#07130E'
     ctx.fillRect(0, 0, W, H)
     for (let cx = 6; cx < W; cx += 11) for (let cy = 6; cy < H; cy += 11) {
-      ctx.fillStyle = ((cx + cy) / 11) % 2 === 0 ? 'rgba(207,255,77,0.10)' : 'rgba(31,209,193,0.08)'
+      ctx.fillStyle = ((cx + cy) / 11) % 2 === 0 ? 'rgba(217,255,63,0.10)' : 'rgba(25,230,209,0.08)'
       ctx.beginPath()
       ctx.arc(cx, cy, 1.4, 0, Math.PI * 2)
       ctx.fill()
     }
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#07130E'
     ctx.fillRect(0, 0, W, 176)
   }
 
@@ -142,19 +142,19 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   if (branded) {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.font = '700 64px Oswald, sans-serif'
     ctx.fillText('MATCHDAY', 48, 96)
     const w = ctx.measureText('MATCHDAY ').width
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#D9FF3F'
     ctx.fillText('XI', 48 + w, 96)
   } else {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.font = '700 56px Oswald, sans-serif'
     ctx.fillText(input.handle.toUpperCase().slice(0, 28), 48, 96)
   }
   ctx.textAlign = 'right'
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A4C9B6'
   ctx.font = '600 28px Oswald, sans-serif'
   ctx.fillText(`GAMEWEEK ${input.gameweek.toUpperCase()} · ${input.kind.toUpperCase()}`, W - 48, 94)
   ctx.textAlign = 'left'
@@ -166,21 +166,21 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.beginPath()
     ctx.arc(x, 146, 11, 0, Math.PI * 2)
     ctx.fill()
-    ctx.strokeStyle = 'rgba(247,247,242,.6)'
+    ctx.strokeStyle = 'rgba(255,255,255,.6)'
     ctx.lineWidth = 2
     ctx.stroke()
   }
   dot(60, input.homeColour)
-  ctx.fillStyle = '#F7F7F2'
+  ctx.fillStyle = '#FFFFFF'
   const homeText = `${input.homeName.toUpperCase()}  ${input.homeForm}`
   ctx.fillText(homeText, 82, 158)
   if (input.versus) {
     const hw = ctx.measureText(homeText).width
-    ctx.fillStyle = '#AFCDBF'
+    ctx.fillStyle = '#A4C9B6'
     ctx.fillText('VS', 82 + hw + 22, 158)
     const vx = 82 + hw + 22 + ctx.measureText('VS ').width + 24
     dot(vx + 6, input.awayColour)
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.fillText(`${input.awayName.toUpperCase()}  ${input.awayForm}`, vx + 28, 158)
   }
 
@@ -220,12 +220,14 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     }
   }
   ctx.globalAlpha = 1
-  ctx.fillStyle = '#1B5940'
+  ctx.fillStyle = '#1E8A55'
   ctx.fillRect(0, 0, PL, PW)
-  ctx.strokeStyle = 'rgba(247,247,242,0.45)'
+  ctx.fillStyle = 'rgba(0,0,0,0.07)'
+  for (let i = 1; i < 10; i += 2) ctx.fillRect(i * 105, 0, 105, PW) // mowing stripes, as on the board
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'
   ctx.lineWidth = 2.5
   for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
-  ctx.fillStyle = 'rgba(247,247,242,0.5)'
+  ctx.fillStyle = 'rgba(255,255,255,0.5)'
   for (const [sx, sy] of SPOTS) {
     ctx.beginPath()
     ctx.arc(sx, sy, 3, 0, Math.PI * 2)
@@ -243,13 +245,13 @@ export async function renderCard(input: CardInput): Promise<Blob> {
   const by = H - 100 - benchH + 34
   let li = 0
   if (mgrHome) {
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#D9FF3F'
     ctx.fillText(mgrHome, 48, by + 34 * li++)
   }
-  ctx.fillStyle = '#CFFF4D'
+  ctx.fillStyle = '#D9FF3F'
   subsHome.forEach((line) => ctx.fillText(li === (mgrHome ? 1 : 0) ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
   if (input.versus) {
-    ctx.fillStyle = '#1FD1C1'
+    ctx.fillStyle = '#19E6D1'
     if (mgrAway) ctx.fillText(mgrAway, 48, by + 34 * li++)
     const first = li
     subsAway.forEach((line) => ctx.fillText(li === first ? `SUBS  ${line}` : `${SUBS_INDENT}${line}`, 48, by + 34 * li++))
@@ -262,14 +264,14 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.rotate(-Math.PI / 7)
     ctx.font = '700 52px Oswald, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(247,247,242,0.15)'
+    ctx.fillStyle = 'rgba(255,255,255,0.15)'
     for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
     ctx.restore()
   }
 
   // footer: site link (branded only) + disclaimer line
   ctx.textAlign = 'left'
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A4C9B6'
   ctx.font = '500 20px Oswald, sans-serif'
   if (branded) ctx.fillText(SITE_URL.toUpperCase(), 48, H - 40)
   ctx.textAlign = 'right'
@@ -321,12 +323,12 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     // captain's armband: a lime badge with a C
     ctx.beginPath()
     ctx.arc(24, -22, 11, 0, Math.PI * 2)
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#D9FF3F'
     ctx.fill()
-    ctx.strokeStyle = '#0E2A20'
+    ctx.strokeStyle = '#07130E'
     ctx.lineWidth = 2
     ctx.stroke()
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#07130E'
     ctx.font = '700 15px Oswald, sans-serif'
     ctx.fillText('C', 24, -21)
   }
@@ -336,9 +338,9 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     const label = surname(m.name)
     const dy = input.labelPos === 'above' ? -37 : style === 'circle' ? 47 : 50
     ctx.lineWidth = 5
-    ctx.strokeStyle = 'rgba(14,42,32,0.9)'
+    ctx.strokeStyle = 'rgba(7,19,14,0.9)'
     ctx.strokeText(label, 0, dy)
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.fillText(label, 0, dy)
   }
   ctx.restore()
@@ -350,36 +352,36 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   const W = canvas.width
   const H = canvas.height
   if (!input.transparent) {
-    ctx.fillStyle = '#0E2A20'
+    ctx.fillStyle = '#07130E'
     ctx.fillRect(0, 0, W, H)
   }
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   if (branded) {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.font = '700 58px Oswald, sans-serif'
     ctx.fillText('MATCHDAY', 44, 92)
     const w = ctx.measureText('MATCHDAY ').width
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#D9FF3F'
     ctx.fillText('XI', 44 + w, 92)
   } else {
-    ctx.fillStyle = '#F7F7F2'
+    ctx.fillStyle = '#FFFFFF'
     ctx.font = '700 50px Oswald, sans-serif'
     ctx.fillText(input.handle.toUpperCase().slice(0, 28), 44, 92)
   }
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A4C9B6'
   ctx.font = '600 26px Oswald, sans-serif'
   ctx.fillText(`GAMEWEEK ${input.gameweek.toUpperCase()} · ${input.kind.toUpperCase()}`, 44, 136)
-  ctx.fillStyle = '#F7F7F2'
+  ctx.fillStyle = '#FFFFFF'
   ctx.font = '600 30px Oswald, sans-serif'
   ctx.fillText(`${input.homeName.toUpperCase()}  ${input.homeForm}`, 44, 196)
   if (input.versus) ctx.fillText(`VS ${input.awayName.toUpperCase()}  ${input.awayForm}`, 44, 238)
   if (input.homeManager.trim()) {
-    ctx.fillStyle = '#CFFF4D'
+    ctx.fillStyle = '#D9FF3F'
     ctx.font = '600 22px Oswald, sans-serif'
     ctx.fillText(`MANAGER  ${input.homeManager.trim().toUpperCase()}`, 44, input.versus ? 280 : 238)
   }
-  ctx.fillStyle = '#AFCDBF'
+  ctx.fillStyle = '#A4C9B6'
   ctx.font = '500 18px Oswald, sans-serif'
   if (branded) ctx.fillText(SITE_URL.toUpperCase(), 44, H - 28)
   const vb = viewBoxFor(input.orient, input.shape, input.ext)
@@ -409,9 +411,11 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     }
   }
   ctx.globalAlpha = 1
-  ctx.fillStyle = '#1B5940'
+  ctx.fillStyle = '#1E8A55'
   ctx.fillRect(0, 0, PL, PW)
-  ctx.strokeStyle = 'rgba(247,247,242,0.45)'
+  ctx.fillStyle = 'rgba(0,0,0,0.07)'
+  for (let i = 1; i < 10; i += 2) ctx.fillRect(i * 105, 0, 105, PW) // mowing stripes, as on the board
+  ctx.strokeStyle = 'rgba(255,255,255,0.45)'
   ctx.lineWidth = 2.5
   for (const d of LINE_PATHS) ctx.stroke(new Path2D(d))
   ctx.restore()
@@ -423,7 +427,7 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     ctx.rotate(-Math.PI / 14)
     ctx.font = '700 44px Oswald, sans-serif'
     ctx.textAlign = 'center'
-    ctx.fillStyle = 'rgba(247,247,242,0.17)'
+    ctx.fillStyle = 'rgba(255,255,255,0.17)'
     for (let x = -W; x < W; x += 620) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x, 0)
     ctx.restore()
   }

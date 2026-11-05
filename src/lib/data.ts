@@ -79,7 +79,7 @@ export const KITS: Record<string, Partial<Record<KitName, [string, string]>>> = 
 export function kitColours(club: string, kit: KitName): [string, string] | null {
   const k = KITS[club]?.[kit]
   if (k) return k
-  if (kit === 'home') return [CLUB_COLOURS[club] ?? '#CFFF4D', '#F7F7F2']
+  if (kit === 'home') return [CLUB_COLOURS[club] ?? '#D9FF3F', '#FFFFFF']
   return null
 }
 
@@ -134,7 +134,7 @@ export function readableOn(hex: string): string {
   const r = parseInt(h.slice(0, 2), 16)
   const g = parseInt(h.slice(2, 4), 16)
   const b = parseInt(h.slice(4, 6), 16)
-  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#0E2A20' : '#F7F7F2'
+  return (r * 299 + g * 587 + b * 114) / 1000 > 150 ? '#07130E' : '#FFFFFF'
 }
 
 /** Rough colour distance (0 to ~441). Used to stop both teams defaulting to the same shade. */
