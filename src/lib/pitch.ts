@@ -1,5 +1,4 @@
 import { SITE_URL, readableOn, surname } from './data'
-import { COLLAR_PATH, patternShapes, type Pattern } from './kit'
 import { isBusy, kitSvg, KIT_SCALE, type KitDesign } from './kitDesign'
 import { SURROUND, type Extents, type Shape as DrawShape } from './stadium'
 
@@ -53,7 +52,7 @@ export function linesTransform(orient: Orient): string {
   return orient === 'landscape' ? '' : `matrix(0,-1,1,0,0,${PL})`
 }
 
-export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean; pattern?: Pattern; design?: KitDesign }
+export type PlacedMarker = { key: string; x: number; y: number; num: number | null; name: string; colour: string; ring: string; captain?: boolean; design?: KitDesign }
 
 /** How a player is drawn: a plain circle, or a shirt (front shows the number, back also shows the surname). */
 export type MarkerStyle = 'circle' | 'shirt' | 'shirt-back'
@@ -338,34 +337,17 @@ function drawMarker(ctx: CanvasRenderingContext2D, m: PlacedMarker, input: Pick<
     const img = designImages.get(designKey(m.design))!
     ctx.drawImage(img, -120 * KIT_SCALE, -111 * KIT_SCALE, 240 * KIT_SCALE, 222 * KIT_SCALE)
   } else {
+    // no official design for this kit: a plain shirt in the kit colours
     const p = new Path2D(SHIRT_PATH)
     ctx.fillStyle = m.colour
     ctx.fill(p)
-    const shapes = patternShapes(m.pattern, m.ring)
-    if (shapes.length) {
-      ctx.save()
-      ctx.clip(p)
-      for (const sh of shapes) {
-        ctx.fillStyle = sh.fill
-        if (sh.kind === 'rect') ctx.fillRect(sh.x, sh.y, sh.w, sh.h)
-        else {
-          ctx.beginPath()
-          sh.pts.forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)))
-          ctx.closePath()
-          ctx.fill()
-        }
-      }
-      ctx.restore()
-    }
     ctx.strokeStyle = m.ring
     ctx.lineWidth = 3.5
     ctx.stroke(p)
-    ctx.lineWidth = 4
-    ctx.stroke(new Path2D(COLLAR_PATH)) // the neckline in the trim colour
   }
   const useDesign = style !== 'circle' && !!m.design && designImages.has(designKey(m.design))
   const base = useDesign ? m.design!.body : m.colour
-  const patterned = style !== 'circle' && (useDesign ? isBusy(m.design!) : !!m.pattern && m.pattern !== 'plain')
+  const patterned = style !== 'circle' && (useDesign && isBusy(m.design!))
   ctx.fillStyle = readableOn(base)
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'

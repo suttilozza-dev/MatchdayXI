@@ -391,3 +391,10 @@ export function isBusy(k: KitDesign): boolean {
 
 /** Shirt size on the board: the drawing is 240 wide, scaled to about 77. */
 export const KIT_SCALE = 0.32
+
+/** The shirt's main colour and its trim colour: used for the dot markers, the kit chips and the ground colours. */
+export function kitLook(k: KitDesign): [string, string] {
+  const same = (a: string, b: string) => a.toLowerCase() === b.toLowerCase()
+  const trim = [k.collarColour, k.collarInner, ...k.cuffs, k.shoulder].find((c): c is string => !!c && !same(c, k.body)) ?? k.collarColour
+  return [k.body, trim]
+}
