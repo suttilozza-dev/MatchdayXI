@@ -28,7 +28,7 @@ export function sampleCardInput(club: string, formation = '4-2-3-1'): CardInput 
     markers: t.slots.map((sl, idx) => {
       const [x, y] = toXY(sl.u, sl.v, 'portrait')
       const p = sl.pi != null ? squad[sl.pi] : undefined
-      return { key: `h${idx}`, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, pattern: t.pattern, design: t.custom ? undefined : designFor(club, t.kit) }
+      return { key: `h${idx}`, x, y, num: p?.num ?? null, name: p?.name ?? sl.role, colour: t.colour, ring: t.colour2, design: designFor(club, t.kit) }
     }),
     format: 'portrait',
     homeBench: benchText(t, squad),

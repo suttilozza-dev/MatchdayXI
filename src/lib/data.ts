@@ -1,5 +1,6 @@
 import squadsJson from '../data/squads.json'
 import managersJson from '../data/managers.json'
+import { ALL_KITS, kitLook } from './kitDesign'
 
 export type Pos = 'GK' | 'DEF' | 'MID' | 'FWD'
 export type Player = { num: number | null; name: string; pos: Pos }
@@ -77,6 +78,8 @@ export const KITS: Record<string, Partial<Record<KitName, [string, string]>>> = 
 }
 
 export function kitColours(club: string, kit: KitName): [string, string] | null {
+  const d = ALL_KITS[club]?.[kit]
+  if (d) return kitLook(d)
   const k = KITS[club]?.[kit]
   if (k) return k
   if (kit === 'home') return [CLUB_COLOURS[club] ?? '#C8FF3D', '#F5F7FF']
