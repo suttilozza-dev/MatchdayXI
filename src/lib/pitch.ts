@@ -87,7 +87,7 @@ export type CardInput = {
   ext: Extents
   watermark: boolean // free tier: diagonal watermark + site link
   transparent: boolean
-  handle: string // creator handle; when set it replaces the MatchdayXI branding
+  handle: string // creator handle; when set it replaces the Gaffster branding
   homeManager: string
   awayManager: string
   markerStyle: MarkerStyle
@@ -172,16 +172,16 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.fillRect(0, 0, W, 176)
   }
 
-  // header: MatchdayXI branding, or the creator's own handle
+  // header: Gaffster branding, or the creator's own handle
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'left'
   if (branded) {
     ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 64px Oswald, sans-serif'
-    ctx.fillText('MATCHDAY', 48, 96)
-    const w = ctx.measureText('MATCHDAY ').width
+    ctx.fillText('GAFF', 48, 96)
+    const w = ctx.measureText('GAFF').width
     ctx.fillStyle = '#C8FF3D'
-    ctx.fillText('XI', 48 + w, 96)
+    ctx.fillText('STER', 48 + w, 96)
   } else {
     ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 56px Oswald, sans-serif'
@@ -300,7 +300,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.font = '700 52px Oswald, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(245,247,255,0.15)'
-    for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
+    for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('GAFFSTER · GAFFSTER.COM', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
     ctx.restore()
   }
 
@@ -412,10 +412,10 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
   if (branded) {
     ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 58px Oswald, sans-serif'
-    ctx.fillText('MATCHDAY', 44, 92)
-    const w = ctx.measureText('MATCHDAY ').width
+    ctx.fillText('GAFF', 44, 92)
+    const w = ctx.measureText('GAFF').width
     ctx.fillStyle = '#C8FF3D'
-    ctx.fillText('XI', 44 + w, 92)
+    ctx.fillText('STER', 44 + w, 92)
   } else {
     ctx.fillStyle = '#F5F7FF'
     ctx.font = '700 50px Oswald, sans-serif'
@@ -481,7 +481,7 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     ctx.font = '700 44px Oswald, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(245,247,255,0.17)'
-    for (let x = -W; x < W; x += 620) ctx.fillText('MATCHDAY XI · MATCHDAY-XI.CLUB', x, 0)
+    for (let x = -W; x < W; x += 620) ctx.fillText('GAFFSTER · GAFFSTER.COM', x, 0)
     ctx.restore()
   }
   return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('export failed'))), 'image/png'))

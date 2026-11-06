@@ -1,13 +1,13 @@
 {
-  "name": "MATCHDAY XI",
-  "short_name": "MatchdayXI",
+  "name": "Gaffster",
+  "short_name": "Gaffster",
   "description": "Build and share predicted or dream Premier League line-ups on a tactical board.",
   "start_url": "/board",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#0E2A20",
-  "theme_color": "#0E2A20",
+  "background_color": "#0A1020",
+  "theme_color": "#0A1020",
   "categories": ["sports", "entertainment"],
   "icons": [
     { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

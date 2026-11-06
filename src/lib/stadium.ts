@@ -9,7 +9,7 @@ export type Shape = { layer?: 'ground' | 'apron' | 'stands' | 'crowd' | 'roofs';
 
 export type StadiumId = string // 'matchdayxi' or 'club:<Club name>'
 export const STADIUMS: { id: StadiumId; name: string; note: string }[] = [
-  { id: 'matchdayxi', name: 'MatchdayXI Stadium', note: 'A small ground in the site colours: one two-tier stand and low stands round the other sides.' },
+  { id: 'matchdayxi', name: 'Gaffster Stadium', note: 'A small ground in the site colours: one two-tier stand and low stands round the other sides.' },
 ]
 
 /** Surround extent beyond the pitch, in landscape units. Used to size the board's view. */
@@ -30,7 +30,7 @@ function crowd(points: [number, number][], r = 4.2): Shape[] {
   return Object.entries(by).map(([fill, d]) => ({ d, fill, opacity: 0.9 }))
 }
 
-/** The default MatchdayXI Stadium, drawn in palette A. */
+/** The default Gaffster Stadium. */
 export function matchdayXIStadium(): Shape[] {
   const s: Shape[] = []
   // ground behind everything

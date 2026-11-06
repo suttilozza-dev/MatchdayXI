@@ -6,7 +6,7 @@ export type Pos = 'GK' | 'DEF' | 'MID' | 'FWD'
 export type Player = { num: number | null; name: string; pos: Pos }
 
 export const GAMEWEEK_DEFAULT = '10'
-export const SITE_URL = 'matchday-xi.club'
+export const SITE_URL = 'gaffster.com'
 
 type RawSquad = Record<Pos, [number | null, string][]>
 const raw = (squadsJson as unknown as { clubs: Record<string, RawSquad> }).clubs
