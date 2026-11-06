@@ -17,7 +17,7 @@ export type Caps = {
   extraFormats: boolean // story, wide banner
   transparent: boolean
   clubStadium: 'none' | 'one' | 'all'
-  creatorBranding: boolean // own handle instead of MatchdayXI branding
+  creatorBranding: boolean // own handle instead of Gaffster branding
   present: boolean // hidden controls panel for streaming
 }
 

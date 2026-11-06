@@ -25,7 +25,7 @@ function Home() {
         <section className="mx-auto max-w-[1100px] px-4 pt-8 pb-16 grid gap-10 md:grid-cols-[1.1fr_0.9fr] items-center" style={{ backgroundImage: 'radial-gradient(520px 420px at 78% 45%, rgba(35,162,97,.38), transparent 70%)' }}>
           <div className="text-center md:text-left">
             <p className="font-display text-xs tracking-widest text-[#C8FF3D] mb-3">Football line-up maker</p>
-            <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,9vw,6rem)]">MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span></h1>
+            <h1 className="font-display font-bold leading-[0.95] text-[clamp(3rem,9vw,6rem)]">GAFF<span style={{ color: 'var(--boot-lime)' }}>STER</span></h1>
             <p className="mt-5 max-w-xl text-lg text-[#A9B4D0] mx-auto md:mx-0">
               Pick a formation, name your captain and manager, and share your predicted XI, starting line-up or dream team as an image. Your first one is free, with no sign-up.
             </p>
@@ -60,7 +60,7 @@ function Home() {
 
       <footer className="mx-auto max-w-[1100px] px-4 pb-10 flex flex-col gap-2">
         <Disclaimer />
-        <p className="text-xs text-[#A9B4D0]">matchday-xi.club</p>
+        <p className="text-xs text-[#A9B4D0]">gaffster.com</p>
       </footer>
     </div>
   )

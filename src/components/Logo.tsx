@@ -15,7 +15,7 @@ export function Logo({ id, symbolOnly = false, className, label }: { id: string;
 export function Wordmark({ size = 20 }: { size?: number }) {
   return (
     <span className="font-display font-bold" style={{ fontSize: size, letterSpacing: '0.04em' }}>
-      MATCHDAY <span style={{ color: 'var(--boot-lime)' }}>XI</span>
+      GAFF<span style={{ color: 'var(--boot-lime)' }}>STER</span>
     </span>
   )
 }
@@ -25,7 +25,7 @@ export function HeaderLogo() {
   return (
     <span className="inline-flex items-center gap-2">
       <span style={{ width: 40, height: 36, display: 'inline-block' }}>
-        <Logo id="03B" symbolOnly label="Matchday XI" />
+        <Logo id="03B" symbolOnly label="Gaffster" />
       </span>
       <Wordmark />
     </span>

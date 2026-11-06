@@ -42,7 +42,7 @@ export function Pricing({ current }: { current?: Tier }) {
           price="£0"
           sub="No card, no catch"
           active={current === 'free'}
-          lines={['Your first image needs no sign-up', `Then ${FREE_PER_WEEK} watermarked images every week after a free sign-in`, 'Every formation and marker style', 'MatchdayXI stadium']}
+          lines={['Your first image needs no sign-up', `Then ${FREE_PER_WEEK} watermarked images every week after a free sign-in`, 'Every formation and marker style', 'Gaffster stadium']}
         >
           <a className="btn btn-ghost" href="/board">Start building</a>
         </Card>
@@ -74,7 +74,7 @@ export function Pricing({ current }: { current?: Tier }) {
           per={CREATOR.yearly.note}
           sub={`About £6.67 a month. Or ${CREATOR.monthly.label} ${CREATOR.monthly.note}.`}
           active={current === 'creator'}
-          lines={['Everything in Plus', 'Your handle on the image, MatchdayXI branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive']}
+          lines={['Everything in Plus', 'Your handle on the image, Gaffster branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive']}
         >
           <Buy id={CREATOR.yearly.id} primary>{CREATOR.yearly.label} a year · save 33%</Buy>
           <Buy id={CREATOR.monthly.id}>{CREATOR.monthly.label} a month</Buy>

@@ -52,8 +52,8 @@ export const CLUB_GROUNDS: Record<string, Spec> = {
   'Tottenham Hotspur': { ground: 'Tottenham Hotspur Stadium', capacity: 62850, top: S(4), bottom: S(4), left: S(1, 2.4), right: S(3, 1.1), corners: ALL, ring: { style: 'panels', colour: '#B8C0D2' }, seats: ['#132257', '#F4F4F4'], notes: 'Oval bowl under a silver roof with radial panels and a glass ring; dark navy seats.' },
 }
 
-/** The default MatchdayXI ground: a small stand and shelter in the site colours. */
-export const DEFAULT_GROUND: Spec = { ground: 'MatchdayXI Stadium', capacity: 5000, top: S(2, 1, 'flat'), bottom: S(1, 0.6, 'flat'), left: S(1, 0.6, 'none'), right: S(1, 0.6, 'none'), corners: NONE, seats: ['#1E3A6B', '#19E6D1'], notes: 'A small ground in the site colours.' }
+/** The default Gaffster ground: a small stand and shelter in the site colours. */
+export const DEFAULT_GROUND: Spec = { ground: 'Gaffster Stadium', capacity: 5000, top: S(2, 1, 'flat'), bottom: S(1, 0.6, 'flat'), left: S(1, 0.6, 'none'), right: S(1, 0.6, 'none'), corners: NONE, seats: ['#1E3A6B', '#19E6D1'], notes: 'A small ground in the site colours.' }
 
 const H = 10 // hoarding strip next to the pitch
 const TU = 46 // depth of one tier, before the side's own depth factor
