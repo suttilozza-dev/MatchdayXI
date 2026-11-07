@@ -764,7 +764,7 @@ export default function Board() {
           {!msg && access && !access.signedIn && (
             <p className="text-xs text-[#A9B4D0] pb-2">Build your line-up. Your first image is free with no sign-up; after that <a className="underline text-[#C8FF3D]" href="/api/auth/login">sign in with Whop</a> (free) for {FREE_PER_WEEK} more every week.</p>
           )}
-          <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit gaffster.com for plans.</p>
+          <p className="print-note text-sm">Printing the board is switched off on the free plan. Visit gaffster.app for plans.</p>
       </div>
       {!present && <div className="order-3 lg:order-2 lg:col-span-2">{SettingsBar}</div>}
         <div className="order-2 lg:order-3 min-w-0">
@@ -856,7 +856,7 @@ export default function Board() {
                       strokeWidth={1}
                       paintOrder="stroke"
                     >
-                      GAFFSTER · GAFFSTER.COM
+                      GAFFSTER · GAFFSTER.APP
                     </text>
                   )))}
                 </g>

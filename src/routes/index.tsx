@@ -60,7 +60,7 @@ function Home() {
 
       <footer className="mx-auto max-w-[1100px] px-4 pb-10 flex flex-col gap-2">
         <Disclaimer />
-        <p className="text-xs text-[#A9B4D0]">gaffster.com</p>
+        <p className="text-xs text-[#A9B4D0]">gaffster.app</p>
       </footer>
     </div>
   )

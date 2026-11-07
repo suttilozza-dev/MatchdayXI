@@ -300,7 +300,7 @@ export async function renderCard(input: CardInput): Promise<Blob> {
     ctx.font = '700 52px Oswald, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(245,247,255,0.15)'
-    for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('GAFFSTER · GAFFSTER.COM', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
+    for (let y = -H; y < H; y += 210) for (let x = -W; x < W; x += 1000) ctx.fillText('GAFFSTER · GAFFSTER.APP', x + (Math.round(y / 210) % 2 ? 500 : 0), y)
     ctx.restore()
   }
 
@@ -481,7 +481,7 @@ async function renderHeader(canvas: HTMLCanvasElement, ctx: CanvasRenderingConte
     ctx.font = '700 44px Oswald, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillStyle = 'rgba(245,247,255,0.17)'
-    for (let x = -W; x < W; x += 620) ctx.fillText('GAFFSTER · GAFFSTER.COM', x, 0)
+    for (let x = -W; x < W; x += 620) ctx.fillText('GAFFSTER · GAFFSTER.APP', x, 0)
     ctx.restore()
   }
   return await new Promise<Blob>((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('export failed'))), 'image/png'))
