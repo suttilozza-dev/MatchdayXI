@@ -334,7 +334,7 @@ function shirts() {
 }
 
 function grounds() {
-  const list: [string, ReturnType<typeof clubSurround>][] = [['MatchdayXI-default', groundSurround(DEFAULT_GROUND, '#1E3A6B', '#19E6D1')], ...CLUBS.filter((c) => CLUB_GROUNDS[c]).map((c): [string, ReturnType<typeof clubSurround>] => [c.replace(/ /g, '-'), clubSurround(c, 'home')])]
+  const list: [string, ReturnType<typeof clubSurround>][] = [['Gaffster-default', groundSurround(DEFAULT_GROUND, '#1E3A6B', '#19E6D1')], ...CLUBS.filter((c) => CLUB_GROUNDS[c]).map((c): [string, ReturnType<typeof clubSurround>] => [c.replace(/ /g, '-'), clubSurround(c, 'home')])]
   for (const [slug, sur] of list) {
     if (!sur) continue
     const e = sur.ext
