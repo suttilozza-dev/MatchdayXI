@@ -148,12 +148,12 @@ const smallLogo = (x: number, y: number, s: number): Layer[] => [
 ]
 
 // ---------- plans (copy matches the Pricing component) ----------
-type Plan = { slug: string; title: string; price: string; per: string; sub: string; lines: string[]; badge?: string; highlight?: boolean }
+type Plan = { slug: string; title: string; price: string; per: string; sub: string; lines: string[]; short?: string[]; badge?: string; highlight?: boolean }
 const PLANS: Plan[] = [
-  { slug: 'free', title: 'FREE', price: '£0', per: '', sub: 'No card, no catch', lines: ['Your first image needs no sign-up', 'Then 3 watermarked images every week after a free sign-in', 'Every formation and marker style', 'Gaffster stadium'] },
+  { slug: 'free', title: 'FREE', price: '£0', per: '', sub: 'No card, no catch', short: ['Your first image needs no sign-up', '3 watermarked images a week after a free sign-in', 'Every formation and marker style'], lines: ['Your first image needs no sign-up', 'Then 3 watermarked images every week after a free sign-in', 'Every formation and marker style', 'Gaffster stadium'] },
   { slug: 'gameweek-pass', title: 'GAMEWEEK PASS', price: '£2.99', per: 'once · 7 days', sub: 'No subscription. Buy another whenever you need one.', lines: ['Up to 5 images a day with no watermark for 7 days', 'The allowance resets every day and does not roll over', 'Square, 4:5, story, header and banner sizes', "One club's stadium"] },
-  { slug: 'plus', title: 'PLUS', price: '£29.99', per: 'a year', sub: 'Season Pass: about £2.50 a month. Or £4.99 a month.', lines: ['Unlimited images with no watermark, for as long as you subscribe', 'Transparent background', 'Every stadium and colourway', 'Saved line-ups and gameweek history (soon)'], badge: 'MOST POPULAR', highlight: true },
-  { slug: 'creator', title: 'CREATOR', price: '£79.99', per: 'a year', sub: 'About £6.67 a month. Or £9.99 a month.', lines: ['Everything in Plus', 'Your handle on the image, branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive'] },
+  { slug: 'plus', title: 'PLUS', price: '£29.99', per: 'a year', short: ['Unlimited images with no watermark', 'Transparent background', 'Every stadium and colourway'], sub: 'Season Pass: about £2.50 a month. Or £4.99 a month.', lines: ['Unlimited images with no watermark, for as long as you subscribe', 'Transparent background', 'Every stadium and colourway', 'Saved line-ups and gameweek history (soon)'], badge: 'MOST POPULAR', highlight: true },
+  { slug: 'creator', title: 'CREATOR', price: '£79.99', per: 'a year', short: ['Everything in Plus', 'Your handle on the image, no branding', 'Present mode for streaming'], sub: 'About £6.67 a month. Or £9.99 a month.', lines: ['Everything in Plus', 'Your handle on the image, branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive'] },
   { slug: 'founder-lifetime', title: 'FOUNDER LIFETIME', price: '£79.99', per: 'once', sub: 'Only the first 500 people can have it.', lines: ['Plus for life', 'Every future Plus feature', 'Never pay again'], badge: 'FIRST 500 ONLY', highlight: true },
 ]
 
@@ -186,14 +186,20 @@ function pricingCards() {
   }
 }
 
+/** Monthly versions of the Plus and Creator banners (the main ones show the yearly price). */
+const MONTHLY_BANNERS: Plan[] = [
+  { ...PLANS.find((x) => x.slug === 'plus')!, slug: 'plus-monthly', price: '£4.99', per: 'a month', badge: undefined, highlight: false },
+  { ...PLANS.find((x) => x.slug === 'creator')!, slug: 'creator-monthly', price: '£9.99', per: 'a month' },
+]
+
 function banners() {
-  for (const p of PLANS) {
+  for (const p of [...PLANS, ...MONTHLY_BANNERS]) {
     const W = 1280, Hh = 720
-    const bullets = p.lines.slice(0, 3).map((l) => (l.length > 52 ? l.slice(0, l.lastIndexOf(' ', 50)) : l))
+    const bullets = p.short ?? p.lines.slice(0, 3)
     const layers: Layer[] = [
       { id: 'background', label: 'Background', svg: rect(0, 0, W, Hh, 'url(#bg)') },
       { id: 'glow', label: 'Glow', svg: rect(0, 0, W, Hh, 'url(#glow)') },
-      { id: 'pitch-motif', label: 'Shirt motif', svg: motif(820, 56, 2.1, 0.5) },
+      { id: 'pitch-motif', label: 'Shirt motif', svg: motif(820, 56, 2.1, 0.3) },
       ...smallLogo(80, 56, 0.1),
     ]
     if (p.badge) layers.push({ id: 'badge', label: 'Badge', svg: rect(80, 150, measure(OSW6, p.badge, 26, 3) + 44, 46, C.violet, 23) + text(OSW6, p.badge, 80 + 22, 183, { size: 26, fill: '#FFFFFF', ls: 3 }) })
@@ -203,8 +209,21 @@ function banners() {
     if (p.per) layers.push({ id: 'price-period', label: 'Price period', svg: text(INT6, p.per, 80 + pw + 22, 476, { size: 38, fill: C.muted }) })
     bullets.forEach((b, i) => layers.push({ id: `bullet-${i + 1}`, label: `Bullet ${i + 1}`, svg: `<circle cx="94" cy="${561 + i * 52}" r="10" fill="${C.cyan}"/>` + text(INT6, b, 120, 572 + i * 52, { size: 32, fill: C.text }) }))
     layers.push({ id: 'url', label: 'Web address', svg: text(OSW6, SITE, W - 80, Hh - 50, { size: 28, fill: C.muted, anchor: 'end', ls: 4 }) })
-    write({ group: '2-whop-banners', slug: p.slug, title: `Banner: ${p.title}`, w: W, h: Hh, defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.78', '0.45')}`, layers })
+    write({ group: '2-whop-banners', slug: p.slug, title: `Banner: ${p.title}${p.slug.endsWith('-monthly') ? ' (monthly)' : ''}`, w: W, h: Hh, defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.78', '0.45')}`, layers })
   }
+  // social preview (Open Graph, 1200 x 630): everything stays inside the middle so no crop can cut it
+  write({
+    group: '2-whop-banners', slug: 'social-preview', title: 'Social preview image (1200 x 630)', w: 1200, h: 630,
+    defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.5', '0.5')}`,
+    layers: [
+      { id: 'background', label: 'Background', svg: rect(0, 0, 1200, 630, 'url(#bg)') },
+      { id: 'glow', label: 'Glow', svg: rect(0, 0, 1200, 630, 'url(#glow)') },
+      ...wrapLayers(iconLayers(), 'translate(110 150) scale(0.6)', 'logo-'),
+      ...wordmarkLayers(480, 330, 118).layers,
+      { id: 'tagline', label: 'Tagline', svg: text(INT6, TAGLINE, 484, 396, { size: 30, fill: C.muted, ls: 4 }) },
+      { id: 'url', label: 'Web address', svg: text(OSW6, SITE, 484, 470, { size: 30, fill: C.lime, ls: 5 }) },
+    ],
+  })
   // site header image (4:1)
   const W = 1600, Hh = 400
   write({
@@ -315,7 +334,7 @@ function shirts() {
 }
 
 function grounds() {
-  const list: [string, ReturnType<typeof clubSurround>][] = [['MatchdayXI-default', groundSurround(DEFAULT_GROUND, '#1E3A6B', '#19E6D1')], ...CLUBS.filter((c) => CLUB_GROUNDS[c]).map((c): [string, ReturnType<typeof clubSurround>] => [c.replace(/ /g, '-'), clubSurround(c, 'home')])]
+  const list: [string, ReturnType<typeof clubSurround>][] = [['Gaffster-default', groundSurround(DEFAULT_GROUND, '#1E3A6B', '#19E6D1')], ...CLUBS.filter((c) => CLUB_GROUNDS[c]).map((c): [string, ReturnType<typeof clubSurround>] => [c.replace(/ /g, '-'), clubSurround(c, 'home')])]
   for (const [slug, sur] of list) {
     if (!sur) continue
     const e = sur.ext
