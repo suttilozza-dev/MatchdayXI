@@ -1,10 +1,10 @@
 import { createMiddleware, createStart } from '@tanstack/react-start'
 
-/** The main address. The old Matchday XI address and the extra Gaffster addresses send visitors here. */
-const CANONICAL_HOST = 'gaffster.com'
+/** The main address. The old Matchday XI address and the other Gaffster addresses send visitors here. */
+const CANONICAL_HOST = 'gaffster.app'
 const REDIRECTED_HOSTS = new Set([
+  'gaffster.com',
   'www.gaffster.com',
-  'gaffster.app',
   'www.gaffster.app',
   'gaffster.club',
   'www.gaffster.club',
@@ -13,7 +13,7 @@ const REDIRECTED_HOSTS = new Set([
 ])
 
 /**
- * Permanent redirect to gaffster.com for page requests on the other addresses. The path, query and any #hash
+ * Permanent redirect to gaffster.app for page requests on the other addresses. The path, query and any #hash
  * (share links keep their line-up in the hash) carry over. /api/ is left alone so sign-in and Whop webhooks that
  * still point at the old address keep working until they are moved.
  */

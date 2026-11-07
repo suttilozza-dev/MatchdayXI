@@ -45,7 +45,7 @@ export const Route = createRootRoute({
           '@context': 'https://schema.org',
           '@type': 'WebApplication',
           name: 'Gaffster',
-          url: 'https://gaffster.com',
+          url: 'https://gaffster.app',
           applicationCategory: 'SportsApplication',
           operatingSystem: 'Any (web browser)',
           browserRequirements: 'Requires JavaScript and a modern browser',
