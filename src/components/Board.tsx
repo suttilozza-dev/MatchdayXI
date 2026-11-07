@@ -811,6 +811,8 @@ export default function Board() {
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSel(selected ? null : { side: m.side, idx: m.idx }); setTab(m.side) } }}
                   >
                     {selected && <circle r={34} fill="none" stroke="#C8FF3D" strokeWidth={3} strokeDasharray="6 5" />}
+                    {/* invisible click and drag area, so every marker style can be picked up (the kit drawings ignore the mouse) */}
+                    <circle r={38} fill="transparent" />
                     {markerStyle === 'circle' ? (
                       <circle r={26} fill={m.colour} stroke={m.ring} strokeWidth={4} />
                     ) : (
