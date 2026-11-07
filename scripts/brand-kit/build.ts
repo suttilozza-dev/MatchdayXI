@@ -9,6 +9,8 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import opentype from 'opentype.js'
+import { DOMParser } from '@xmldom/xmldom'
+import { LOGOS } from '../../src/lib/logos'
 import { CLUBS, readableOn, surname } from '../../src/lib/data'
 import { ALL_KITS, isBusy, kitLayers, type KitDesign } from '../../src/lib/kitDesign'
 import { PL, PW, LINE_PATHS, SPOTS, viewBoxFor } from '../../src/lib/pitch'
@@ -28,8 +30,8 @@ const INT6 = font('inter/files/inter-latin-600-normal.woff')
 const INT4 = font('inter/files/inter-latin-400-normal.woff')
 
 const C = { bg: '#0A1020', deep: '#070B18', panel: '#121B33', lime: '#C8FF3D', cyan: '#19E6D1', amber: '#FFBA1F', text: '#F5F7FF', muted: '#A9B4D0', violet: '#7C5CFF', turf: '#23A261' }
-const NAME = 'PRE POST XI'
-const TAGLINE = 'LINE-UPS BEFORE AND AFTER THE WHISTLE'
+const TAGLINE = 'FOOTBALL LINE-UP MAKER'
+const SITE = 'GAFFSTER.APP'
 
 // ---------- text as outlines ----------
 type TOpt = { size: number; fill: string; anchor?: 'start' | 'middle' | 'end'; ls?: number; opacity?: number }
@@ -84,38 +86,26 @@ function write(d: Design) {
 const rect = (x: number, y: number, w: number, h: number, fill: string, r = 0, extra = '') => `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r ? ` rx="${r}"` : ''} fill="${fill}" ${extra}/>`
 const shapeSvg = (s: Shape) => `<path d="${s.d}"${s.fill ? ` fill="${s.fill}"` : ' fill="none"'}${s.stroke ? ` stroke="${s.stroke}" stroke-width="${s.sw ?? 1}"` : ''}${s.opacity != null ? ` opacity="${s.opacity}"` : ''}/>`
 
-// ---------- the logo mark: a dashed "pre" pitch overlapping a solid "post" pitch, with XI ----------
+// ---------- the logo mark: the line shirt with XI, as used in the site header ----------
+const SHIRT = 'M70 22 Q100 36 130 22 L158 34 L188 74 L166 92 L150 80 L150 176 L50 176 L50 80 L34 92 L12 74 L42 34 Z'
 function iconLayers(round = true): Layer[] {
-  const pitch = (x: number, y: number, stroke: string, dash: boolean, fillOp: number) =>
-    `<rect x="${x}" y="${y}" width="220" height="136" rx="16" fill="${stroke}" fill-opacity="${fillOp}" stroke="${stroke}" stroke-width="10"${dash ? ' stroke-dasharray="22 16"' : ''}/>` +
-    `<path d="M${x + 110},${y}V${y + 136}" stroke="${stroke}" stroke-width="7"${dash ? ' stroke-dasharray="14 10"' : ''}/>` +
-    `<circle cx="${x + 110}" cy="${y + 68}" r="24" fill="none" stroke="${stroke}" stroke-width="7"${dash ? ' stroke-dasharray="12 9"' : ''}/>`
   return [
     { id: 'icon-background', label: 'Icon background', svg: rect(0, 0, 512, 512, C.panel, round ? 116 : 0) },
-    { id: 'pre-pitch', label: 'Pre pitch (dashed)', svg: pitch(74, 64, C.lime, true, 0.05) },
-    { id: 'post-pitch', label: 'Post pitch (solid)', svg: pitch(218, 152, C.cyan, false, 0.1) },
-    { id: 'xi', label: 'XI', svg: text(OSW7, 'XI', 256, 462, { size: 148, fill: C.lime, anchor: 'middle', ls: 4 }) },
+    { id: 'shirt', label: 'Shirt outline', svg: `<g transform="translate(76 78) scale(1.8)"><path d="${SHIRT}" fill="none" stroke="${C.text}" stroke-width="7" stroke-linejoin="round"/></g>` },
+    { id: 'letters-xi', label: 'XI', svg: text(OSW7, 'XI', 256, 342, { size: 150, fill: C.lime, anchor: 'middle' }) },
   ]
 }
 const wrapLayers = (ls: Layer[], t: string, prefix = ''): Layer[] => ls.map((l) => ({ ...l, id: prefix + l.id, svg: `<g transform="${t}">${l.svg}</g>` }))
 
-function wordmarkLayers(x: number, y: number, size: number, underline: boolean): { layers: Layer[]; width: number } {
+function wordmarkLayers(x: number, y: number, size: number, _underline = false): { layers: Layer[]; width: number } {
   const ls = size * 0.02
-  const w1 = measure(OSW7, 'PRE', size, ls)
-  const w2 = measure(OSW7, 'POST', size, ls)
-  const gap = size * 0.2
-  const w3 = measure(OSW7, 'XI', size, ls)
+  const w1 = measure(OSW7, 'GAFF', size, ls)
+  const w2 = measure(OSW7, 'STER', size, ls)
   const layers: Layer[] = [
-    { id: 'word-pre', label: 'PRE', svg: text(OSW7, 'PRE', x, y, { size, fill: C.text, ls }) },
-    { id: 'word-post', label: 'POST', svg: text(OSW7, 'POST', x + w1 + gap, y, { size, fill: C.text, ls }) },
-    { id: 'word-xi', label: 'XI', svg: text(OSW7, 'XI', x + w1 + gap + w2 + gap, y, { size, fill: C.lime, ls }) },
+    { id: 'word-gaff', label: 'GAFF', svg: text(OSW7, 'GAFF', x, y, { size, fill: C.text, ls }) },
+    { id: 'word-ster', label: 'STER', svg: text(OSW7, 'STER', x + w1 + ls, y, { size, fill: C.lime, ls }) },
   ]
-  if (underline) {
-    const uy = y + size * 0.1
-    layers.push({ id: 'underline-pre', label: 'Dashed underline', svg: `<path d="M${x},${uy}H${x + w1}" stroke="${C.lime}" stroke-width="${size * 0.04}" stroke-dasharray="${size * 0.12} ${size * 0.08}"/>` })
-    layers.push({ id: 'underline-post', label: 'Solid underline', svg: `<path d="M${x + w1 + gap},${uy}H${x + w1 + gap + w2}" stroke="${C.cyan}" stroke-width="${size * 0.04}"/>` })
-  }
-  return { layers, width: w1 + gap + w2 + gap + w3 }
+  return { layers, width: w1 + ls + w2 }
 }
 
 function logos() {
@@ -151,16 +141,16 @@ function logos() {
 // ---------- shared background pieces ----------
 const GLOW_DEFS = (id: string, cx: string, cy: string) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="0.7"><stop offset="0" stop-color="${C.turf}" stop-opacity="0.38"/><stop offset="1" stop-color="${C.turf}" stop-opacity="0"/></radialGradient>`
 const motif = (x: number, y: number, s: number, op: number) =>
-  `<g transform="translate(${x} ${y}) scale(${s})" opacity="${op}"><rect x="0" y="0" width="236" height="150" rx="16" fill="none" stroke="${C.lime}" stroke-width="5" stroke-dasharray="14 10"/><path d="M118,0V150" stroke="${C.lime}" stroke-width="4" stroke-dasharray="9 7"/><circle cx="118" cy="75" r="26" fill="none" stroke="${C.lime}" stroke-width="4" stroke-dasharray="8 6"/><g transform="translate(120 90)"><rect x="0" y="0" width="236" height="150" rx="16" fill="${C.cyan}" fill-opacity="0.08" stroke="${C.cyan}" stroke-width="5"/><path d="M118,0V150" stroke="${C.cyan}" stroke-width="4"/><circle cx="118" cy="75" r="26" fill="none" stroke="${C.cyan}" stroke-width="4"/></g></g>`
+  `<g transform="translate(${x} ${y}) scale(${s})" opacity="${op}"><path d="${SHIRT}" fill="none" stroke="${C.lime}" stroke-width="3.2" stroke-linejoin="round"/><path d="M70 22 Q100 36 130 22" fill="none" stroke="${C.cyan}" stroke-width="3.2" stroke-linecap="round"/></g>`
 const smallLogo = (x: number, y: number, s: number): Layer[] => [
   ...wrapLayers(iconLayers(), `translate(${x} ${y}) scale(${s})`, 'logo-'),
-  { id: 'logo-name', label: 'Logo name', svg: text(OSW7, NAME, x + 512 * s + 14, y + 512 * s * 0.72, { size: 512 * s * 0.52, fill: C.text, ls: 2 }) },
+  ...wordmarkLayers(x + 512 * s + 14, y + 512 * s * 0.72, 512 * s * 0.52).layers.map((l) => ({ ...l, id: 'logo-' + l.id })),
 ]
 
 // ---------- plans (copy matches the Pricing component) ----------
 type Plan = { slug: string; title: string; price: string; per: string; sub: string; lines: string[]; badge?: string; highlight?: boolean }
 const PLANS: Plan[] = [
-  { slug: 'free', title: 'FREE', price: '£0', per: '', sub: 'No card, no catch', lines: ['Your first image needs no sign-up', 'Then 3 watermarked images every week after a free sign-in', 'Every formation and marker style', 'MatchdayXI stadium'] },
+  { slug: 'free', title: 'FREE', price: '£0', per: '', sub: 'No card, no catch', lines: ['Your first image needs no sign-up', 'Then 3 watermarked images every week after a free sign-in', 'Every formation and marker style', 'Gaffster stadium'] },
   { slug: 'gameweek-pass', title: 'GAMEWEEK PASS', price: '£2.99', per: 'once · 7 days', sub: 'No subscription. Buy another whenever you need one.', lines: ['Up to 5 images a day with no watermark for 7 days', 'The allowance resets every day and does not roll over', 'Square, 4:5, story, header and banner sizes', "One club's stadium"] },
   { slug: 'plus', title: 'PLUS', price: '£29.99', per: 'a year', sub: 'Season Pass: about £2.50 a month. Or £4.99 a month.', lines: ['Unlimited images with no watermark, for as long as you subscribe', 'Transparent background', 'Every stadium and colourway', 'Saved line-ups and gameweek history (soon)'], badge: 'MOST POPULAR', highlight: true },
   { slug: 'creator', title: 'CREATOR', price: '£79.99', per: 'a year', sub: 'About £6.67 a month. Or £9.99 a month.', lines: ['Everything in Plus', 'Your handle on the image, branding removed', 'Present mode: hidden controls for streaming', 'Bulk export, reveal videos, templates and coaching markup (soon)', 'Join now and keep this price as features arrive'] },
@@ -203,7 +193,7 @@ function banners() {
     const layers: Layer[] = [
       { id: 'background', label: 'Background', svg: rect(0, 0, W, Hh, 'url(#bg)') },
       { id: 'glow', label: 'Glow', svg: rect(0, 0, W, Hh, 'url(#glow)') },
-      { id: 'pitch-motif', label: 'Pre / post pitch motif', svg: motif(700, 200, 2.0, 0.55) },
+      { id: 'pitch-motif', label: 'Shirt motif', svg: motif(820, 56, 2.1, 0.5) },
       ...smallLogo(80, 56, 0.1),
     ]
     if (p.badge) layers.push({ id: 'badge', label: 'Badge', svg: rect(80, 150, measure(OSW6, p.badge, 26, 3) + 44, 46, C.violet, 23) + text(OSW6, p.badge, 80 + 22, 183, { size: 26, fill: '#FFFFFF', ls: 3 }) })
@@ -212,7 +202,7 @@ function banners() {
     layers.push({ id: 'price', label: 'Price', svg: text(OSW7, p.price, 80, 480, { size: 150, fill: C.lime }) })
     if (p.per) layers.push({ id: 'price-period', label: 'Price period', svg: text(INT6, p.per, 80 + pw + 22, 476, { size: 38, fill: C.muted }) })
     bullets.forEach((b, i) => layers.push({ id: `bullet-${i + 1}`, label: `Bullet ${i + 1}`, svg: `<circle cx="94" cy="${561 + i * 52}" r="10" fill="${C.cyan}"/>` + text(INT6, b, 120, 572 + i * 52, { size: 32, fill: C.text }) }))
-    layers.push({ id: 'url', label: 'Web address', svg: text(OSW6, 'PREPOSTXI.COM', W - 80, Hh - 50, { size: 28, fill: C.muted, anchor: 'end', ls: 4 }) })
+    layers.push({ id: 'url', label: 'Web address', svg: text(OSW6, SITE, W - 80, Hh - 50, { size: 28, fill: C.muted, anchor: 'end', ls: 4 }) })
     write({ group: '2-whop-banners', slug: p.slug, title: `Banner: ${p.title}`, w: W, h: Hh, defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.78', '0.45')}`, layers })
   }
   // site header image (4:1)
@@ -223,7 +213,7 @@ function banners() {
     layers: [
       { id: 'background', label: 'Background', svg: rect(0, 0, W, Hh, 'url(#bg)') },
       { id: 'glow', label: 'Glow', svg: rect(0, 0, W, Hh, 'url(#glow)') },
-      { id: 'pitch-motif', label: 'Pre / post pitch motif', svg: motif(1040, 60, 1.3, 0.6) },
+      { id: 'pitch-motif', label: 'Shirt motif', svg: motif(1120, 24, 2.0, 0.6) },
       ...wrapLayers(iconLayers(), 'translate(80 80) scale(0.48)', 'logo-'),
       ...wordmarkLayers(360, 232, 130, false).layers,
       { id: 'tagline', label: 'Tagline', svg: text(INT6, TAGLINE, 364, 300, { size: 26, fill: C.muted, ls: 3 }) },
@@ -268,7 +258,7 @@ function lineupParts() {
   const inner: Layer[] = [
     { id: 'background', label: 'Background', svg: rect(0, 0, W, Hh, C.bg) },
     ...wrapLayers(iconLayers(), 'translate(48 34) scale(0.15)', 'logo-'),
-    { id: 'logo-name', label: 'Logo name', svg: text(OSW7, NAME, 136, 96, { size: 64, fill: C.text, ls: 2 }) },
+    ...wordmarkLayers(136, 96, 64).layers.map((l) => ({ ...l, id: 'logo-' + l.id })),
     { id: 'gameweek', label: 'Gameweek text', svg: text(OSW6, 'GAMEWEEK 10 · PREDICTED XI', W - 48, 94, { size: 28, fill: C.muted, anchor: 'end' }) },
     { id: 'team-dot', label: 'Team colour dot', svg: `<circle cx="60" cy="146" r="11" fill="${C.lime}" stroke="${C.text}" stroke-opacity="0.6" stroke-width="2"/>` },
     { id: 'team-name', label: 'Team and formation', svg: text(OSW6, 'ARSENAL  4-2-3-1', 82, 158, { size: 30, fill: C.text }) },
@@ -282,7 +272,7 @@ function lineupParts() {
     ...players,
     { id: 'manager', label: 'Manager', svg: text(OSW6, 'MANAGER  MIKEL ARTETA', 48, 1130, { size: 22, fill: C.lime }) },
     { id: 'subs', label: 'Substitutes', svg: text(OSW6, 'SUBS  6 Magalhaes · 12 Timber · 13 Arrizabalaga · 15 Konsa · 20 Madueke', 48, 1164, { size: 22, fill: C.lime }) },
-    { id: 'footer-url', label: 'Footer web address', svg: text(OSW6, 'PREPOSTXI.COM', 48, 1310, { size: 20, fill: C.muted }) },
+    { id: 'footer-url', label: 'Footer web address', svg: text(OSW6, SITE, 48, 1310, { size: 20, fill: C.muted }) },
     { id: 'footer-note', label: 'Footer disclaimer', svg: text(INT4, 'Independent fan tool. Not affiliated with the Premier League or any club.', W - 48, 1310, { size: 15, fill: C.muted, anchor: 'end' }) },
   ]
   return { W, Hh, defs, layers: inner }
@@ -303,8 +293,8 @@ function lineup() {
       ...smallLogo(146, 18, 0.1),
       { id: 'nav-link', label: 'Nav link', svg: text(OSW6, 'OPEN THE BOARD →', 1213, 45, { size: 16, fill: C.lime, anchor: 'end', ls: 1 }) },
       { id: 'kicker', label: 'Kicker', svg: text(OSW6, 'FOOTBALL LINE-UP MAKER', 146, 243, { size: 13, fill: C.lime, ls: 2 }) },
-      { id: 'headline-pre-post', label: 'Headline: PRE POST', svg: text(OSW7, 'PRE POST', 146, 345, { size: 112, fill: C.text, ls: 2 }) },
-      { id: 'headline-xi', label: 'Headline: XI', svg: text(OSW7, 'XI', 146 + measure(OSW7, 'PRE POST ', 112, 2), 345, { size: 112, fill: C.lime, ls: 2 }) },
+      { id: 'headline-gaff', label: 'Headline: GAFF', svg: text(OSW7, 'GAFF', 146, 345, { size: 112, fill: C.text, ls: 2 }) },
+      { id: 'headline-ster', label: 'Headline: STER', svg: text(OSW7, 'STER', 146 + measure(OSW7, 'GAFF', 112, 2) + 2, 345, { size: 112, fill: C.lime, ls: 2 }) },
       ...wrap(INT4, 'Pick a formation, name your captain and manager, and share your predicted XI, starting line-up or dream team as an image. Your first one is free, with no sign-up.', 20, 560).map((ln, i) => ({ id: `paragraph-${i + 1}`, label: `Paragraph line ${i + 1}`, svg: text(INT4, ln, 146, 390 + i * 28, { size: 20, fill: C.muted }) })),
       { id: 'button-primary', label: 'Button: Build your XI', svg: rect(146, 481, 134, 44, C.lime, 12) + text(OSW7, 'BUILD YOUR XI', 213, 509, { size: 15, fill: C.bg, anchor: 'middle', ls: 1.5 }) },
       { id: 'button-secondary', label: 'Button: See plans', svg: `<rect x="293" y="481" width="106" height="44" rx="22" fill="none" stroke="${C.text}" stroke-opacity="0.4" stroke-width="1.5"/>` + text(OSW7, 'SEE PLANS', 346, 509, { size: 15, fill: C.text, anchor: 'middle', ls: 1.5 }) },
@@ -347,8 +337,178 @@ function grounds() {
   }
 }
 
+
+// ---------- the 11 approved logo concepts: every <text> turned into outlines, each element its own layer ----------
+type XEl = { nodeType: number; tagName?: string; nodeValue?: string | null; attributes?: { length: number; item(i: number): { name: string; value: string } }; childNodes: { length: number; item(i: number): XEl }; getAttribute?(n: string): string | null }
+const attr = (el: XEl, n: string, d = '') => el.getAttribute?.(n) ?? d
+const esc = (v: string) => v.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+
+function fontFor(el: XEl): opentype.Font {
+  if (attr(el, 'font-family').includes('Inter')) return INT6
+  return Number(attr(el, 'font-weight', '600')) >= 700 ? OSW7 : OSW6
+}
+function textRuns(el: XEl, inheritFill: string): { str: string; fill: string }[] {
+  const runs: { str: string; fill: string }[] = []
+  for (let i = 0; i < el.childNodes.length; i++) {
+    const c = el.childNodes.item(i)
+    if (c.nodeType === 3) {
+      const t = (c.nodeValue ?? '').replace(/\s+/g, ' ')
+      if (t.trim()) runs.push({ str: runs.length ? t : t.trimStart(), fill: inheritFill })
+    } else if (c.tagName === 'tspan') runs.push(...textRuns(c, attr(c, 'fill', inheritFill)))
+    else if (c.tagName === 'textPath') runs.push(...textRuns(c, inheritFill))
+  }
+  return runs
+}
+const r2 = (n: number) => Math.round(n * 100) / 100
+
+/** Text element to outline paths (stroke halo first, then fills). With a circular textPath, letters follow the arc. */
+function textToPaths(el: XEl, defsPaths: Record<string, string>): string {
+  const font = fontFor(el)
+  const size = Number(attr(el, 'font-size', '16'))
+  const ls = Number(attr(el, 'letter-spacing', '0'))
+  const fill = attr(el, 'fill', '#000')
+  const stroke = attr(el, 'stroke')
+  const sw = Number(attr(el, 'stroke-width', '0'))
+  const runs = textRuns(el, fill)
+  const sc = size / font.unitsPerEm
+  const glyphs: { g: opentype.Glyph; fill: string }[] = []
+  for (const r of runs) for (const ch of [...r.str]) glyphs.push({ g: font.charToGlyph(ch), fill: r.fill })
+  const adv = (g: opentype.Glyph) => (g.advanceWidth ?? 0) * sc + ls
+  const width = glyphs.reduce((w, x) => w + adv(x.g), 0) - (glyphs.length ? ls : 0)
+  // does it sit on a path?
+  let onPath: { r: number; sweep: number; cx: number; cy: number; start: number } | null = null
+  for (let i = 0; i < el.childNodes.length; i++) {
+    const c = el.childNodes.item(i)
+    if (c.tagName === 'textPath') {
+      const id = (attr(c, 'href') || attr(c, 'xlink:href')).replace('#', '')
+      const m = defsPaths[id]?.match(/M\s*([\d.]+)\s+([\d.]+)\s*A\s*([\d.]+)\s+[\d.]+\s+0\s+0\s+(\d)\s+([\d.]+)\s+([\d.]+)/)
+      if (m) {
+        const [x0, y0, rr, sweep, x1, y1] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5]), Number(m[6])]
+        onPath = { r: rr, sweep, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, start: (Math.PI * rr) / 2 - width / 2 }
+      }
+    }
+  }
+  const x = Number(attr(el, 'x', '0')), y = Number(attr(el, 'y', '0'))
+  const anchor = attr(el, 'text-anchor', 'start')
+  let cx = anchor === 'middle' ? x - width / 2 : anchor === 'end' ? x - width : x
+  const items: { d: string; fill: string }[] = []
+  let pos = onPath ? onPath.start : 0
+  for (const { g, fill: f } of glyphs) {
+    const a = (g.advanceWidth ?? 0) * sc
+    if (onPath) {
+      const mid = pos + a / 2
+      const phi = onPath.sweep === 1 ? Math.PI + mid / onPath.r : Math.PI - mid / onPath.r
+      const px = onPath.cx + onPath.r * Math.cos(phi)
+      const py = onPath.cy + onPath.r * Math.sin(phi)
+      const rot = onPath.sweep === 1 ? phi + Math.PI / 2 : phi - Math.PI / 2
+      const cos = Math.cos(rot), sin = Math.sin(rot)
+      // glyph drawn with its baseline centre at the origin, then rotated and moved onto the arc
+      const raw = g.getPath(-a / 2, 0, size)
+      const pts = (raw.commands as { type: string; x?: number; y?: number; x1?: number; y1?: number; x2?: number; y2?: number }[]).map((c) => {
+        const tr = (u: number, v: number) => `${r2(px + u * cos - v * sin)} ${r2(py + u * sin + v * cos)}`
+        if (c.type === 'M' || c.type === 'L') return `${c.type}${tr(c.x!, c.y!)}`
+        if (c.type === 'Q') return `Q${tr(c.x1!, c.y1!)} ${tr(c.x!, c.y!)}`
+        if (c.type === 'C') return `C${tr(c.x1!, c.y1!)} ${tr(c.x2!, c.y2!)} ${tr(c.x!, c.y!)}`
+        return 'Z'
+      })
+      items.push({ d: pts.join(''), fill: f })
+      pos += a + ls
+    } else {
+      items.push({ d: g.getPath(Math.round(cx * 100) / 100, Math.round(y * 100) / 100, size).toPathData(2), fill: f })
+      cx += a + ls
+    }
+  }
+  const all = items.map((i) => i.d).join('')
+  let out = ''
+  if (stroke && sw) out += `<path d="${all}" fill="${stroke}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`
+  const byFill = new Map<string, string>()
+  for (const i of items) byFill.set(i.fill, (byFill.get(i.fill) ?? '') + i.d)
+  for (const [f, d] of byFill) out += `<path d="${d}" fill="${f}"/>`
+  return out
+}
+
+function serialise(el: XEl, defsPaths: Record<string, string>, clip = false): string {
+  if (el.nodeType === 3) return ''
+  const tag = el.tagName!
+  if (tag === 'text') {
+    if (clip) return `<path d="${[...textToPaths(el, defsPaths).matchAll(/ d="([^"]+)"/g)].map((m) => m[1]).join('')}"/>`
+    return textToPaths(el, defsPaths)
+  }
+  let attrs = ''
+  for (let i = 0; i < (el.attributes?.length ?? 0); i++) {
+    const a = el.attributes!.item(i)
+    if (a.name === 'href' && a.value.startsWith('/brand/')) {
+      const png = readFileSync(join(HERE, '../../public', a.value)).toString('base64')
+      attrs += ` href="data:image/png;base64,${png}"`
+    } else attrs += ` ${a.name}="${esc(a.value)}"`
+  }
+  let inner = ''
+  for (let i = 0; i < el.childNodes.length; i++) inner += serialise(el.childNodes.item(i), defsPaths, clip || tag === 'clipPath')
+  return inner ? `<${tag}${attrs}>${inner}</${tag}>` : `<${tag}${attrs}/>`
+}
+
+function logoConcepts() {
+  const parser = new DOMParser()
+  for (const l of Object.values(LOGOS)) {
+    const doc = parser.parseFromString(l.svg, 'image/svg+xml')
+    const root = doc.documentElement as unknown as XEl
+    // paths used only by textPath, kept out of the output
+    const defsPaths: Record<string, string> = {}
+    let defsOut = ''
+    const layers: Layer[] = [{ id: 'background', label: 'Background', svg: rect(0, 0, 320, 240, l.bg) }]
+    const used = new Map<string, number>()
+    const name = (base: string) => {
+      const n = (used.get(base) ?? 0) + 1
+      used.set(base, n)
+      return n > 1 ? `${base}-${n}` : base
+    }
+    const add = (el: XEl, wrapT = '') => {
+      const tag = el.tagName!
+      const svg = serialise(el, defsPaths)
+      if (!svg) return
+      let label = tag
+      if (tag === 'text') label = 'Text: ' + (el.childNodes.length ? (el as unknown as { textContent: string }).textContent.replace(/\s+/g, ' ').trim() : '')
+      else if (tag === 'image') label = 'Ball image'
+      const base = tag === 'text' ? 'text-' + label.slice(6).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : tag === 'image' ? 'ball' : tag === 'g' ? 'group' : 'shape'
+      layers.push({ id: name(base), label, svg: wrapT ? `<g transform="${wrapT}">${svg}</g>` : svg })
+    }
+    // collect arc definitions first
+    for (let i = 0; i < root.childNodes.length; i++) {
+      const c = root.childNodes.item(i)
+      if (c.tagName === 'defs') {
+        for (let j = 0; j < c.childNodes.length; j++) {
+          const d = c.childNodes.item(j)
+          if (d.tagName === 'path' && attr(d, 'id')) defsPaths[attr(d, 'id')] = attr(d, 'd')
+        }
+        for (let j = 0; j < c.childNodes.length; j++) {
+          const d = c.childNodes.item(j)
+          if (d.tagName === 'clipPath') defsOut += serialise(d, defsPaths)
+        }
+      }
+    }
+    for (let i = 0; i < root.childNodes.length; i++) {
+      const c = root.childNodes.item(i)
+      if (c.nodeType !== 1 || c.tagName === 'defs') continue
+      const attrNames = Array.from({ length: c.attributes?.length ?? 0 }, (_, k) => c.attributes!.item(k).name)
+      if (c.tagName === 'g' && attrNames.every((n) => n === 'transform')) {
+        const t = attr(c, 'transform')
+        for (let j = 0; j < c.childNodes.length; j++) {
+          const k = c.childNodes.item(j)
+          if (k.nodeType === 1) add(k, t)
+        }
+      } else add(c)
+    }
+    write({
+      group: '1b-logo-concepts', slug: `concept-${l.id}`, title: `Logo ${l.id}: ${l.name}`, w: 960, h: 720,
+      defs: defsOut || undefined,
+      layers: layers.map((x) => ({ ...x, svg: `<g transform="scale(3)">${x.svg}</g>` })),
+    })
+  }
+}
+
 rmSync(OUT, { recursive: true, force: true })
 logos()
+logoConcepts()
 banners()
 pricingCards()
 lineup()
