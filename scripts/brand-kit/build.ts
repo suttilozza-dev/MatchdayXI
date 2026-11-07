@@ -211,6 +211,19 @@ function banners() {
     layers.push({ id: 'url', label: 'Web address', svg: text(OSW6, SITE, W - 80, Hh - 50, { size: 28, fill: C.muted, anchor: 'end', ls: 4 }) })
     write({ group: '2-whop-banners', slug: p.slug, title: `Banner: ${p.title}${p.slug.endsWith('-monthly') ? ' (monthly)' : ''}`, w: W, h: Hh, defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.78', '0.45')}`, layers })
   }
+  // social preview (Open Graph, 1200 x 630): everything stays inside the middle so no crop can cut it
+  write({
+    group: '2-whop-banners', slug: 'social-preview', title: 'Social preview image (1200 x 630)', w: 1200, h: 630,
+    defs: `<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${C.panel}"/><stop offset="1" stop-color="${C.deep}"/></linearGradient>${GLOW_DEFS('glow', '0.5', '0.5')}`,
+    layers: [
+      { id: 'background', label: 'Background', svg: rect(0, 0, 1200, 630, 'url(#bg)') },
+      { id: 'glow', label: 'Glow', svg: rect(0, 0, 1200, 630, 'url(#glow)') },
+      ...wrapLayers(iconLayers(), 'translate(110 150) scale(0.6)', 'logo-'),
+      ...wordmarkLayers(480, 330, 118).layers,
+      { id: 'tagline', label: 'Tagline', svg: text(INT6, TAGLINE, 484, 396, { size: 30, fill: C.muted, ls: 4 }) },
+      { id: 'url', label: 'Web address', svg: text(OSW6, SITE, 484, 470, { size: 30, fill: C.lime, ls: 5 }) },
+    ],
+  })
   // site header image (4:1)
   const W = 1600, Hh = 400
   write({
